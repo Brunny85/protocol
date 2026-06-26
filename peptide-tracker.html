@@ -297,6 +297,11 @@ tr:active td{background:var(--card2)}
 .calc-ref-row:last-child{border-bottom:none}
 .calc-ref-dose{color:#fff;font-weight:600}
 .calc-ref-vol{color:#BDD4FF;font-family:var(--mono)}
+/* Syringe visualiser */
+.syringe-wrap{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);padding:16px;margin-bottom:12px}
+.syringe-size-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.syringe-size-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.syringe-size-btn.on{background:#fff;color:#0033A0;border-color:#fff}
 /* Links */
 .link-card{display:flex;align-items:center;gap:14px;background:#0033A0;
   border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
@@ -422,7 +427,7 @@ tr:active td{background:var(--card2)}
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.23 · 26 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.26 · 26 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -626,6 +631,49 @@ tr:active td{background:var(--card2)}
         <div class="calc-result-lbl" id="calc-result-lbl">Result</div>
         <div class="calc-result-val" id="calc-result-val">—</div>
         <div class="calc-result-sub" id="calc-result-sub"></div>
+      </div>
+
+      <!-- Syringe Visualiser -->
+      <div class="syringe-wrap">
+        <div class="calc-section-lbl">Syringe Visual</div>
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Insulin (units)</div>
+        <div class="syringe-size-row" style="margin-bottom:10px">
+          <button class="syringe-size-btn on" onclick="setSyringeSize(0.3,'insulin',this)">0.3 ml<br><span style="font-size:10px;font-weight:400">30 units</span></button>
+          <button class="syringe-size-btn" onclick="setSyringeSize(0.5,'insulin',this)">0.5 ml<br><span style="font-size:10px;font-weight:400">50 units</span></button>
+          <button class="syringe-size-btn" onclick="setSyringeSize(1.0,'insulin',this)">1.0 ml<br><span style="font-size:10px;font-weight:400">100 units</span></button>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">IM (ml)</div>
+        <div class="syringe-size-row">
+          <button class="syringe-size-btn" onclick="setSyringeSize(1.0,'im',this)">1.0 ml<br><span style="font-size:10px;font-weight:400">IM</span></button>
+          <button class="syringe-size-btn" onclick="setSyringeSize(2.0,'im',this)">2.0 ml<br><span style="font-size:10px;font-weight:400">IM</span></button>
+          <button class="syringe-size-btn" onclick="setSyringeSize(3.0,'im',this)">3.0 ml<br><span style="font-size:10px;font-weight:400">IM</span></button>
+        </div>
+        <svg id="syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg">
+          <!-- Plunger handle -->
+          <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
+          <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
+          <!-- Plunger rod -->
+          <rect id="syr-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
+          <!-- Barrel outline -->
+          <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+          <!-- Fluid fill -->
+          <clipPath id="barrel-clip">
+            <rect x="124" y="50" width="72" height="376" rx="6"/>
+          </clipPath>
+          <rect id="syr-fluid" x="124" y="426" width="72" height="0" rx="0" fill="rgba(78,205,196,0.7)" clip-path="url(#barrel-clip)"/>
+          <!-- Plunger disc -->
+          <rect id="syr-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
+          <!-- Tick marks and labels -->
+          <g id="syr-ticks"></g>
+          <!-- Needle hub -->
+          <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
+          <!-- Needle -->
+          <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
+          <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
+          <!-- Current units label -->
+          <text id="syr-units-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— units</text>
+          <text id="syr-ml-label" x="280" y="458" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.45)" text-anchor="middle">— ml</text>
+        </svg>
       </div>
 
       <!-- Quick reference -->
@@ -1844,6 +1892,87 @@ let lastEdited='';
 
 function updatePinLabel(){}
 
+// ─── SYRINGE VISUALISER ──────────────────────────────────────
+let syringeMaxMl = 0.3;
+
+let syringeType = 'insulin'; // 'insulin' or 'im'
+
+function setSyringeSize(ml, type, btn){
+  syringeMaxMl = ml;
+  syringeType = type;
+  document.querySelectorAll('.syringe-size-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  drawSyringe(currentUnits());
+}
+
+function currentUnits(){
+  return parseFloat(document.getElementById('c-vol').value)||0;
+}
+
+function drawSyringe(units){
+  const maxUnits = syringeMaxMl * 100;
+  const barrelTop = 50;
+  const barrelH = 376;
+  const barrelBot = barrelTop + barrelH; // y=426
+
+  // Clamp units
+  const u = Math.min(Math.max(units, 0), maxUnits);
+  const pct = maxUnits > 0 ? u / maxUnits : 0;
+  const fillH = Math.round(pct * barrelH);
+  const fillY = barrelBot - fillH;
+
+  // Update fluid
+  const fluid = document.getElementById('syr-fluid');
+  fluid.setAttribute('y', fillY);
+  fluid.setAttribute('height', fillH);
+  fluid.setAttribute('rx', fillH > 6 ? 4 : 0);
+
+  // Update plunger disc position
+  const disc = document.getElementById('syr-disc');
+  disc.setAttribute('y', fillY - 12);
+
+  // Update plunger rod
+  const rod = document.getElementById('syr-plunger-rod');
+  const rodH = Math.max(0, fillY - 50);
+  rod.setAttribute('height', rodH);
+
+  // Draw tick marks
+  const tickGroup = document.getElementById('syr-ticks');
+  // For IM syringes in ml, ticks represent 0.1ml increments expressed as units
+  const step = syringeType==='im'
+    ? (syringeMaxMl<=1.0 ? 10 : syringeMaxMl<=2.0 ? 20 : 30)
+    : (syringeMaxMl<=0.3 ? 5 : syringeMaxMl<=0.5 ? 5 : 10);
+  let ticks = '';
+  for(let tu = 0; tu <= maxUnits; tu += step){
+    const ty = barrelBot - Math.round((tu/maxUnits)*barrelH);
+    const isMajor = tu % (step*2) === 0;
+    const tickW = isMajor ? 18 : 10;
+    const lbl = isMajor ? (syringeType==='im' ? (tu*0.01).toFixed(1)+'ml' : tu.toString()) : '';
+    ticks += `<line x1="${198}" y1="${ty}" x2="${198+tickW}" y2="${ty}" stroke="rgba(255,255,255,0.5)" stroke-width="${isMajor?1.5:1}"/>`;
+    if(lbl) ticks += `<text x="${222}" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.55)" text-anchor="start">${lbl}</text>`;
+    // Left ticks
+    ticks += `<line x1="${122}" y1="${ty}" x2="${122-tickW/2}" y2="${ty}" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>`;
+  }
+  // Highlight the current fill level
+  if(u > 0){
+    ticks += `<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="rgba(78,205,196,0.8)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+  }
+  tickGroup.innerHTML = ticks;
+
+  // Labels
+  const ml = (u * 0.01).toFixed(3);
+  if(syringeType === 'im'){
+    // IM: primary = ml, secondary = units
+    const imMl = (u*0.01).toFixed(2);
+    document.getElementById('syr-units-label').textContent = u > 0 ? imMl+' ml' : '— ml';
+    document.getElementById('syr-ml-label').textContent = u > 0 ? u.toFixed(0)+' units' : '— units';
+  } else {
+    // Insulin: primary = units, secondary = ml
+    document.getElementById('syr-units-label').textContent = u > 0 ? u.toFixed(1)+' units' : '— units';
+    document.getElementById('syr-ml-label').textContent = u > 0 ? (u*0.01).toFixed(3)+' ml' : '— ml';
+  }
+}
+
 function resetCalc(){
   ['c-vialAmt','c-bac','c-dose','c-vol'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('c-compound').value='';
@@ -1853,6 +1982,7 @@ function resetCalc(){
   lastEdited='';
   updateConcBar();
   updateQuickRef();
+  drawSyringe(0);
 }
 
 function initCalc(){
@@ -1861,6 +1991,7 @@ function initCalc(){
     D.compounds.map(c=>`<option value="${c.id}">${c.name} (${c.dose||'?'} ${c.unit})</option>`).join('');
   updateConcBar();
   updateQuickRef();
+  drawSyringe(0);
 }
 
 function loadFromProtocol(){
@@ -1935,6 +2066,7 @@ function calcFromDose(){
 
   // Populate D field in units
   document.getElementById('c-vol').value=units.toFixed(1);
+  drawSyringe(units);
 
   // Show result
   document.getElementById('calc-result-lbl').textContent='Draw this amount (D)';
@@ -1963,6 +2095,7 @@ function calcFromVol(){
   // Populate C field
   document.getElementById('c-dose').value=displayDose;
   document.getElementById('c-doseUnit').value=displayUnit;
+  drawSyringe(volMl*100);
 
   // Show result
   document.getElementById('calc-result-lbl').textContent='Your dose (C)';
