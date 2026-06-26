@@ -886,11 +886,18 @@ let D={compounds:[],logs:[],inventory:[],history:[]};
 let viewDate=''; // set in init()
 let fColor=COLORS[0], fSite='';
 
-function save(){localStorage.setItem('pt_v7',JSON.stringify(D))}
+function save(){localStorage.setItem('protocol_data',JSON.stringify(D))}
 function load(){
-  // Wipe any old broken keys
-  ['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6'].forEach(k=>localStorage.removeItem(k));
-  const r=localStorage.getItem('pt_v7');
+  // Migrate from any old key into permanent 'protocol_data' key
+  const OLD=['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6','pt_v7'];
+  if(!localStorage.getItem('protocol_data')){
+    for(const k of OLD){
+      const old=localStorage.getItem(k);
+      if(old){localStorage.setItem('protocol_data',old);break;}
+    }
+  }
+  OLD.forEach(k=>localStorage.removeItem(k));
+  const r=localStorage.getItem('protocol_data');
   if(r){
     const p=JSON.parse(r);
     D.compounds=p.compounds||[];
