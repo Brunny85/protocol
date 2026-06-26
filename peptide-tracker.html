@@ -422,7 +422,7 @@ tr:active td{background:var(--card2)}
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.15 · 26 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.16 · 26 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -937,13 +937,30 @@ let fColor=COLORS[0], fSite='';
 
 function save(){localStorage.setItem('protocol_data',JSON.stringify(D))}
 function load(){
-  const r=localStorage.getItem('protocol_data');
-  if(r){
-    const p=JSON.parse(r);
+  // Scan every key ever used, pick the one with the most recent log entry
+  const KEYS=['protocol_data','ptv5','ptv6','ptv7','ptv8',
+    'pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6','pt_v7',
+    'shared_v1','pt_v8','pt_v9','pt_v10'];
+  let best=null, bestTime='';
+  KEYS.forEach(k=>{
+    const raw=localStorage.getItem(k);
+    if(!raw) return;
+    try{
+      const d=JSON.parse(raw);
+      const logs=d.logs||[];
+      const latest=logs.length?logs.reduce((a,b)=>a.t>b.t?a:b).t:'0';
+      if(latest>bestTime){bestTime=latest;best={key:k,data:d};}
+    }catch(e){}
+  });
+  if(best){
+    const p=best.data;
     D.compounds = p.compounds&&p.compounds.length ? p.compounds : DEFAULTS.map(x=>({...x}));
     D.logs      = p.logs      || [];
     D.inventory = p.inventory || [];
     D.history   = p.history   || [];
+    // Save to protocol_data and clean up other keys
+    localStorage.setItem('protocol_data',JSON.stringify(D));
+    KEYS.filter(k=>k!=='protocol_data').forEach(k=>localStorage.removeItem(k));
     if(!D.inventory.length){ D.inventory=defaultInventory(); save(); }
   } else {
     D.compounds = DEFAULTS.map(x=>({...x}));
