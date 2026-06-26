@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -427,7 +430,7 @@ tr:active td{background:var(--card2)}
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.26 · 26 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.27 · 26 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -2154,6 +2157,13 @@ function manualSave(){
 function openLink(url){
   window.open(url,'_blank');
 }
+
+// Force save when app goes to background or is closed
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState==='hidden') save();
+});
+window.addEventListener('pagehide', function(){ save(); });
+window.addEventListener('beforeunload', function(){ save(); });
 
 function init(){
   load();
