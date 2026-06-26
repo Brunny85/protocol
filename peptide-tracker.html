@@ -378,7 +378,7 @@ tr:active td{background:var(--card2)}
   <div class="hdr">
     <h1 id="hdrTitle">Today</h1>
     <div class="hdr-sub" id="hdrDate"></div>
-    <div style="font-size:10px;color:#aaa;margin-top:2px">v1.11 · 26 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:2px">v1.13 · 26 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -444,6 +444,9 @@ tr:active td{background:var(--card2)}
         </table>
       </div>
       <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)">
+        <button class="btn btn-d" onclick="masterReset()" style="font-size:14px">⚠️ Master Reset — Clear All Data</button>
+      </div>
     </div>
 
     <!-- LOG -->
@@ -1238,8 +1241,10 @@ function openVial(pid, entryId, e){
   e.stopPropagation();
   if(!confirm('Move one vial from storage to In Use?')) return;
   const entry=D.inventory.find(x=>x.id===entryId&&x.pid===pid);
-  if(!entry||entry.vials<=0) return;
-  entry.vials-=1;
+  if(!entry) return;
+  const inStore=entry.vials-(entry.inUse||0);
+  if(inStore<=0){alert('No vials in storage.');return;}
+  // Just increment inUse — vials stays as total count
   entry.inUse=(entry.inUse||0)+1;
   entry.openedDate=tod();
   save();rInv();
@@ -1247,9 +1252,11 @@ function openVial(pid, entryId, e){
 
 function finishVial(pid, entryId, e){
   e.stopPropagation();
-  if(!confirm('Mark current vial as finished?')) return;
+  if(!confirm('Mark current vial as finished? This will reduce your total vial count by 1.')) return;
   const entry=D.inventory.find(x=>x.id===entryId&&x.pid===pid);
   if(!entry||!entry.inUse) return;
+  // Reduce total vials AND inUse when a vial is finished (consumed)
+  entry.vials=Math.max(0,entry.vials-1);
   entry.inUse=Math.max(0,(entry.inUse||1)-1);
   if(entry.inUse===0) entry.openedDate='';
   save();rInv();
@@ -1976,6 +1983,21 @@ function updateQuickRef(){
 
 function updatePinLabel(){} // kept for compatibility
 
+
+function masterReset(){
+  // Step 1: First confirmation
+  if(!confirm('⚠️ MASTER RESET\n\nThis will permanently delete ALL data including:\n• All compounds & protocols\n• All dose logs\n• All inventory\n• All history\n\nThis cannot be undone.\n\nAre you sure?')) return;
+  // Step 2: Second confirmation to prevent accidental wipes
+  if(!confirm('Are you absolutely sure?\n\nType OK to confirm — this will wipe everything and reload the default compounds.')) return;
+  // Clear all storage
+  localStorage.removeItem('protocol_data');
+  ['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6','pt_v7'].forEach(k=>localStorage.removeItem(k));
+  // Reload fresh
+  D={compounds:[],logs:[],inventory:[],history:[]};
+  load();
+  render();
+  alert('Reset complete. All data cleared and default compounds loaded.');
+}
 
 function openLink(url){
   window.open(url,'_blank');
