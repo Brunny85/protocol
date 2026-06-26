@@ -422,7 +422,7 @@ tr:active td{background:var(--card2)}
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.22 · 26 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.23 · 26 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -1002,7 +1002,7 @@ function streak(){
 }
 
 // ─── RENDER ──────────────────────────────────────────────────
-function render(){rToday();rProto();rLog();rInv();rStats()}
+function render(){rToday();rProto();rLog();rInv();rStats();rHist();}
 
 function rToday(){
   const active=D.compounds.filter(c=>c.active);
