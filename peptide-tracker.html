@@ -889,14 +889,48 @@ let fColor=COLORS[0], fSite='';
 
 function save(){localStorage.setItem('protocol_data',JSON.stringify(D))}
 function load(){
-  // Migrate from any old key into permanent 'protocol_data' key
+  // Check ALL possible old keys and rescue logs/inventory from them
   const OLD=['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6','pt_v7'];
-  if(!localStorage.getItem('protocol_data')){
+  const current=localStorage.getItem('protocol_data');
+  if(!current){
+    // No current data - try to load from old key
     for(const k of OLD){
       const old=localStorage.getItem(k);
-      if(old){localStorage.setItem('protocol_data',old);break;}
+      if(old){
+        localStorage.setItem('protocol_data',old);
+        console.log('Migrated from',k);
+        break;
+      }
     }
+  } else {
+    // We have current data - but check if old keys have MORE logs/inventory
+    // (this handles the case where data was saved under old key after protocol_data was created)
+    const curr=JSON.parse(current);
+    for(const k of OLD){
+      const oldRaw=localStorage.getItem(k);
+      if(oldRaw){
+        try{
+          const oldD=JSON.parse(oldRaw);
+          // Merge logs - add any logs from old key not in current
+          const currLogIds=new Set((curr.logs||[]).map(l=>l.id));
+          const newLogs=(oldD.logs||[]).filter(l=>!currLogIds.has(l.id));
+          if(newLogs.length){
+            curr.logs=[...(curr.logs||[]),...newLogs];
+            console.log('Recovered',newLogs.length,'logs from',k);
+          }
+          // Merge inventory
+          const currInvIds=new Set((curr.inventory||[]).map(i=>i.id));
+          const newInv=(oldD.inventory||[]).filter(i=>!currInvIds.has(i.id));
+          if(newInv.length){
+            curr.inventory=[...(curr.inventory||[]),...newInv];
+            console.log('Recovered',newInv.length,'inventory from',k);
+          }
+        }catch(e){}
+      }
+    }
+    localStorage.setItem('protocol_data',JSON.stringify(curr));
   }
+  // Clean up old keys
   OLD.forEach(k=>localStorage.removeItem(k));
   const r=localStorage.getItem('protocol_data');
   if(r){
