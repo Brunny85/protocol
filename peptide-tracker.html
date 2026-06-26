@@ -21,7 +21,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 #app{height:100%;display:flex;flex-direction:column;overflow:hidden}
 
 /* Header */
-.hdr{background:#fff;padding:max(52px,env(safe-area-inset-top,52px)) 20px 14px;border-bottom:2px solid #0033A0;flex-shrink:0;overflow:hidden;position:relative;z-index:10}
+.hdr{background:#fff;padding-top:env(safe-area-inset-top,44px);padding-left:20px;padding-right:20px;padding-bottom:14px;border-bottom:2px solid #0033A0;flex-shrink:0;overflow:hidden;position:relative;z-index:10;display:flex;flex-direction:column;justify-content:flex-end;min-height:calc(env(safe-area-inset-top,44px) + 80px)}
 .hdr h1{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#0033A0}
 .hdr h1 span{color:#0033A0}
 .hdr-sub{font-size:13px;color:#5577CC;margin-top:2px}
@@ -375,7 +375,7 @@ tr:active td{background:var(--card2)}
 </head>
 <body>
 <div id="app">
-  <div class="hdr" style="padding-bottom:10px">
+  <div class="hdr">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:2px">
       <!-- Logo mark -->
       <svg width="42" height="42" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
@@ -417,12 +417,12 @@ tr:active td{background:var(--card2)}
         <div style="font-size:9px;color:#0033A0;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-top:1px">Precision Protocol Tracking</div>
       </div>
       <!-- Page title right aligned -->
-      <div style="margin-left:auto;text-align:right">
+      <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.14 · 26 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.15 · 26 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -510,6 +510,7 @@ tr:active td{background:var(--card2)}
 
     <!-- STATS -->
     <div id="pg-stats" class="pg hidden">
+
       <div class="sec">Adherence — Last 30 Days</div>
       <div class="card"><div class="streak" id="streak"></div></div>
       <div class="sec">By Compound</div>
@@ -936,64 +937,17 @@ let fColor=COLORS[0], fSite='';
 
 function save(){localStorage.setItem('protocol_data',JSON.stringify(D))}
 function load(){
-  // Check ALL possible old keys and rescue logs/inventory from them
-  const OLD=['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6','pt_v7'];
-  const current=localStorage.getItem('protocol_data');
-  if(!current){
-    // No current data - try to load from old key
-    for(const k of OLD){
-      const old=localStorage.getItem(k);
-      if(old){
-        localStorage.setItem('protocol_data',old);
-        console.log('Migrated from',k);
-        break;
-      }
-    }
-  } else {
-    // We have current data - but check if old keys have MORE logs/inventory
-    // (this handles the case where data was saved under old key after protocol_data was created)
-    const curr=JSON.parse(current);
-    for(const k of OLD){
-      const oldRaw=localStorage.getItem(k);
-      if(oldRaw){
-        try{
-          const oldD=JSON.parse(oldRaw);
-          // Merge logs - add any logs from old key not in current
-          const currLogIds=new Set((curr.logs||[]).map(l=>l.id));
-          const newLogs=(oldD.logs||[]).filter(l=>!currLogIds.has(l.id));
-          if(newLogs.length){
-            curr.logs=[...(curr.logs||[]),...newLogs];
-            console.log('Recovered',newLogs.length,'logs from',k);
-          }
-          // Merge inventory
-          const currInvIds=new Set((curr.inventory||[]).map(i=>i.id));
-          const newInv=(oldD.inventory||[]).filter(i=>!currInvIds.has(i.id));
-          if(newInv.length){
-            curr.inventory=[...(curr.inventory||[]),...newInv];
-            console.log('Recovered',newInv.length,'inventory from',k);
-          }
-        }catch(e){}
-      }
-    }
-    localStorage.setItem('protocol_data',JSON.stringify(curr));
-  }
-  // Clean up old keys
-  OLD.forEach(k=>localStorage.removeItem(k));
   const r=localStorage.getItem('protocol_data');
   if(r){
     const p=JSON.parse(r);
-    D.compounds=p.compounds||[];
-    D.logs=p.logs||[];
-    D.inventory=p.inventory||[];
-    D.history=p.history||[];
-    // Seed inventory if empty
-    if(!D.inventory.length){
-      D.inventory=defaultInventory();
-      save();
-    }
+    D.compounds = p.compounds&&p.compounds.length ? p.compounds : DEFAULTS.map(x=>({...x}));
+    D.logs      = p.logs      || [];
+    D.inventory = p.inventory || [];
+    D.history   = p.history   || [];
+    if(!D.inventory.length){ D.inventory=defaultInventory(); save(); }
   } else {
-    D.compounds=DEFAULTS.map(x=>({...x}));
-    D.inventory=defaultInventory();
+    D.compounds = DEFAULTS.map(x=>({...x}));
+    D.inventory = defaultInventory();
     save();
   }
 }
@@ -2041,6 +1995,32 @@ function masterReset(){
   load();
   render();
   alert('Reset complete. All data cleared and default compounds loaded.');
+}
+
+function showStorageDebug(){
+  const el=document.getElementById('storage-debug');
+  const ALL=['protocol_data','ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6','pt_v7'];
+  let out='';
+  ALL.forEach(k=>{
+    const raw=localStorage.getItem(k);
+    if(raw){
+      try{
+        const d=JSON.parse(raw);
+        const logs=d.logs||[];
+        const latest=logs.length?logs.sort((a,b)=>b.t.localeCompare(a.t))[0].t:'none';
+        out+=k+': '+logs.length+' logs, latest='+latest+'\n';
+      }catch(e){out+=k+': parse error\n';}
+    }
+  });
+  el.textContent=out||'No data found in any key';
+}
+
+function recoverFromKey(key){
+  const raw=localStorage.getItem(key);
+  if(!raw){alert('Key not found: '+key);return;}
+  if(!confirm('Load data from '+key+'? Current data will be overwritten.'))return;
+  localStorage.setItem('protocol_data',raw);
+  load();render();alert('Recovered from '+key);
 }
 
 function openLink(url){
