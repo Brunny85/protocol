@@ -422,7 +422,7 @@ tr:active td{background:var(--card2)}
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.17 · 26 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.18 · 26 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -453,6 +453,10 @@ tr:active td{background:var(--card2)}
         </div>
       </div>
       <button class="btn btn-s" onclick="openAdd()">+ Add Compound</button>
+      <div style="margin-top:12px;background:#111;border-radius:10px;padding:12px">
+        <button class="btn btn-s" onclick="scanStorage()" style="font-size:12px;margin-bottom:8px;width:100%">🔍 Scan Storage (debug)</button>
+        <div id="dbg" style="font-size:10px;font-family:monospace;color:#0f0;white-space:pre-wrap;word-break:break-all"></div>
+      </div>
     </div>
 
     <!-- PROTOCOL -->
@@ -2044,6 +2048,25 @@ function recoverFromKey(key){
   if(!confirm('Load data from '+key+'? Current data will be overwritten.'))return;
   localStorage.setItem('protocol_data',raw);
   load();render();alert('Recovered from '+key);
+}
+
+function scanStorage(){
+  const KEYS=['protocol_data','ptv5','ptv6','ptv7','ptv8',
+    'pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6','pt_v7',
+    'shared_v1','pt_v8','pt_v9','pt_v10'];
+  let out='';
+  KEYS.forEach(k=>{
+    const raw=localStorage.getItem(k);
+    if(!raw){return;}
+    try{
+      const d=JSON.parse(raw);
+      const logs=d.logs||[];
+      const latest=logs.length?logs.sort((a,b)=>b.t.localeCompare(a.t))[0].t:'none';
+      const compounds=(d.compounds||[]).length;
+      out+=k+':\n  logs='+logs.length+' latest='+latest+'\n  compounds='+compounds+'\n\n';
+    }catch(e){out+=k+': ERROR\n';}
+  });
+  document.getElementById('dbg').textContent=out||'Nothing found in any key';
 }
 
 function openLink(url){
