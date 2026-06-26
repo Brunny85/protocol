@@ -422,7 +422,7 @@ tr:active td{background:var(--card2)}
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.19 · 26 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.22 · 26 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -453,6 +453,10 @@ tr:active td{background:var(--card2)}
         </div>
       </div>
       <button class="btn btn-s" onclick="openAdd()">+ Add Compound</button>
+      <button class="btn btn-p" onclick="manualSave()" id="save-btn" style="margin-top:10px">
+        Save &amp; Update
+      </button>
+      <div id="save-confirm" style="text-align:center;font-size:12px;color:var(--success);margin-top:6px;display:none">✓ Saved successfully</div>
 
     </div>
 
@@ -1084,7 +1088,7 @@ function quickCheck(pid,slot){
       D.logs.push({id:uid(),pid,slot:'',dose:c.dose,unit:c.unit,site:'',t:ts,notes:viewDate!==tod()?'Backdated':''});
     }
   }
-  save();rToday();rStats();
+  save();render();
 }
 
 function tickAll(){
@@ -1107,7 +1111,7 @@ function tickAll(){
       }
     });
   }
-  save();rToday();rStats();
+  save();render();
 }
 
 function rProto(){
@@ -1508,8 +1512,9 @@ function changeDay(delta){
   const d=new Date(viewDate+'T12:00:00');
   d.setDate(d.getDate()+delta);
   const newDate=d.toISOString().split('T')[0];
-  // Don't allow going into future beyond today
-  if(newDate>tod()) return;
+  // Allow up to 7 days into the future
+  const maxDate=new Date();maxDate.setDate(maxDate.getDate()+7);
+  if(newDate>maxDate.toISOString().split('T')[0]) return;
   viewDate=newDate;
   updateDateNav();
   rToday();
@@ -1517,13 +1522,20 @@ function changeDay(delta){
 
 function updateDateNav(){
   const isToday=viewDate===tod();
+  const isFuture=viewDate>tod();
   const d=new Date(viewDate+'T12:00:00');
   const label=isToday?'Today':d.toLocaleDateString([],{weekday:'long'});
   const sub=isToday?'':d.toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'});
   document.getElementById('nav-date-label').textContent=label;
   document.getElementById('nav-date-sub').textContent=sub;
-  document.getElementById('nav-next-btn').disabled=isToday;
-  document.getElementById('past-banner').classList.toggle('hidden',isToday);
+  // Disable next button only if 7 days ahead
+  const maxDate=new Date();maxDate.setDate(maxDate.getDate()+7);
+  document.getElementById('nav-next-btn').disabled=viewDate>=maxDate.toISOString().split('T')[0];
+  // Show banner for past or future
+  const banner=document.getElementById('past-banner');
+  if(isFuture){banner.classList.remove('hidden');banner.textContent='📅 Viewing a future day — pre-tick doses in advance';}
+  else if(!isToday){banner.classList.remove('hidden');banner.textContent='📅 Viewing a past day — tap to mark doses taken';}
+  else{banner.classList.add('hidden');}
 }
 function nav(pg,btn){
   document.querySelectorAll('.pg').forEach(p=>p.classList.add('hidden'));
@@ -1996,6 +2008,14 @@ function masterReset(){
   load();
   render();
   alert('Reset complete. All data cleared and default compounds loaded.');
+}
+
+function manualSave(){
+  save();
+  render(); // update all tabs including Stats and Log
+  const el=document.getElementById('save-confirm');
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none', 2000);
 }
 
 function openLink(url){
