@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -15,131 +14,137 @@
   --warn:#F59E0B;--danger:#EF4444;--success:#4ade80;--border:#2255CC;
   --sans:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
   --mono:'SF Mono','Menlo',monospace;
-  --r:14px;--tabh:72px;--sb:env(safe-area-inset-bottom,0px);
+  --r:14px;--tabh:72px;--sb:env(safe-area-inset-bottom,20px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden}
-#app{height:100%;display:flex;flex-direction:column}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-text-size-adjust:100%}
+#app{height:100%;display:flex;flex-direction:column;overflow:hidden}
 
 /* Header */
-.hdr{background:#fff;padding:52px 20px 14px;border-bottom:2px solid #0033A0;flex-shrink:0}
+.hdr{background:#fff;padding:max(52px,env(safe-area-inset-top,52px)) 20px 14px;border-bottom:2px solid #0033A0;flex-shrink:0;overflow:hidden;position:relative;z-index:10}
 .hdr h1{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#0033A0}
 .hdr h1 span{color:#0033A0}
 .hdr-sub{font-size:13px;color:#5577CC;margin-top:2px}
 
 /* Scroll */
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
-padding:16px 16px calc(var(–tabh) + var(–sb) + 16px)}
+  padding:16px 16px calc(var(--tabh) + var(--sb) + 48px)}
 
 /* Tabs */
-.tabs{position:fixed;bottom:0;left:0;right:0;background:var(–bg2);
-border-top:1px solid var(–border);display:flex;
-padding-bottom:var(–sb);height:calc(var(–tabh) + var(–sb));z-index:100}
+.tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffff;
+  border-top:2px solid #0033A0;display:flex;
+  padding-bottom:var(--sb);height:calc(var(--tabh) + var(--sb));z-index:100}
 .tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-gap:4px;background:none;border:none;color:var(–text2);cursor:pointer;
-font-size:10px;font-family:var(–sans);padding-top:8px;transition:color .15s}
-.tb.on{color:var(–accent)}
+  gap:4px;background:none;border:none;color:#0033A0;cursor:pointer;
+  font-size:10px;font-family:var(--sans);padding-top:8px;transition:color .15s;opacity:.45}
+.tb.on{color:#0033A0;opacity:1;font-weight:700}
 .tb svg{width:22px;height:22px}
+/* Fade gradient above tab bar */
+.tabs::before{content:'';position:absolute;top:-40px;left:0;right:0;height:40px;
+  background:linear-gradient(to bottom,transparent,rgba(255,255,255,0));
+  pointer-events:none}
 
 /* FAB */
-.fab{position:fixed;bottom:calc(var(–tabh) + var(–sb) + 16px);right:16px;
-width:56px;height:56px;border-radius:50%;background:#fff;
-border:2px solid #fff;color:#0033A0;cursor:pointer;display:flex;align-items:center;
-justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.25);z-index:99}
+.fab{position:fixed;bottom:calc(var(--tabh) + var(--sb) + 20px);right:16px;
+  width:56px;height:56px;border-radius:50%;background:#fff;
+  border:2px solid #fff;color:#0033A0;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.25);z-index:99}
 .fab:active{transform:scale(.93)}
 .pulse{position:absolute;width:100%;height:100%;border-radius:50%;
-border:2px solid rgba(255,255,255,.6);animation:pulse 2s ease-out infinite}
+  border:2px solid rgba(255,255,255,.6);animation:pulse 2s ease-out infinite}
 @keyframes pulse{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.7);opacity:0}}
 
 /* Cards / rows */
-.card{background:var(–card);border-radius:var(–r);padding:16px;margin-bottom:12px;border:1px solid var(–border)}
-.sec{font-size:11px;font-weight:700;color:var(–text2);text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px}
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.sec{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px}
 
 /* Stat bar */
 .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
-.stat{background:var(–card);border-radius:12px;padding:12px;text-align:center;border:1px solid var(–border)}
-.stat-n{font-size:26px;font-weight:700;font-family:var(–mono)}
-.stat-l{font-size:11px;color:var(–text2);margin-top:2px}
-.c-accent{color:var(–accent)}.c-warn{color:var(–warn)}.c-ok{color:var(–success)}
+.stat{background:var(--card);border-radius:12px;padding:12px;text-align:center;border:1px solid var(--border)}
+.stat-n{font-size:26px;font-weight:700;font-family:var(--mono)}
+.stat-l{font-size:11px;color:var(--text2);margin-top:2px}
+.c-accent{color:var(--accent)}.c-warn{color:var(--warn)}.c-ok{color:var(--success)}
 
 /* AM/PM columns */
 .ampm{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.col{background:var(–card);border-radius:var(–r);border:1px solid var(–border);overflow:hidden}
+.col{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
 .col-hdr{display:flex;align-items:center;justify-content:space-between;
-padding:9px 13px;background:var(–card2);border-bottom:1px solid var(–border)}
+  padding:9px 13px;background:var(--card2);border-bottom:1px solid var(--border)}
 .col-ttl{font-size:12px;font-weight:700;letter-spacing:.5px}
 .col-ttl.am{color:#fff;font-weight:800}.col-ttl.pm{color:#BDD4FF;font-weight:800}
-.col-cnt{font-size:11px;color:var(–text2);font-family:var(–mono)}
+.col-cnt{font-size:11px;color:var(--text2);font-family:var(--mono)}
 .ci{display:flex;align-items:center;gap:9px;padding:9px 13px;
-border-bottom:1px solid var(–border);cursor:pointer;transition:background .1s}
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
 .ci:last-child{border-bottom:none}
-.ci:active{background:var(–card2)}
+.ci:active{background:var(--card2)}
 .ci.done{opacity:.5}
 .chk{width:22px;height:22px;border-radius:6px;border:2px solid rgba(255,255,255,.35);
-flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;transition:all .15s}
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;transition:all .15s}
 .chk.done{background:#fff;border-color:#fff}
 .chk svg{display:none}
 .chk.done svg{display:block}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .ci-name{font-size:13px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ci-sub{font-size:10px;color:var(–text2);margin-top:1px}
-.col-empty{padding:14px 13px;font-size:12px;color:var(–text2);text-align:center}
+.ci-sub{font-size:10px;color:var(--text2);margin-top:1px}
+.col-empty{padding:14px 13px;font-size:12px;color:var(--text2);text-align:center}
 
 /* Tick all */
-.tickall{background:var(–card);border-radius:var(–r);border:1px solid var(–border);
-overflow:hidden;margin-bottom:14px}
+.tickall{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
+  overflow:hidden;margin-bottom:14px}
 .tickall-row{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer}
-.tickall-row:active{background:var(–card2)}
+.tickall-row:active{background:var(--card2)}
 .tickall-lbl{font-size:14px;font-weight:700}
 
 /* Overlay / Sheet */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;
-display:flex;align-items:flex-end;backdrop-filter:blur(4px)}
-.ov.hidden{display:none}
-.sh{background:var(–bg2);border-radius:20px 20px 0 0;
-padding:16px 20px calc(28px + var(–sb));width:100%;max-height:93vh;overflow-y:auto}
-.sh-handle{width:36px;height:4px;background:var(–border);border-radius:99px;margin:0 auto 14px}
+  display:flex;align-items:flex-end;backdrop-filter:blur(4px);
+  transition:opacity .15s;opacity:1}
+.ov.hidden{opacity:0;pointer-events:none;visibility:hidden;
+  position:fixed;top:200vh;left:0;right:0}
+.sh{background:var(--bg2);border-radius:20px 20px 0 0;
+  padding:16px 20px calc(28px + var(--sb));width:100%;max-height:93vh;overflow-y:auto}
+.sh-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 14px}
 .sh-title{font-size:18px;font-weight:700;margin-bottom:18px}
 
 /* Form */
 .fg{margin-bottom:15px}
-.fl{font-size:13px;color:var(–text2);margin-bottom:6px;display:block;font-weight:500}
+.fl{font-size:13px;color:var(--text2);margin-bottom:6px;display:block;font-weight:500}
 .fi,.fs,.fta{width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);
-border-radius:10px;padding:12px 14px;color:var(–text);font-size:15px;
-font-family:var(–sans);outline:none;-webkit-appearance:none;appearance:none}
+  border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;
+  font-family:var(--sans);outline:none;-webkit-appearance:none;appearance:none}
 .fi:focus,.fs:focus,.fta:focus{border-color:#fff;background:rgba(255,255,255,.2)}
 .fta{min-height:72px;resize:none}
-.fs{background-image:url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘12’ height=‘8’ fill=‘none’%3E%3Cpath d=‘M1 1l5 5 5-5’ stroke=’%23ffffff’ stroke-width=‘1.5’ stroke-linecap=‘round’/%3E%3C/svg%3E”);
-background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.fhint{font-size:11px;color:var(–text2);margin-top:4px}
-.fdiv{height:1px;background:var(–border);margin:16px 0}
+.fhint{font-size:11px;color:var(--text2);margin-top:4px}
+.fdiv{height:1px;background:var(--border);margin:16px 0}
 .fsec{font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;border-left:3px solid rgba(255,255,255,.5);padding-left:8px}
 
 /* Day checkboxes in form */
 .day-chk-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .day-chk-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:6px 2px;border-radius:8px;transition:background .1s}
-.day-chk-item:active{background:var(–card2)}
+.day-chk-item:active{background:var(--card2)}
 .day-chk-box{width:22px;height:22px;border-radius:5px;border:2px solid rgba(255,255,255,.4);
-background:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  background:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .day-chk-box.on{background:#fff;border-color:#fff}
-.day-chk-box.on::after{content:‘✓’;font-size:12px;font-weight:700;color:#0033A0}
-.day-chk-lbl{font-size:10px;font-weight:600;color:var(–text2);text-align:center}
-.day-chk-item:has(.day-chk-box.on) .day-chk-lbl{color:var(–accent)}
+.day-chk-box.on::after{content:'✓';font-size:12px;font-weight:700;color:#0033A0}
+.day-chk-lbl{font-size:10px;font-weight:600;color:var(--text2);text-align:center}
+.day-chk-item:has(.day-chk-box.on) .day-chk-lbl{color:var(--accent)}
 /* Day picker */
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px}
-.day{background:var(–card);border:1.5px solid var(–border);border-radius:8px;
-padding:8px 2px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;
-color:var(–text2);transition:all .15s;user-select:none}
-.day.on{background:rgba(78,205,196,.15);border-color:var(–accent);color:var(–accent)}
+.day{background:var(--card);border:1.5px solid var(--border);border-radius:8px;
+  padding:8px 2px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;
+  color:var(--text2);transition:all .15s;user-select:none}
+.day.on{background:rgba(78,205,196,.15);border-color:var(--accent);color:var(--accent)}
 
 /* Toggle */
-.tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(–border)}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
 .tog{position:relative;width:44px;height:26px;flex-shrink:0}
 .tog input{opacity:0;width:0;height:0}
 .tog-track{position:absolute;inset:0;background:rgba(255,255,255,.25);border-radius:99px;transition:.2s;cursor:pointer}
 .tog input:checked + .tog-track{background:#fff}
-.tog-track:before{content:’’;position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#0033A0;border-radius:50%;transition:.2s}
+.tog-track:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#0033A0;border-radius:50%;transition:.2s}
 .tog input:checked + .tog-track:before{transform:translateX(18px)}
 
 /* Color swatches */
@@ -149,81 +154,81 @@ color:var(–text2);transition:all .15s;user-select:none}
 
 /* Buttons */
 .btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:16px;
-font-weight:600;cursor:pointer;font-family:var(–sans)}
+  font-weight:600;cursor:pointer;font-family:var(--sans)}
 .btn:active{opacity:.8}
 .btn-p{background:#fff;color:#0033A0;border:1px solid #fff;font-weight:700}
 .btn-s{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}
-.btn-d{background:rgba(239,68,68,.15);color:var(–danger);border:1px solid rgba(239,68,68,.3)}
+.btn-d{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
 .btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px}
 .brow{display:flex;gap:10px;margin-top:18px}
 .brow .btn{flex:1}
 
 /* Protocol inline table */
 #proto-tbl{width:100%;border-collapse:collapse;min-width:580px}
-#proto-tbl th{font-size:10px;font-weight:700;color:var(–text2);text-transform:uppercase;
-letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(–border);
-text-align:center;white-space:nowrap;background:var(–card2);position:sticky;top:0;z-index:2}
+#proto-tbl th{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;
+  letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(--border);
+  text-align:center;white-space:nowrap;background:var(--card2);position:sticky;top:0;z-index:2}
 #proto-tbl th.col-name{text-align:left;padding-left:10px}
 #proto-tbl td{padding:0;border-bottom:1px solid rgba(255,255,255,.2);vertical-align:middle;
-text-align:center;background:#0033A0;color:#fff}
+  text-align:center;background:#0033A0;color:#fff}
 #proto-tbl tr:last-child td{border-bottom:none}
 #proto-tbl tr:nth-child(even) td{background:#0033A0}
 /* Inline editable cells */
 .ie-name{font-size:13px;font-weight:600;color:#fff;background:transparent;
-border:none;outline:none;width:100%;padding:10px 6px 10px 10px;font-family:var(–sans);
-min-width:90px}
+  border:none;outline:none;width:100%;padding:10px 6px 10px 10px;font-family:var(--sans);
+  min-width:90px}
 .ie-dose{font-size:13px;color:#fff;background:transparent;border:none;outline:none;
-width:60px;padding:10px 4px;text-align:center;font-family:var(–mono)}
+  width:60px;padding:10px 4px;text-align:center;font-family:var(--mono)}
 .ie-name:focus,.ie-dose:focus{background:rgba(255,255,255,.1);border-radius:4px}
 /* Unit select inline */
 .ie-unit{font-size:11px;background:transparent;border:none;outline:none;color:#BDD4FF;
-font-family:var(–sans);font-weight:700;padding:10px 2px;cursor:pointer;-webkit-appearance:none;
-text-align:center;width:52px}
+  font-family:var(--sans);font-weight:700;padding:10px 2px;cursor:pointer;-webkit-appearance:none;
+  text-align:center;width:52px}
 /* AM/PM select inline */
 .ie-time{font-size:11px;background:transparent;border:none;outline:none;color:#fff;
-font-family:var(–sans);padding:10px 2px;cursor:pointer;-webkit-appearance:none;
-text-align:center;width:64px}
+  font-family:var(--sans);padding:10px 2px;cursor:pointer;-webkit-appearance:none;
+  text-align:center;width:64px}
 /* Active toggle */
 .act-tog{width:36px;height:20px;border-radius:99px;border:none;cursor:pointer;
-display:inline-flex;align-items:center;padding:3px;transition:background .15s}
+  display:inline-flex;align-items:center;padding:3px;transition:background .15s}
 .act-tog.on{background:#fff}.act-tog.off{background:rgba(255,255,255,.2)}
 .act-knob{width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .15s;pointer-events:none}
 .act-tog.on .act-knob{transform:translateX(16px)}
 /* Day Y cell */
 .day-cell{width:28px;padding:8px 2px}
 .day-y{display:inline-flex;align-items:center;justify-content:center;
-width:20px;height:20px;border-radius:4px;font-size:10px;font-weight:700;
-cursor:pointer;border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.3);transition:all .12s;
-user-select:none}
+  width:20px;height:20px;border-radius:4px;font-size:10px;font-weight:700;
+  cursor:pointer;border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.3);transition:all .12s;
+  user-select:none}
 .day-y.on{background:#fff;border-color:#fff;color:#0033A0}
 /* Edit btn */
 .col-edit{width:28px}
-.edit-btn{background:none;border:none;color:var(–text2);cursor:pointer;padding:8px 6px;font-size:14px}
-.edit-btn:active{color:var(–accent)}
+.edit-btn{background:none;border:none;color:var(--text2);cursor:pointer;padding:8px 6px;font-size:14px}
+.edit-btn:active{color:var(--accent)}
 /* col widths */
 .col-name{min-width:100px;text-align:left!important}
 .col-act{width:48px}.col-dose{width:64px}.col-unit{width:56px}.col-time{width:72px}.col-day{width:28px}.col-dt{width:82px;white-space:nowrap}
 /* Protocol inline table */
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(–r);border:1px solid var(–border)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;min-width:460px}
-th{font-size:10px;font-weight:700;color:var(–text2);text-transform:uppercase;
-letter-spacing:.6px;padding:9px 8px;border-bottom:1px solid var(–border);
-text-align:center;white-space:nowrap;background:var(–card2)}
+th{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;
+  letter-spacing:.6px;padding:9px 8px;border-bottom:1px solid var(--border);
+  text-align:center;white-space:nowrap;background:var(--card2)}
 th:first-child{text-align:left;padding-left:12px}
-td{padding:10px 8px;border-bottom:1px solid var(–border);vertical-align:middle;
-text-align:center;font-size:13px;background:var(–card)}
+td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:middle;
+  text-align:center;font-size:13px;background:var(--card)}
 td:first-child{padding-left:12px;text-align:left}
 tr:last-child td{border-bottom:none}
 tr{cursor:pointer}
-tr:active td{background:var(–card2)}
+tr:active td{background:var(--card2)}
 .p-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px}
-.p-sub{font-size:10px;color:var(–text2);margin-top:2px}
-.ddot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(–border);
-display:inline-block;cursor:pointer;transition:all .12s;background:transparent}
-.ddot.on{background:var(–accent);border-color:var(–accent)}
+.p-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.ddot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);
+  display:inline-block;cursor:pointer;transition:all .12s;background:transparent}
+.ddot.on{background:var(--accent);border-color:var(--accent)}
 .act-pill{display:inline-flex;align-items:center;justify-content:center;
-width:36px;height:20px;border-radius:99px;cursor:pointer;border:none}
-.act-pill.on{background:var(–accent)}.act-pill.off{background:var(–border)}
+  width:36px;height:20px;border-radius:99px;cursor:pointer;border:none}
+.act-pill.on{background:var(--accent)}.act-pill.off{background:var(--border)}
 .pill-knob{width:14px;height:14px;border-radius:50%;background:#fff;pointer-events:none;transition:transform .15s}
 .act-pill.on .pill-knob{transform:translateX(8px)}
 .act-pill.off .pill-knob{transform:translateX(-8px)}
@@ -234,87 +239,91 @@ width:36px;height:20px;border-radius:99px;cursor:pointer;border:none}
 .tb-any{background:rgba(255,255,255,.08);color:#BDD4FF}
 
 /* Log */
-.li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(–border)}
+.li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border)}
 .li-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
 .li-name{font-size:14px;font-weight:600}
-.li-meta{font-size:12px;color:var(–text2);margin-top:2px}
-.li-time{font-size:11px;color:var(–text2);font-family:var(–mono);flex-shrink:0;margin-top:3px}
+.li-meta{font-size:12px;color:var(--text2);margin-top:2px}
+.li-time{font-size:11px;color:var(--text2);font-family:var(--mono);flex-shrink:0;margin-top:3px}
 
 /* Inventory */
-.pb{height:4px;background:var(–border);border-radius:99px;margin-top:6px;overflow:hidden}
+.pb{height:4px;background:var(--border);border-radius:99px;margin-top:6px;overflow:hidden}
 .pbf{height:100%;border-radius:99px;background:#fff}
-.pbf.low{background:var(–warn)}.pbf.crit{background:var(–danger)}
+.pbf.low{background:var(--warn)}.pbf.crit{background:var(--danger)}
 
 /* Sites */
 .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.site{background:var(–card);border:1px solid var(–border);border-radius:10px;
-padding:9px 6px;text-align:center;cursor:pointer;font-size:12px;color:var(–text2)}
-.site.on{border-color:var(–accent);color:var(–accent);background:rgba(78,205,196,.1)}
+.site{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:9px 6px;text-align:center;cursor:pointer;font-size:12px;color:var(--text2)}
+.site.on{border-color:var(--accent);color:var(--accent);background:rgba(78,205,196,.1)}
 .site-ic{font-size:18px;display:block;margin-bottom:3px}
 
 /* Streak */
 .streak{display:flex;gap:4px;flex-wrap:wrap}
-.sd{width:12px;height:12px;border-radius:3px;background:var(–border)}
+.sd{width:12px;height:12px;border-radius:3px;background:var(--border)}
 .sd.on{background:#fff}
 
 /* Misc */
-.empty{text-align:center;padding:44px 20px;color:var(–text2)}
+.empty{text-align:center;padding:44px 20px;color:var(--text2)}
 .empty-ic{font-size:44px;margin-bottom:10px}
-.empty-t{font-size:16px;font-weight:600;color:var(–text);margin-bottom:5px}
-.hidden{display:none!important}
+.empty-t{font-size:16px;font-weight:600;color:var(--text);margin-bottom:5px}
+.hidden{display:none!important;visibility:hidden!important;
+  position:absolute!important;top:-9999px!important;left:-9999px!important}
 ::-webkit-scrollbar{width:0}
+::-webkit-scrollbar-track{display:none}
+/* Suppress scroll indicator dots */
+* { -webkit-overflow-scrolling: touch; }
 /* Calculator */
 .calc-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.calc-field-box{background:#0033A0;border-radius:var(–r);border:1px solid rgba(255,255,255,.2);
-padding:12px 14px;position:relative}
+.calc-field-box{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  padding:12px 14px;position:relative}
 .calc-field-letter{position:absolute;top:10px;right:12px;width:22px;height:22px;
-border-radius:50%;background:#fff;color:#0033A0;font-size:12px;font-weight:800;
-display:flex;align-items:center;justify-content:center}
+  border-radius:50%;background:#fff;color:#0033A0;font-size:12px;font-weight:800;
+  display:flex;align-items:center;justify-content:center}
 .calc-conc-bar{background:rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;
-font-size:13px;color:rgba(255,255,255,.7);text-align:center;margin-bottom:12px;
-min-height:40px;display:flex;align-items:center;justify-content:center}
-.calc-card{background:#0033A0;border-radius:var(–r);border:1px solid rgba(255,255,255,.2);
-padding:14px;margin-bottom:12px}
+  font-size:13px;color:rgba(255,255,255,.7);text-align:center;margin-bottom:12px;
+  min-height:40px;display:flex;align-items:center;justify-content:center}
+.calc-card{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  padding:14px;margin-bottom:12px}
 .calc-section-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.55);
-text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
-.calc-result{background:#fff;border-radius:var(–r);padding:20px;text-align:center;
-margin-bottom:12px;border:2px solid #fff}
+  text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.calc-result{background:#fff;border-radius:var(--r);padding:20px;text-align:center;
+  margin-bottom:12px;border:2px solid #fff}
 .calc-result-lbl{font-size:11px;font-weight:700;color:#0033A0;text-transform:uppercase;
-letter-spacing:1px;margin-bottom:6px}
-.calc-result-val{font-size:48px;font-weight:800;color:#0033A0;font-family:var(–mono);line-height:1}
+  letter-spacing:1px;margin-bottom:6px}
+.calc-result-val{font-size:48px;font-weight:800;color:#0033A0;font-family:var(--mono);line-height:1}
 .calc-result-sub{font-size:14px;color:#0033A0;margin-top:6px;opacity:.7}
 .calc-ref-row{display:flex;justify-content:space-between;align-items:center;
-padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px}
+  padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px}
 .calc-ref-row:last-child{border-bottom:none}
 .calc-ref-dose{color:#fff;font-weight:600}
-.calc-ref-vol{color:#BDD4FF;font-family:var(–mono)}
+.calc-ref-vol{color:#BDD4FF;font-family:var(--mono)}
 /* Links */
 .link-card{display:flex;align-items:center;gap:14px;background:#0033A0;
-border-radius:var(–r);border:1px solid rgba(255,255,255,.2);
-padding:16px;margin-bottom:12px;cursor:pointer;transition:opacity .15s}
+  border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  padding:16px;margin-bottom:12px;cursor:pointer;transition:opacity .15s}
 .link-card:active{opacity:.8}
 .link-icon{font-size:28px;flex-shrink:0}
 .link-body{flex:1;min-width:0}
 .link-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:3px}
-.link-sub{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:5px;font-family:var(–mono)}
+.link-sub{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:5px;font-family:var(--mono)}
 .link-desc{font-size:12px;color:rgba(255,255,255,.75);line-height:1.4}
 .link-arrow{font-size:24px;color:rgba(255,255,255,.4);flex-shrink:0}
 /* Inventory cards */
-.inv-card{background:#0033A0;border-radius:var(–r);border:1px solid rgba(255,255,255,.2);
-margin-bottom:12px;overflow:hidden;cursor:pointer;transition:opacity .15s}
+.inv-card{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  margin-bottom:12px;overflow:hidden;cursor:pointer;transition:opacity .15s}
 .inv-card:active{opacity:.85}
 .inv-card-hdr{display:flex;align-items:center;justify-content:space-between;
-padding:12px 14px;background:rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.15)}
+  padding:12px 14px;background:rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.15)}
 .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 14px}
 .inv-f{background:rgba(0,0,0,.2);border-radius:8px;padding:9px 11px}
 .inv-fl{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
 .inv-fv{font-size:15px;font-weight:700;color:#fff}
-.inv-warn .inv-fv{color:var(–warn)}
+.inv-warn .inv-fv{color:var(--warn)}
 .inv-warn .inv-fl{color:rgba(245,158,11,.7)}
 .inv-inuse-bar{display:flex;align-items:center;justify-content:space-between;
-padding:10px 14px;background:rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.12)}
+  padding:10px 14px;background:rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.12)}
 .inv-inuse-pill{display:inline-flex;align-items:center;gap:5px;
-background:rgba(255,255,255,.15);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600}
+  background:rgba(255,255,255,.15);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600}
 .inv-inuse-pill.active{background:rgba(34,197,94,.2);color:#4ade80}
 .inv-inuse-pill.none{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
 .inv-none{color:rgba(255,255,255,.35)!important}
@@ -331,39 +340,38 @@ background:rgba(255,255,255,.15);border-radius:99px;padding:4px 10px;font-size:1
 .c-ok{color:#4ade80!important}
 /* Date navigator */
 .date-nav{display:flex;align-items:center;justify-content:space-between;
-background:#0033A0;border-radius:var(–r);padding:10px 14px;margin-bottom:14px;
-border:1px solid rgba(255,255,255,.2)}
+  background:#0033A0;border-radius:var(--r);padding:10px 14px;margin-bottom:14px;
+  border:1px solid rgba(255,255,255,.2)}
 .date-nav-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
-color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;cursor:pointer;
-display:flex;align-items:center;justify-content:center;font-family:var(–sans);flex-shrink:0}
+  color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-family:var(--sans);flex-shrink:0}
 .date-nav-btn:active{background:rgba(255,255,255,.3)}
 .date-nav-btn:disabled{opacity:.3;cursor:default}
 .date-nav-center{text-align:center;flex:1}
 .date-nav-label{font-size:15px;font-weight:700;color:#fff}
 .date-nav-sub{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
 .past-banner{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);
-border-radius:10px;padding:8px 14px;font-size:13px;color:var(–warn);
-text-align:center;margin-bottom:12px}
+  border-radius:10px;padding:8px 14px;font-size:13px;color:var(--warn);
+  text-align:center;margin-bottom:12px}
 .inv-action-btns{display:flex;gap:6px}
 .inv-action-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
-color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(–sans)}
+  color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
 .inv-action-btn:active{background:rgba(255,255,255,.25)}
 .inv-action-btn.open{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:#4ade80}
-.inv-action-btn.finish{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:var(–danger)}
+.inv-action-btn.finish{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:var(--danger)}
 /* History */
 .hist-entry{background:rgba(255,255,255,.1);border-radius:10px;border:1px solid rgba(255,255,255,.2);
-margin-bottom:10px;overflow:hidden}
+  margin-bottom:10px;overflow:hidden}
 .hist-hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;
-background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
-.hist-date{font-size:12px;font-weight:700;color:#8AAEE0;font-family:var(–mono)}
-.hist-label{font-size:11px;color:var(–text2);margin-left:auto}
+  background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
+.hist-date{font-size:12px;font-weight:700;color:#8AAEE0;font-family:var(--mono)}
+.hist-label{font-size:11px;color:var(--text2);margin-left:auto}
 .hist-body{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hist-field{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 10px}
-.hist-field-l{font-size:10px;color:var(–text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.hist-field-l{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
 .hist-field-v{font-size:13px;font-weight:600}
 .hist-days{grid-column:1/-1}
 </style>
-
 </head>
 <body>
 <div id="app">
@@ -374,206 +382,204 @@ background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
 
   <div class="scroll" id="scr">
 
-```
-<!-- TODAY -->
-<div id="pg-today" class="pg">
-  <!-- Date Navigator -->
-  <div class="date-nav">
-    <button class="date-nav-btn" onclick="changeDay(-1)" title="Previous day">‹</button>
-    <div class="date-nav-center">
-      <div class="date-nav-label" id="nav-date-label">Today</div>
-      <div class="date-nav-sub" id="nav-date-sub"></div>
+    <!-- TODAY -->
+    <div id="pg-today" class="pg">
+      <!-- Date Navigator -->
+      <div class="date-nav">
+        <button class="date-nav-btn" onclick="changeDay(-1)" title="Previous day">‹</button>
+        <div class="date-nav-center">
+          <div class="date-nav-label" id="nav-date-label">Today</div>
+          <div class="date-nav-sub" id="nav-date-sub"></div>
+        </div>
+        <button class="date-nav-btn" onclick="changeDay(1)" id="nav-next-btn" title="Next day">›</button>
+      </div>
+      <div class="past-banner hidden" id="past-banner">📅 Viewing a past day — tap to mark doses taken</div>
+      <div class="stats">
+        <div class="stat"><div class="stat-n c-ok" id="s-done">0</div><div class="stat-l">Done</div></div>
+        <div class="stat"><div class="stat-n c-warn" id="s-due">0</div><div class="stat-l">Remaining</div></div>
+        <div class="stat"><div class="stat-n c-accent" id="s-streak">0</div><div class="stat-l">Streak</div></div>
+      </div>
+      <div class="ampm" id="ampm"></div>
+      <div class="tickall hidden" id="tickall">
+        <div class="tickall-row" onclick="tickAll()">
+          <div class="chk" id="tick-chk"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="tickall-lbl">Tick All Done</span>
+          <span id="tick-cnt" style="font-size:12px;color:var(--text2);margin-left:auto;font-family:var(--mono)"></span>
+        </div>
+      </div>
+      <button class="btn btn-s" onclick="openAdd()">+ Add Compound</button>
     </div>
-    <button class="date-nav-btn" onclick="changeDay(1)" id="nav-next-btn" title="Next day">›</button>
-  </div>
-  <div class="past-banner hidden" id="past-banner">📅 Viewing a past day — tap to mark doses taken</div>
-  <div class="stats">
-    <div class="stat"><div class="stat-n c-ok" id="s-done">0</div><div class="stat-l">Done</div></div>
-    <div class="stat"><div class="stat-n c-warn" id="s-due">0</div><div class="stat-l">Remaining</div></div>
-    <div class="stat"><div class="stat-n c-accent" id="s-streak">0</div><div class="stat-l">Streak</div></div>
-  </div>
-  <div class="ampm" id="ampm"></div>
-  <div class="tickall hidden" id="tickall">
-    <div class="tickall-row" onclick="tickAll()">
-      <div class="chk" id="tick-chk"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <span class="tickall-lbl">Tick All Done</span>
-      <span id="tick-cnt" style="font-size:12px;color:var(--text2);margin-left:auto;font-family:var(--mono)"></span>
+
+    <!-- PROTOCOL -->
+    <div id="pg-proto" class="pg hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="sec" style="margin:0">Protocol</div>
+        <button class="btn btn-s btn-sm" onclick="openAdd()">+ Add Compound</button>
+      </div>
+      <!-- Horizontally scrollable inline-edit table -->
+      <div class="tbl-wrap">
+        <table id="proto-tbl">
+          <thead>
+            <tr>
+              <th class="col-name">Peptide</th>
+              <th class="col-act">Active</th>
+              <th class="col-dose">Dosage</th>
+              <th class="col-unit">Unit</th>
+              <th class="col-time">AM/PM/Both</th>
+              <th class="col-day">M</th>
+              <th class="col-day">T</th>
+              <th class="col-day">W</th>
+              <th class="col-day">T</th>
+              <th class="col-day">F</th>
+              <th class="col-day">S</th>
+              <th class="col-day">S</th>
+              <th class="col-dt">Start Date</th>
+              <th class="col-dt">End Date</th>
+              <th class="col-dt">Duration</th>
+              <th class="col-edit"></th>
+            </tr>
+          </thead>
+          <tbody id="proto-body"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
     </div>
-  </div>
-  <button class="btn btn-s" onclick="openAdd()">+ Add Compound</button>
-</div>
 
-<!-- PROTOCOL -->
-<div id="pg-proto" class="pg hidden">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <div class="sec" style="margin:0">Protocol</div>
-    <button class="btn btn-s btn-sm" onclick="openAdd()">+ Add Compound</button>
-  </div>
-  <!-- Horizontally scrollable inline-edit table -->
-  <div class="tbl-wrap">
-    <table id="proto-tbl">
-      <thead>
-        <tr>
-          <th class="col-name">Peptide</th>
-          <th class="col-act">Active</th>
-          <th class="col-dose">Dosage</th>
-          <th class="col-unit">Unit</th>
-          <th class="col-time">AM/PM/Both</th>
-          <th class="col-day">M</th>
-          <th class="col-day">T</th>
-          <th class="col-day">W</th>
-          <th class="col-day">T</th>
-          <th class="col-day">F</th>
-          <th class="col-day">S</th>
-          <th class="col-day">S</th>
-          <th class="col-dt">Start Date</th>
-          <th class="col-dt">End Date</th>
-          <th class="col-dt">Duration</th>
-          <th class="col-edit"></th>
-        </tr>
-      </thead>
-      <tbody id="proto-body"></tbody>
-    </table>
-  </div>
-  <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
-</div>
-
-<!-- LOG -->
-<div id="pg-log" class="pg hidden">
-  <div class="sec">Dose History</div>
-  <div id="log-list"></div>
-</div>
-
-<!-- INVENTORY -->
-<div id="pg-inv" class="pg hidden">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <div class="sec" style="margin:0">Vials &amp; Stock</div>
-    <button class="btn btn-s btn-sm" onclick="openAddInv()">+ Add Vial</button>
-  </div>
-  <div id="inv-list"></div>
-</div>
-
-<!-- STATS -->
-<div id="pg-stats" class="pg hidden">
-  <div class="sec">Adherence — Last 30 Days</div>
-  <div class="card"><div class="streak" id="streak"></div></div>
-  <div class="sec">By Compound</div>
-  <div id="stats-list"></div>
-</div>
-
-<!-- HISTORY -->
-<div id="pg-hist" class="pg hidden">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <div class="sec" style="margin:0">Protocol History</div>
-    <select class="fs" id="hist-filter" onchange="rHist()" style="width:auto;font-size:13px;padding:6px 28px 6px 10px;border-radius:8px">
-      <option value="">All Compounds</option>
-    </select>
-  </div>
-  <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Every protocol change is saved here automatically.</p>
-  <div id="hist-list"></div>
-</div>
-
-<!-- LINKS -->
-<div id="pg-links" class="pg hidden">
-  <div class="sec">Useful Links</div>
-  <div class="link-card" onclick="openLink('https://peptidedosages.com/single-peptide-dosages/selank-10-mg-vial-dosage-protocol/')">
-    <div class="link-icon">💊</div>
-    <div class="link-body">
-      <div class="link-title">Peptide Dosage Protocols</div>
-      <div class="link-sub">peptidedosages.com</div>
-      <div class="link-desc">Single peptide dosage protocols — Selank, BPC-157, and more</div>
+    <!-- LOG -->
+    <div id="pg-log" class="pg hidden">
+      <div class="sec">Dose History</div>
+      <div id="log-list"></div>
     </div>
-    <div class="link-arrow">›</div>
-  </div>
-  <div class="link-card" onclick="openLink('https://particlepeptides.com/en/content/48-peptide-calculator#')">
-    <div class="link-icon">🧮</div>
-    <div class="link-body">
-      <div class="link-title">Peptide Calculator</div>
-      <div class="link-sub">particlepeptides.com</div>
-      <div class="link-desc">Calculate reconstitution volumes, doses, and injection amounts</div>
+
+    <!-- INVENTORY -->
+    <div id="pg-inv" class="pg hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="sec" style="margin:0">Vials &amp; Stock</div>
+        <button class="btn btn-s btn-sm" onclick="openAddInv()">+ Add Vial</button>
+      </div>
+      <div id="inv-list"></div>
     </div>
-    <div class="link-arrow">›</div>
-  </div>
-</div>
 
-<!-- CALCULATOR -->
-<div id="pg-calc" class="pg hidden">
-  <div class="sec">Reconstitution &amp; Dosing Calculator</div>
-
-  <!-- Load from protocol -->
-  <div class="calc-card">
-    <div class="calc-section-lbl">Load from Protocol (optional)</div>
-    <div style="display:flex;gap:8px">
-      <select class="fs" id="c-compound" onchange="loadFromProtocol()" style="flex:1;margin-bottom:0">
-        <option value="">— Select compound to auto-fill —</option>
-      </select>
-      <button class="btn btn-s btn-sm" onclick="resetCalc()" style="flex-shrink:0;white-space:nowrap">Reset</button>
+    <!-- STATS -->
+    <div id="pg-stats" class="pg hidden">
+      <div class="sec">Adherence — Last 30 Days</div>
+      <div class="card"><div class="streak" id="streak"></div></div>
+      <div class="sec">By Compound</div>
+      <div id="stats-list"></div>
     </div>
-  </div>
 
-  <!-- A: Vial Amount -->
-  <div class="calc-fields-grid">
-    <div class="calc-field-box">
-      <div class="calc-field-letter">A</div>
-      <label class="fl">Vial Amount</label>
-      <div style="display:flex;gap:6px">
-        <input class="fi" id="c-vialAmt" type="number" step="0.1" placeholder="e.g. 5" oninput="calcBoth()">
-        <select class="fs" id="c-vialUnit" style="width:76px" onchange="calcBoth()">
-          <option>mg</option><option>mcg</option><option>IU</option>
+    <!-- HISTORY -->
+    <div id="pg-hist" class="pg hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="sec" style="margin:0">Protocol History</div>
+        <select class="fs" id="hist-filter" onchange="rHist()" style="width:auto;font-size:13px;padding:6px 28px 6px 10px;border-radius:8px">
+          <option value="">All Compounds</option>
         </select>
       </div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Every protocol change is saved here automatically.</p>
+      <div id="hist-list"></div>
     </div>
 
-    <!-- B: BAC Water -->
-    <div class="calc-field-box">
-      <div class="calc-field-letter">B</div>
-      <label class="fl">BAC Water</label>
-      <div style="display:flex;gap:6px">
-        <input class="fi" id="c-bac" type="number" step="0.1" placeholder="e.g. 2" oninput="calcBoth()">
-        <div class="fi" style="width:52px;text-align:center;padding:12px 6px;opacity:.6;flex-shrink:0">ml</div>
+    <!-- LINKS -->
+    <div id="pg-links" class="pg hidden">
+      <div class="sec">Useful Links</div>
+      <div class="link-card" onclick="openLink('https://peptidedosages.com/single-peptide-dosages/selank-10-mg-vial-dosage-protocol/')">
+        <div class="link-icon">💊</div>
+        <div class="link-body">
+          <div class="link-title">Peptide Dosage Protocols</div>
+          <div class="link-sub">peptidedosages.com</div>
+          <div class="link-desc">Single peptide dosage protocols — Selank, BPC-157, and more</div>
+        </div>
+        <div class="link-arrow">›</div>
+      </div>
+      <div class="link-card" onclick="openLink('https://particlepeptides.com/en/content/48-peptide-calculator#')">
+        <div class="link-icon">🧮</div>
+        <div class="link-body">
+          <div class="link-title">Peptide Calculator</div>
+          <div class="link-sub">particlepeptides.com</div>
+          <div class="link-desc">Calculate reconstitution volumes, doses, and injection amounts</div>
+        </div>
+        <div class="link-arrow">›</div>
       </div>
     </div>
 
-    <!-- C: Dose -->
-    <div class="calc-field-box">
-      <div class="calc-field-letter">C</div>
-      <label class="fl">Dose</label>
-      <div style="display:flex;gap:6px">
-        <input class="fi" id="c-dose" type="number" step="0.01" placeholder="e.g. 250" oninput="calcFromDose()">
-        <select class="fs" id="c-doseUnit" style="width:76px" onchange="calcFromDose()">
-          <option>mcg</option><option>mg</option><option>IU</option>
-        </select>
+    <!-- CALCULATOR -->
+    <div id="pg-calc" class="pg hidden">
+      <div class="sec">Reconstitution &amp; Dosing Calculator</div>
+
+      <!-- Load from protocol -->
+      <div class="calc-card">
+        <div class="calc-section-lbl">Load from Protocol (optional)</div>
+        <div style="display:flex;gap:8px">
+          <select class="fs" id="c-compound" onchange="loadFromProtocol()" style="flex:1;margin-bottom:0">
+            <option value="">— Select compound to auto-fill —</option>
+          </select>
+          <button class="btn btn-s btn-sm" onclick="resetCalc()" style="flex-shrink:0;white-space:nowrap">Reset</button>
+        </div>
+      </div>
+
+      <!-- A: Vial Amount -->
+      <div class="calc-fields-grid">
+        <div class="calc-field-box">
+          <div class="calc-field-letter">A</div>
+          <label class="fl">Vial Amount</label>
+          <div style="display:flex;gap:6px">
+            <input class="fi" id="c-vialAmt" type="number" step="0.1" placeholder="e.g. 5" oninput="calcBoth()">
+            <select class="fs" id="c-vialUnit" style="width:76px" onchange="calcBoth()">
+              <option>mg</option><option>mcg</option><option>IU</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- B: BAC Water -->
+        <div class="calc-field-box">
+          <div class="calc-field-letter">B</div>
+          <label class="fl">BAC Water</label>
+          <div style="display:flex;gap:6px">
+            <input class="fi" id="c-bac" type="number" step="0.1" placeholder="e.g. 2" oninput="calcBoth()">
+            <div class="fi" style="width:52px;text-align:center;padding:12px 6px;opacity:.6;flex-shrink:0">ml</div>
+          </div>
+        </div>
+
+        <!-- C: Dose -->
+        <div class="calc-field-box">
+          <div class="calc-field-letter">C</div>
+          <label class="fl">Dose</label>
+          <div style="display:flex;gap:6px">
+            <input class="fi" id="c-dose" type="number" step="0.01" placeholder="e.g. 250" oninput="calcFromDose()">
+            <select class="fs" id="c-doseUnit" style="width:76px" onchange="calcFromDose()">
+              <option>mcg</option><option>mg</option><option>IU</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- D: Pin Amount -->
+        <div class="calc-field-box">
+          <div class="calc-field-letter">D</div>
+          <label class="fl">Pin Amount</label>
+          <div style="display:flex;gap:6px">
+            <input class="fi" id="c-vol" type="number" step="0.1" placeholder="e.g. 10" oninput="calcFromVol()">
+            <div class="fi" style="width:60px;text-align:center;padding:12px 6px;opacity:.6;flex-shrink:0">units</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Concentration display -->
+      <div class="calc-conc-bar" id="c-conc-display"></div>
+
+      <!-- Result -->
+      <div class="calc-result hidden" id="calc-result">
+        <div class="calc-result-lbl" id="calc-result-lbl">Result</div>
+        <div class="calc-result-val" id="calc-result-val">—</div>
+        <div class="calc-result-sub" id="calc-result-sub"></div>
+      </div>
+
+      <!-- Quick reference -->
+      <div class="calc-card">
+        <div class="calc-section-lbl">Syringe Reference Chart</div>
+        <div id="calc-quick-ref" style="color:rgba(255,255,255,.6);font-size:13px">Enter vial details above (A &amp; B) to see the full chart.</div>
       </div>
     </div>
-
-    <!-- D: Pin Amount -->
-    <div class="calc-field-box">
-      <div class="calc-field-letter">D</div>
-      <label class="fl">Pin Amount</label>
-      <div style="display:flex;gap:6px">
-        <input class="fi" id="c-vol" type="number" step="0.1" placeholder="e.g. 10" oninput="calcFromVol()">
-        <div class="fi" style="width:60px;text-align:center;padding:12px 6px;opacity:.6;flex-shrink:0">units</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Concentration display -->
-  <div class="calc-conc-bar" id="c-conc-display"></div>
-
-  <!-- Result -->
-  <div class="calc-result hidden" id="calc-result">
-    <div class="calc-result-lbl" id="calc-result-lbl">Result</div>
-    <div class="calc-result-val" id="calc-result-val">—</div>
-    <div class="calc-result-sub" id="calc-result-sub"></div>
-  </div>
-
-  <!-- Quick reference -->
-  <div class="calc-card">
-    <div class="calc-section-lbl">Syringe Reference Chart</div>
-    <div id="calc-quick-ref" style="color:rgba(255,255,255,.6);font-size:13px">Enter vial details above (A &amp; B) to see the full chart.</div>
-  </div>
-</div>
-```
 
   </div>
 
@@ -619,7 +625,6 @@ background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
 </div>
 
 <!-- ═══ COMPOUND FORM SHEET ═══ -->
-
 <div class="ov hidden" id="ov-form">
   <div class="sh">
     <div class="sh-handle"></div>
@@ -628,163 +633,159 @@ background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
       <div id="form-dot" style="width:14px;height:14px;border-radius:50%;flex-shrink:0"></div>
     </div>
 
-```
-<!-- NAME (only shown when adding new) -->
-<div class="fg" id="form-name-wrap">
-  <label class="fl">Name</label>
-  <input class="fi" id="f-name" placeholder="e.g. BPC-157">
-</div>
+    <!-- NAME (only shown when adding new) -->
+    <div class="fg" id="form-name-wrap">
+      <label class="fl">Name</label>
+      <input class="fi" id="f-name" placeholder="e.g. BPC-157">
+    </div>
 
-<div class="fdiv"></div>
-<div class="fsec">① Dosage</div>
-<div class="fr fg">
-  <div><label class="fl">Amount</label><input class="fi" id="f-dose" type="number" step="0.01" placeholder="0.00"></div>
-  <div><label class="fl">Unit</label>
-    <select class="fs" id="f-unit">
-      <option>mg</option><option>mcg</option><option>IU</option><option>ml</option><option>units</option>
-    </select>
-  </div>
-</div>
-<div class="fg"><label class="fl">Route of Administration</label>
-  <select class="fs" id="f-route">
-    <option>SubQ Injection</option><option>IM Injection</option><option>Oral</option>
-    <option>Nasal Spray</option><option>Topical</option><option>IV</option>
-  </select>
-</div>
-<div class="fg"><label class="fl">Dosing Notes</label>
-  <textarea class="fta" id="f-doseNotes" placeholder="e.g. Start 0.25mg, increase 0.25mg/week to target"></textarea>
-</div>
+    <div class="fdiv"></div>
+    <div class="fsec">① Dosage</div>
+    <div class="fr fg">
+      <div><label class="fl">Amount</label><input class="fi" id="f-dose" type="number" step="0.01" placeholder="0.00"></div>
+      <div><label class="fl">Unit</label>
+        <select class="fs" id="f-unit">
+          <option>mg</option><option>mcg</option><option>IU</option><option>ml</option><option>units</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Route of Administration</label>
+      <select class="fs" id="f-route">
+        <option>SubQ Injection</option><option>IM Injection</option><option>Oral</option>
+        <option>Nasal Spray</option><option>Topical</option><option>IV</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Dosing Notes</label>
+      <textarea class="fta" id="f-doseNotes" placeholder="e.g. Start 0.25mg, increase 0.25mg/week to target"></textarea>
+    </div>
 
-<div class="fdiv"></div>
-<div class="fsec">② Frequency &amp; Timing</div>
-<div class="fg"><label class="fl">Frequency</label>
-  <select class="fs" id="f-freq" onchange="onFreq()">
-    <option value="daily">Daily</option>
-    <option value="bid">Twice Daily (BID)</option>
-    <option value="eod">Every Other Day</option>
-    <option value="e3d">Every 3 Days</option>
-    <option value="2xweek">2x per Week</option>
-    <option value="3xweek">3x per Week</option>
-    <option value="4xweek">4x per Week</option>
-    <option value="5xweek">5x per Week</option>
-    <option value="weekly">Once per Week</option>
-    <option value="biweekly">Every 2 Weeks</option>
-    <option value="monthly">Monthly</option>
-    <option value="prn">As Needed (PRN)</option>
-  </select>
-</div>
-<div class="fg">
-  <label class="fl">Days of Week</label>
-  <div class="day-chk-row" id="f-days">
-    <div class="day-chk-item" onclick="togDayChk(this,1)">
-      <div class="day-chk-box" data-d="1"></div><span class="day-chk-lbl">Mon</span>
+    <div class="fdiv"></div>
+    <div class="fsec">② Frequency &amp; Timing</div>
+    <div class="fg"><label class="fl">Frequency</label>
+      <select class="fs" id="f-freq" onchange="onFreq()">
+        <option value="daily">Daily</option>
+        <option value="bid">Twice Daily (BID)</option>
+        <option value="eod">Every Other Day</option>
+        <option value="e3d">Every 3 Days</option>
+        <option value="2xweek">2x per Week</option>
+        <option value="3xweek">3x per Week</option>
+        <option value="4xweek">4x per Week</option>
+        <option value="5xweek">5x per Week</option>
+        <option value="weekly">Once per Week</option>
+        <option value="biweekly">Every 2 Weeks</option>
+        <option value="monthly">Monthly</option>
+        <option value="prn">As Needed (PRN)</option>
+      </select>
     </div>
-    <div class="day-chk-item" onclick="togDayChk(this,2)">
-      <div class="day-chk-box" data-d="2"></div><span class="day-chk-lbl">Tue</span>
+    <div class="fg">
+      <label class="fl">Days of Week</label>
+      <div class="day-chk-row" id="f-days">
+        <div class="day-chk-item" onclick="togDayChk(this,1)">
+          <div class="day-chk-box" data-d="1"></div><span class="day-chk-lbl">Mon</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,2)">
+          <div class="day-chk-box" data-d="2"></div><span class="day-chk-lbl">Tue</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,3)">
+          <div class="day-chk-box" data-d="3"></div><span class="day-chk-lbl">Wed</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,4)">
+          <div class="day-chk-box" data-d="4"></div><span class="day-chk-lbl">Thu</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,5)">
+          <div class="day-chk-box" data-d="5"></div><span class="day-chk-lbl">Fri</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,6)">
+          <div class="day-chk-box" data-d="6"></div><span class="day-chk-lbl">Sat</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,0)">
+          <div class="day-chk-box" data-d="0"></div><span class="day-chk-lbl">Sun</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button type="button" class="btn btn-s btn-sm" onclick="selectAllDays()" style="font-size:12px;padding:6px 12px">All</button>
+        <button type="button" class="btn btn-s btn-sm" onclick="clearAllDays()" style="font-size:12px;padding:6px 12px">None</button>
+        <button type="button" class="btn btn-s btn-sm" onclick="selectWeekdays()" style="font-size:12px;padding:6px 12px">Weekdays</button>
+      </div>
     </div>
-    <div class="day-chk-item" onclick="togDayChk(this,3)">
-      <div class="day-chk-box" data-d="3"></div><span class="day-chk-lbl">Wed</span>
+    <div class="fr fg">
+      <div><label class="fl">Time of Day</label>
+        <select class="fs" id="f-time">
+          <option value="AM">Morning (AM)</option>
+          <option value="PM">Evening (PM)</option>
+          <option value="Both">AM &amp; PM (Both)</option>
+          <option value="PreWO">Pre-Workout</option>
+          <option value="PostWO">Post-Workout</option>
+          <option value="Fasted">Fasted</option>
+          <option value="BedTime">Bed Time</option>
+          <option value="WithMeal">With Meal</option>
+          <option value="Any">Any Time</option>
+        </select>
+      </div>
+      <div><label class="fl">Clock Time</label>
+        <input class="fi" id="f-clock" type="time">
+      </div>
     </div>
-    <div class="day-chk-item" onclick="togDayChk(this,4)">
-      <div class="day-chk-box" data-d="4"></div><span class="day-chk-lbl">Thu</span>
+    <div class="fg"><label class="fl">Timing Notes</label>
+      <input class="fi" id="f-timingNotes" placeholder="e.g. 30 min fasted, away from thyroid meds">
     </div>
-    <div class="day-chk-item" onclick="togDayChk(this,5)">
-      <div class="day-chk-box" data-d="5"></div><span class="day-chk-lbl">Fri</span>
-    </div>
-    <div class="day-chk-item" onclick="togDayChk(this,6)">
-      <div class="day-chk-box" data-d="6"></div><span class="day-chk-lbl">Sat</span>
-    </div>
-    <div class="day-chk-item" onclick="togDayChk(this,0)">
-      <div class="day-chk-box" data-d="0"></div><span class="day-chk-lbl">Sun</span>
-    </div>
-  </div>
-  <div style="display:flex;gap:8px;margin-top:8px">
-    <button type="button" class="btn btn-s btn-sm" onclick="selectAllDays()" style="font-size:12px;padding:6px 12px">All</button>
-    <button type="button" class="btn btn-s btn-sm" onclick="clearAllDays()" style="font-size:12px;padding:6px 12px">None</button>
-    <button type="button" class="btn btn-s btn-sm" onclick="selectWeekdays()" style="font-size:12px;padding:6px 12px">Weekdays</button>
-  </div>
-</div>
-<div class="fr fg">
-  <div><label class="fl">Time of Day</label>
-    <select class="fs" id="f-time">
-      <option value="AM">Morning (AM)</option>
-      <option value="PM">Evening (PM)</option>
-      <option value="Both">AM &amp; PM (Both)</option>
-      <option value="PreWO">Pre-Workout</option>
-      <option value="PostWO">Post-Workout</option>
-      <option value="Fasted">Fasted</option>
-      <option value="BedTime">Bed Time</option>
-      <option value="WithMeal">With Meal</option>
-      <option value="Any">Any Time</option>
-    </select>
-  </div>
-  <div><label class="fl">Clock Time</label>
-    <input class="fi" id="f-clock" type="time">
-  </div>
-</div>
-<div class="fg"><label class="fl">Timing Notes</label>
-  <input class="fi" id="f-timingNotes" placeholder="e.g. 30 min fasted, away from thyroid meds">
-</div>
 
-<div class="fdiv"></div>
-<div class="fsec">③ Duration &amp; Cycle</div>
-<div class="fr fg">
-  <div><label class="fl">Start Date</label><input class="fi" id="f-start" type="date"></div>
-  <div><label class="fl">Duration</label>
-    <select class="fs" id="f-durtype" onchange="onDur()">
-      <option value="ongoing">Ongoing</option>
-      <option value="weeks">Fixed (weeks)</option>
-      <option value="enddate">Fixed (end date)</option>
-    </select>
-  </div>
-</div>
-<div class="fg hidden" id="f-weeks-wrap"><label class="fl">Number of Weeks</label>
-  <input class="fi" id="f-weeks" type="number" min="1" placeholder="e.g. 4">
-</div>
-<div class="fg hidden" id="f-end-wrap"><label class="fl">End Date</label>
-  <input class="fi" id="f-end" type="date">
-</div>
-<div class="fg"><label class="fl">Cycle Pattern</label>
-  <input class="fi" id="f-cycle" placeholder="e.g. 12 weeks on, 4 weeks off">
-</div>
-<div class="fg"><label class="fl">Off-Cycle / PCT Notes</label>
-  <input class="fi" id="f-pct" placeholder="e.g. HCG 500 IU EOD x 3 weeks">
-</div>
+    <div class="fdiv"></div>
+    <div class="fsec">③ Duration &amp; Cycle</div>
+    <div class="fr fg">
+      <div><label class="fl">Start Date</label><input class="fi" id="f-start" type="date"></div>
+      <div><label class="fl">Duration</label>
+        <select class="fs" id="f-durtype" onchange="onDur()">
+          <option value="ongoing">Ongoing</option>
+          <option value="weeks">Fixed (weeks)</option>
+          <option value="enddate">Fixed (end date)</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg hidden" id="f-weeks-wrap"><label class="fl">Number of Weeks</label>
+      <input class="fi" id="f-weeks" type="number" min="1" placeholder="e.g. 4">
+    </div>
+    <div class="fg hidden" id="f-end-wrap"><label class="fl">End Date</label>
+      <input class="fi" id="f-end" type="date">
+    </div>
+    <div class="fg"><label class="fl">Cycle Pattern</label>
+      <input class="fi" id="f-cycle" placeholder="e.g. 12 weeks on, 4 weeks off">
+    </div>
+    <div class="fg"><label class="fl">Off-Cycle / PCT Notes</label>
+      <input class="fi" id="f-pct" placeholder="e.g. HCG 500 IU EOD x 3 weeks">
+    </div>
 
-<div class="fdiv"></div>
-<div class="fsec">④ General</div>
-<div class="fg"><label class="fl">Category</label>
-  <select class="fs" id="f-cat">
-    <option>Peptide</option><option>Growth Hormone</option><option>Hormone</option>
-    <option>Supplement</option><option>Vitamin</option><option>Nootropic</option><option>Other</option>
-  </select>
-</div>
-<div class="fg"><label class="fl">Color Tag</label>
-  <div class="swatches" id="f-colors"></div>
-</div>
-<div class="fg"><label class="fl">General Notes</label>
-  <textarea class="fta" id="f-notes" placeholder="Interactions, storage, reconstitution..."></textarea>
-</div>
-<div class="tog-row">
-  <span style="font-size:15px">Active in Protocol</span>
-  <label class="tog"><input type="checkbox" id="f-active" checked><div class="tog-track"></div></label>
-</div>
-<input type="hidden" id="f-id">
+    <div class="fdiv"></div>
+    <div class="fsec">④ General</div>
+    <div class="fg"><label class="fl">Category</label>
+      <select class="fs" id="f-cat">
+        <option>Peptide</option><option>Growth Hormone</option><option>Hormone</option>
+        <option>Supplement</option><option>Vitamin</option><option>Nootropic</option><option>Other</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Color Tag</label>
+      <div class="swatches" id="f-colors"></div>
+    </div>
+    <div class="fg"><label class="fl">General Notes</label>
+      <textarea class="fta" id="f-notes" placeholder="Interactions, storage, reconstitution..."></textarea>
+    </div>
+    <div class="tog-row">
+      <span style="font-size:15px">Active in Protocol</span>
+      <label class="tog"><input type="checkbox" id="f-active" checked><div class="tog-track"></div></label>
+    </div>
+    <input type="hidden" id="f-id">
 
-<div class="brow">
-  <button class="btn btn-s" onclick="closeOv('ov-form')">Cancel</button>
-  <button class="btn btn-p" onclick="saveForm()">Save</button>
-</div>
-<div style="margin-top:10px" id="f-del-wrap" class="hidden">
-  <button class="btn btn-d" onclick="delCompound()">Delete Compound</button>
-</div>
-```
-
+    <div class="brow">
+      <button class="btn btn-s" onclick="closeOv('ov-form')">Cancel</button>
+      <button class="btn btn-p" onclick="saveForm()">Save</button>
+    </div>
+    <div style="margin-top:10px" id="f-del-wrap" class="hidden">
+      <button class="btn btn-d" onclick="delCompound()">Delete Compound</button>
+    </div>
   </div>
 </div>
 
 <!-- ═══ LOG DOSE SHEET ═══ -->
-
 <div class="ov hidden" id="ov-log">
   <div class="sh">
     <div class="sh-handle"></div>
@@ -824,7 +825,6 @@ background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
 </div>
 
 <!-- ═══ INVENTORY SHEET ═══ -->
-
 <div class="ov hidden" id="ov-inv">
   <div class="sh">
     <div class="sh-handle"></div>
@@ -1948,6 +1948,5 @@ function init(){
 }
 init();
 </script>
-
 </body>
 </html>
