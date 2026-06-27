@@ -452,7 +452,7 @@ tr:active td{background:var(--card2)}
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.41 · 27 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.42 · 27 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -2603,6 +2603,23 @@ function masterReset(){
   alert('Reset complete. All data cleared and default compounds loaded.');
 }
 
+function checkBackupReminder(){
+  const lastRemind=localStorage.getItem('pt_last_backup_remind');
+  const now=Date.now();
+  const ONE_WEEK=7*24*60*60*1000;
+  if(!lastRemind||now-parseInt(lastRemind)>ONE_WEEK){
+    localStorage.setItem('pt_last_backup_remind', now.toString());
+    // Only show if user has actual data worth backing up
+    if(D.logs&&D.logs.length>0){
+      setTimeout(()=>{
+        if(confirm('📦 Weekly Backup Reminder\n\nIt\'s been a week since your last backup prompt.\n\nTap OK to save a backup now, or Cancel to skip.')){
+          exportData();
+        }
+      }, 1500);
+    }
+  }
+}
+
 function exportData(){
   const date=new Date().toISOString().slice(0,10);
   const filename='peptide-backup-'+date+'.json';
@@ -2746,6 +2763,7 @@ window.addEventListener('beforeunload', function(){ save(); });
 
 function init(){
   load();
+  checkBackupReminder();
   document.getElementById('hdrDate').textContent=new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
   viewDate=tod();
   updateDateNav();
