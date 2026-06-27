@@ -311,23 +311,7 @@ tr:active td{background:var(--card2)}
 .stack-lbl{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;
   letter-spacing:.6px;margin-bottom:3px}
 .stack-val{font-size:14px;font-weight:700;color:#fff}
-/* AI Review Box */
-.ai-box{background:#001a66;border:1px solid rgba(255,255,255,.2);border-radius:var(--r);
-  padding:14px;margin-top:16px}
-.ai-box-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:#fff}
-.ai-analyse-btn{background:#fff;color:#0033A0;border:none;border-radius:8px;
-  padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans);
-  transition:opacity .15s}
-.ai-analyse-btn:active{opacity:.8}
-.ai-analyse-btn:disabled{opacity:.4;cursor:default}
-.ai-result{border-top:1px solid rgba(255,255,255,.15);padding-top:12px}
-.ai-thinking{display:flex;align-items:center;gap:10px;padding:8px 0}
-.ai-dot-wrap{display:flex;gap:5px}
-.ai-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5);
-  animation:ai-bounce .9s infinite ease-in-out}
-.ai-dot:nth-child(2){animation-delay:.15s}
-.ai-dot:nth-child(3){animation-delay:.3s}
-@keyframes ai-bounce{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1);opacity:1}}
+
 /* Records sub-tabs */
 .rec-tab{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
   color:rgba(255,255,255,.6);border-radius:10px;padding:9px 4px;font-size:12px;
@@ -468,7 +452,7 @@ tr:active td{background:var(--card2)}
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.39 · 27 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.41 · 27 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -607,25 +591,10 @@ tr:active td{background:var(--card2)}
     <div id="pg-stack" class="pg hidden">
       <div id="stack-content"></div>
 
-      <!-- AI Review Box -->
-      <div class="ai-box">
-        <div class="ai-box-hdr">
-          <div style="display:flex;align-items:center;gap:8px">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span style="font-size:14px;font-weight:700">AI Stack Review</span>
-          </div>
-          <button class="ai-analyse-btn" onclick="runStackAI()" id="ai-analyse-btn">Analyse Stack</button>
-        </div>
-        <div id="ai-result" class="ai-result hidden">
-          <div id="ai-thinking" class="ai-thinking hidden">
-            <div class="ai-dot-wrap"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>
-            <span style="font-size:13px;color:rgba(255,255,255,.6)">Analysing your stack...</span>
-          </div>
-          <div id="ai-text" style="font-size:13px;line-height:1.65;color:rgba(255,255,255,.9)"></div>
-        </div>
-        <p style="font-size:11px;color:rgba(255,255,255,.35);margin-top:10px;line-height:1.5">
-          ⚠️ AI analysis is for informational purposes only and does not constitute medical advice. Always consult a qualified healthcare professional.
-        </p>
+      <div style="background:#0033A0;border:1px solid rgba(255,255,255,.2);border-radius:var(--r);padding:14px;margin-top:4px">
+        <div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:12px;line-height:1.5">Copy your stack as an AI-ready prompt and paste into ChatGPT, Claude, Gemini or any AI assistant for a detailed analysis.</div>
+        <button class="btn btn-p" onclick="copyStackPrompt()" id="copy-stack-btn" style="font-size:14px">Copy Stack for AI Analysis</button>
+        <div id="copy-stack-confirm" style="font-size:12px;color:var(--success);margin-top:8px;display:none;text-align:center">✓ Prompt copied — paste into your AI of choice</div>
       </div>
     </div>
 
@@ -2700,46 +2669,68 @@ function manualSave(){
   setTimeout(()=>el.style.display='none', 2000);
 }
 
-// ─── AI STACK REVIEW ─────────────────────────────────────────
-function runStackAI(){
+
+
+function copyStackPrompt(){
   const active=D.compounds.filter(c=>c.active);
   if(!active.length){alert('No active compounds to analyse.');return;}
 
   function dpw(c){
-    if(!c.days||!c.days.length){const m={daily:7,bid:7,eod:3.5,e3d:2.3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:0.25,prn:0};return m[c.freq]||7;}
+    if(!c.days||!c.days.length){
+      const m={daily:7,bid:7,eod:3.5,e3d:2.3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:0.25,prn:0};
+      return m[c.freq]||7;
+    }
     return c.days.length;
   }
 
-  const lines=active.map(c=>{
+  const PEPTIDE_CATS=['Peptide','Growth Hormone','Nootropic'];
+  const peptides=active.filter(c=>PEPTIDE_CATS.includes(c.cat)||!c.cat);
+  const compounds=active.filter(c=>!PEPTIDE_CATS.includes(c.cat)&&c.cat);
+
+  function describeCompound(c){
     const d=dpw(c);
     const sessions=c.time==='Both'?2:1;
     const jabDose=c.dose*sessions;
-    const weekly=jabDose*d;
-    return '- '+c.name+' ('+( c.cat||'Peptide')+'): '+jabDose+c.unit+' per session, '+(d===7?'daily':d+'x/week')+', '+(c.time==='Both'?'AM+PM':c.time||'any time')+', weekly total: '+weekly+c.unit+', route: '+(c.route||'SubQ');
-  });
+    const weekly=parseFloat((jabDose*d).toFixed(2));
+    const freqStr=d===7?'daily':d===3.5?'every other day':d+'x per week';
+    const timingStr=c.time==='Both'?'AM and PM':c.time||'any time';
+    return '  - '+c.name+': '+jabDose+' '+c.unit+' per session, '+freqStr+', '+timingStr+
+      ', weekly total: '+weekly+' '+c.unit+
+      (c.route?', route: '+c.route:'')+
+      (c.start?', started: '+c.start:'');
+  }
 
-  const prompt='Please review my current peptide and compound stack and provide: 1) What this stack is designed to achieve, 2) Notable synergies, 3) Timing optimisations, 4) Any concerns or interactions to monitor, 5) Suggestions to enhance the stack. Keep it concise and practical.\n\nMY CURRENT STACK:\n'+lines.join('\n');
+  let prompt='Please analyse my current peptide and compound stack and provide:\n'+
+    '1. An overview of what this stack is designed to achieve\n'+
+    '2. Notable synergies between compounds\n'+
+    '3. Timing optimisations worth considering\n'+
+    '4. Any potential concerns, interactions or things to monitor\n'+
+    '5. Suggestions to enhance or complement the stack\n\n'+
+    'Please keep the response concise and practical.\n\n'+
+    'MY CURRENT STACK:\n\n';
 
-  // Copy to clipboard and open Claude
+  if(peptides.length){
+    prompt+='PEPTIDES & NOOTROPICS:\n';
+    prompt+=peptides.map(describeCompound).join('\n')+'\n\n';
+  }
+  if(compounds.length){
+    prompt+='HORMONES & COMPOUNDS:\n';
+    prompt+=compounds.map(describeCompound).join('\n')+'\n';
+  }
+
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(prompt).then(()=>{
-      showAIInstructions(prompt);
-    }).catch(()=>showAIInstructions(prompt));
+      const confirm=document.getElementById('copy-stack-confirm');
+      confirm.style.display='block';
+      document.getElementById('copy-stack-btn').textContent='Copied!';
+      setTimeout(()=>{
+        confirm.style.display='none';
+        document.getElementById('copy-stack-btn').textContent='Copy Stack for AI Analysis';
+      },3000);
+    }).catch(()=>alert('Could not copy automatically. Please try again.'));
   } else {
-    showAIInstructions(prompt);
+    alert('Clipboard not available on this device.');
   }
-}
-
-function showAIInstructions(prompt){
-  const textEl=document.getElementById('ai-text');
-  const resultEl=document.getElementById('ai-result');
-  const thinkingEl=document.getElementById('ai-thinking');
-  thinkingEl.classList.add('hidden');
-  resultEl.classList.remove('hidden');
-  textEl.innerHTML='<div style="margin-bottom:12px;font-size:13px;color:rgba(255,255,255,.8)">Your stack prompt has been copied to clipboard. Tap the button below to open Claude and paste it in.</div>'+
-    '<button onclick="openLink(\'https://claude.ai\')" style="background:#fff;color:#0033A0;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px">Open Claude AI →</button>'+
-    '<div style="background:rgba(0,0,0,.3);border-radius:8px;padding:10px;font-size:11px;color:rgba(255,255,255,.5);font-family:monospace;white-space:pre-wrap;max-height:120px;overflow:auto">'+prompt.replace(/</g,'&lt;')+'</div>';
-  document.getElementById('ai-analyse-btn').textContent='Re-copy & Open';
 }
 
 function openLink(url){
