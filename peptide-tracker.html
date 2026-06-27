@@ -452,7 +452,7 @@ tr:active td{background:var(--card2)}
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.42 · 27 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.43 · 27 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -2335,13 +2335,14 @@ function drawOilSyringe(compounds,totalMl){
   const fillY=barrelBot-totalH;
   document.getElementById('oil-disc').setAttribute('y',fillY-12);
   document.getElementById('oil-plunger-rod').setAttribute('height',Math.max(0,fillY-50));
-  const step=maxMl<=1?0.1:maxMl<=2?0.2:0.3;
+  const step=0.1;
   let ticks='';
   for(let ml=0;ml<=maxMl+0.001;ml+=step){
-    const ty=barrelBot-Math.round((ml/maxMl)*barrelH);
-    const maj=Math.abs(Math.round(ml/step)%2)===0;
+    const mlR=Math.round(ml*10)/10;
+    const ty=barrelBot-Math.round((mlR/maxMl)*barrelH);
+    const maj=Math.abs(Math.round(mlR*10)%5)===0; // major tick every 0.5ml
     ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="rgba(255,255,255,0.4)" stroke-width="${maj?1.5:1}"/>`;
-    if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">${ml.toFixed(1)}</text>`;
+    if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">${mlR.toFixed(1)}</text>`;
   }
   if(totalMl>0)ticks+=`<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="rgba(78,205,196,0.8)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
   document.getElementById('oil-ticks').innerHTML=ticks;
