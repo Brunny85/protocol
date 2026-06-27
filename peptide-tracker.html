@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Protocol">
-<title>Peptide Tracker</title>
+<title>Protocol Tracker</title>
 <style>
 :root{
   --bg:#0033A0;--bg2:#0033A0;--card:#1a5cd4;--card2:#0044CC;
@@ -451,7 +451,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.62 · 27 Jun 2026</div>
       </div>
     </div>
   </div>
@@ -1099,12 +1099,10 @@ let D={compounds:[],logs:[],inventory:[],history:[]};
 let viewDate=''; // set in init()
 let fColor=COLORS[0], fSite='';
 
-function save(){localStorage.setItem('pt_friends_v1',JSON.stringify(D))}
+function save(){localStorage.setItem('protocol_data',JSON.stringify(D))}
 function load(){
-  // Clear owner keys so friends data stays separate
-  ['protocol_data','pt_backup'].forEach(k=>localStorage.removeItem(k));
-  const r=localStorage.getItem('pt_friends_v1');
-  const backup=localStorage.getItem('pt_friends_backup');
+  const r=localStorage.getItem('protocol_data');
+  const backup=localStorage.getItem('pt_backup');
 
   // Pick the best source: whichever has more logs
   let best=null;
@@ -1125,7 +1123,7 @@ function load(){
     D.inventory = best.inventory || [];
     D.history   = best.history   || [];
     // Re-save to protocol_data to keep them in sync
-    localStorage.setItem('pt_friends_v1', JSON.stringify(D));
+    localStorage.setItem('protocol_data', JSON.stringify(D));
     if(!D.inventory.length){ D.inventory=defaultInventory(); save(); }
   } else {
     D.compounds = DEFAULTS.map(x=>({...x}));
@@ -2661,7 +2659,7 @@ function importFromFile(input){
 function manualSave(){
   save();
   // Also write to a separate backup key that survives code updates
-  localStorage.setItem('pt_friends_backup', JSON.stringify(D));
+  localStorage.setItem('pt_backup', JSON.stringify(D));
   render();
   const el=document.getElementById('save-confirm');
   el.style.display='block';
