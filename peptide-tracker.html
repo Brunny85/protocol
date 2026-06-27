@@ -468,7 +468,7 @@ tr:active td{background:var(--card2)}
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.35 · 26 Jun 2026</div>
+    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.37 · 27 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
@@ -503,6 +503,14 @@ tr:active td{background:var(--card2)}
         Save &amp; Update
       </button>
       <div id="save-confirm" style="text-align:center;font-size:12px;color:var(--success);margin-top:6px;display:none">✓ Saved successfully</div>
+
+      <!-- Data backup -->
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-s" onclick="exportData()" style="flex:1;font-size:13px">⬇ Export Data</button>
+        <button class="btn btn-s" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:13px">⬆ Import Data</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,.4);text-align:center;margin-top:6px">Export before every update to keep your data safe</div>
 
     </div>
 
@@ -2610,6 +2618,42 @@ function masterReset(){
   alert('Reset complete. All data cleared and default compounds loaded.');
 }
 
+function exportData(){
+  const data=JSON.stringify(D, null, 2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url;
+  a.download='peptide-tracker-backup-'+date+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(input){
+  const file=input.files[0];
+  if(!file) return;
+  if(!confirm('Import data from "'+file.name+'"?\n\nThis will replace ALL current data. Make sure you have exported first.')) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const imported=JSON.parse(e.target.result);
+      if(!imported.compounds) throw new Error('Invalid file');
+      D.compounds=imported.compounds||[];
+      D.logs=imported.logs||[];
+      D.inventory=imported.inventory||[];
+      D.history=imported.history||[];
+      save();
+      render();
+      alert('Data imported successfully!\n\nCompounds: '+D.compounds.length+'\nLogs: '+D.logs.length+'\nInventory: '+D.inventory.length);
+    } catch(err){
+      alert('Failed to import: '+err.message+'\n\nMake sure you selected a valid backup file.');
+    }
+  };
+  reader.readAsText(file);
+  input.value=''; // reset so same file can be imported again
+}
+
 function manualSave(){
   save();
   render(); // update all tabs including Stats and Log
@@ -2619,68 +2663,45 @@ function manualSave(){
 }
 
 // ─── AI STACK REVIEW ─────────────────────────────────────────
-async function runStackAI(){
-  const btn=document.getElementById('ai-analyse-btn');
-  const resultEl=document.getElementById('ai-result');
-  const thinkingEl=document.getElementById('ai-thinking');
-  const textEl=document.getElementById('ai-text');
-
-  btn.disabled=true;
-  btn.textContent='Analysing...';
-  resultEl.classList.remove('hidden');
-  thinkingEl.classList.remove('hidden');
-  textEl.textContent='';
-
-  // Build a detailed stack summary to send to Claude
+function runStackAI(){
   const active=D.compounds.filter(c=>c.active);
-  function daysPerWeek(c){
+  if(!active.length){alert('No active compounds to analyse.');return;}
+
+  function dpw(c){
     if(!c.days||!c.days.length){const m={daily:7,bid:7,eod:3.5,e3d:2.3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:0.25,prn:0};return m[c.freq]||7;}
     return c.days.length;
   }
-  const stackSummary=active.map(c=>{
-    const dpw=daysPerWeek(c);
+
+  const lines=active.map(c=>{
+    const d=dpw(c);
     const sessions=c.time==='Both'?2:1;
     const jabDose=c.dose*sessions;
-    const weekly=jabDose*dpw;
-    return `- ${c.name} (${c.cat||'Peptide'}): ${jabDose}${c.unit} per session, ${dpw===7?'daily':dpw+'x/week'}, ${c.time==='Both'?'AM+PM':c.time||'any time'}, weekly total: ${weekly}${c.unit}, route: ${c.route||'SubQ'}`;
-  }).join('\n');
+    const weekly=jabDose*d;
+    return '- '+c.name+' ('+( c.cat||'Peptide')+'): '+jabDose+c.unit+' per session, '+(d===7?'daily':d+'x/week')+', '+(c.time==='Both'?'AM+PM':c.time||'any time')+', weekly total: '+weekly+c.unit+', route: '+(c.route||'SubQ');
+  });
 
-  const prompt='You are an expert in peptide therapy and performance medicine. Please review the following active compound stack and provide:\n\n'+
-    '1. A brief overview of what this stack is designed to achieve\n'+
-    '2. Notable synergies between compounds\n'+
-    '3. Any timing optimisations worth considering\n'+
-    '4. Any potential concerns, interactions or things to monitor\n'+
-    '5. One or two suggestions to enhance or complement the stack\n\n'+
-    'Keep your response concise, practical and evidence-based. Use plain text with no markdown formatting.\n\n'+
-    'CURRENT STACK:\n'+stackSummary;
+  const prompt='Please review my current peptide and compound stack and provide: 1) What this stack is designed to achieve, 2) Notable synergies, 3) Timing optimisations, 4) Any concerns or interactions to monitor, 5) Suggestions to enhance the stack. Keep it concise and practical.\n\nMY CURRENT STACK:\n'+lines.join('\n');
 
-  try {
-    const response=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:1000,
-        messages:[{role:'user',content:prompt}]
-      })
-    });
-    const data=await response.json();
-    thinkingEl.classList.add('hidden');
-    if(data.content&&data.content[0]){
-      // Format the text with paragraph breaks
-      const text=data.content[0].text;
-      textEl.innerHTML=text.split('\n\n').map(p=>`<p style="margin:0 0 10px">${p.replace(/\n/g,'<br>')}</p>`).join('');
-    } else {
-      textEl.textContent='Unable to get a response. Please try again.';
-    }
-  } catch(err){
-    thinkingEl.classList.add('hidden');
-    textEl.textContent='Error connecting to AI. Please check your connection and try again.';
-    console.error(err);
+  // Copy to clipboard and open Claude
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(prompt).then(()=>{
+      showAIInstructions(prompt);
+    }).catch(()=>showAIInstructions(prompt));
+  } else {
+    showAIInstructions(prompt);
   }
+}
 
-  btn.disabled=false;
-  btn.textContent='Re-analyse';
+function showAIInstructions(prompt){
+  const textEl=document.getElementById('ai-text');
+  const resultEl=document.getElementById('ai-result');
+  const thinkingEl=document.getElementById('ai-thinking');
+  thinkingEl.classList.add('hidden');
+  resultEl.classList.remove('hidden');
+  textEl.innerHTML='<div style="margin-bottom:12px;font-size:13px;color:rgba(255,255,255,.8)">Your stack prompt has been copied to clipboard. Tap the button below to open Claude and paste it in.</div>'+
+    '<button onclick="openLink(\'https://claude.ai\')" style="background:#fff;color:#0033A0;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px">Open Claude AI →</button>'+
+    '<div style="background:rgba(0,0,0,.3);border-radius:8px;padding:10px;font-size:11px;color:rgba(255,255,255,.5);font-family:monospace;white-space:pre-wrap;max-height:120px;overflow:auto">'+prompt.replace(/</g,'&lt;')+'</div>';
+  document.getElementById('ai-analyse-btn').textContent='Re-copy & Open';
 }
 
 function openLink(url){
