@@ -1,15 +1,16 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- build:20260627032655 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<meta name="build" content="20260627034134">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Protocol">
-<title>Protocol Tracker</title>
+<title>Peptide Tracker</title>
 <style>
 :root{
   --bg:#0033A0;--bg2:#0033A0;--card:#1a5cd4;--card2:#0044CC;
@@ -20,18 +21,17 @@
   --r:14px;--tabh:72px;--sb:env(safe-area-inset-bottom,20px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-text-size-adjust:100%}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-text-size-adjust:100%}
 #app{height:100%;display:flex;flex-direction:column;overflow:hidden}
 
 /* Header */
-.hdr{background:#fff;padding-top:env(safe-area-inset-top,44px);padding-left:20px;padding-right:20px;padding-bottom:14px;border-bottom:2px solid #0033A0;flex-shrink:0;overflow:hidden;position:relative;z-index:10;display:flex;flex-direction:column;justify-content:flex-end;min-height:calc(env(safe-area-inset-top,44px) + 80px)}
+.hdr{background:#fff;padding-top:env(safe-area-inset-top,44px);padding-left:20px;padding-right:20px;padding-bottom:14px;border-bottom:2px solid #0033A0;flex-shrink:0;position:relative;z-index:10}
 .hdr h1{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#0033A0}
 .hdr h1 span{color:#0033A0}
 .hdr-sub{font-size:13px;color:#5577CC;margin-top:2px}
 
 /* Scroll */
-.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  padding:16px 16px calc(var(--tabh) + var(--sb) + 48px)}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(var(--tabh) + var(--sb) + 48px);min-height:0}
 
 /* Tabs */
 .tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffff;
@@ -102,8 +102,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;
   display:flex;align-items:flex-end;backdrop-filter:blur(4px);
   transition:opacity .15s;opacity:1}
-.ov.hidden{opacity:0;pointer-events:none;visibility:hidden;
-  position:fixed;top:200vh;left:0;right:0}
+.ov.hidden{display:none!important}
 .sh{background:var(--bg2);border-radius:20px 20px 0 0;
   padding:16px 20px calc(28px + var(--sb));width:100%;max-height:93vh;overflow-y:auto}
 .sh-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 14px}
@@ -269,8 +268,8 @@ tr:active td{background:var(--card2)}
 .empty{text-align:center;padding:44px 20px;color:var(--text2)}
 .empty-ic{font-size:44px;margin-bottom:10px}
 .empty-t{font-size:16px;font-weight:600;color:var(--text);margin-bottom:5px}
-.hidden{display:none!important;visibility:hidden!important;
-  position:absolute!important;top:-9999px!important;left:-9999px!important}
+.hidden{display:none!important}
+.pg{display:block}
 ::-webkit-scrollbar{width:0}
 ::-webkit-scrollbar-track{display:none}
 /* Suppress scroll indicator dots */
@@ -286,7 +285,7 @@ tr:active td{background:var(--card2)}
   font-size:13px;color:rgba(255,255,255,.7);text-align:center;margin-bottom:12px;
   min-height:40px;display:flex;align-items:center;justify-content:center}
 .calc-card{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
-  padding:14px;margin-bottom:12px}
+  padding:14px;margin-bottom:12px;touch-action:pan-y}
 .calc-section-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.55);
   text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
 .calc-result{background:#fff;border-radius:var(--r);padding:20px;text-align:center;
@@ -324,13 +323,15 @@ tr:active td{background:var(--card2)}
 .calc-ref-vol{color:#BDD4FF;font-family:var(--mono)}
 /* Syringe visualiser */
 .syringe-wrap{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);padding:16px;margin-bottom:12px}
+.syringe-wrap svg{pointer-events:none}
+.syringe-wrap *{pointer-events:none}
 .syringe-size-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .syringe-size-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s}
 .syringe-size-btn.on{background:#fff;color:#0033A0;border-color:#fff}
 /* Links */
 .link-card{display:flex;align-items:center;gap:14px;background:#0033A0;
   border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
-  padding:16px;margin-bottom:12px;cursor:pointer;transition:opacity .15s}
+  padding:16px;margin-bottom:12px;cursor:pointer;transition:opacity .15s;touch-action:pan-y}
 .link-card:active{opacity:.8}
 .link-icon{font-size:28px;flex-shrink:0}
 .link-body{flex:1;min-width:0}
@@ -450,15 +451,198 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
+      
       </div>
     </div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">v1.43 · 27 Jun 2026</div>
   </div>
 
   <div class="scroll" id="scr">
 
-    <!-- TODAY -->
-    <div id="pg-today" class="pg">
+    <div id="pg-calc" class="pg hidden">
+
+  <!-- Mode toggle -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+    <button class="calc-mode-btn active" id="cmode-peptide" onclick="setCalcMode('peptide')">
+      💉 Peptide<br><span style="font-size:11px;font-weight:400;opacity:.8">BAC water reconstituted</span>
+    </button>
+    <button class="calc-mode-btn" id="cmode-oil" onclick="setCalcMode('oil')">
+      🧴 Oil-Based / IM<br><span style="font-size:11px;font-weight:400;opacity:.8">Pre-mixed, stackable</span>
+    </button>
+  </div>
+
+  <!-- Load from protocol -->
+  <div class="calc-card">
+    <div class="calc-section-lbl">Load from Protocol (optional)</div>
+    <div style="display:flex;gap:8px">
+      <select class="fs" id="c-compound" onchange="loadFromProtocol()" style="flex:1;margin-bottom:0">
+        <option value="">— Select compound to auto-fill —</option>
+      </select>
+      <button class="btn btn-s btn-sm" onclick="resetCalc()" style="flex-shrink:0;white-space:nowrap">Reset</button>
+    </div>
+  </div>
+
+  <!-- PEPTIDE MODE -->
+  <div id="calc-peptide">
+    <div class="calc-fields-grid">
+      <div class="calc-field-box">
+        <div class="calc-field-letter">A</div>
+        <label class="fl">Vial Amount</label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" id="c-vialAmt" type="number" step="0.1" placeholder="e.g. 5" oninput="calcBoth()">
+          <select class="fs" id="c-vialUnit" style="width:76px" onchange="calcBoth()">
+            <option>mg</option><option>mcg</option><option>IU</option>
+          </select>
+        </div>
+      </div>
+      <div class="calc-field-box">
+        <div class="calc-field-letter">B</div>
+        <label class="fl">BAC Water</label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" id="c-bac" type="number" step="0.1" placeholder="e.g. 2" oninput="calcBoth()">
+          <div class="fi" style="width:52px;text-align:center;padding:12px 6px;opacity:.6;flex-shrink:0">ml</div>
+        </div>
+      </div>
+      <div class="calc-field-box">
+        <div class="calc-field-letter">C</div>
+        <label class="fl">Dose</label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" id="c-dose" type="number" step="0.01" placeholder="e.g. 250" oninput="calcFromDose()">
+          <select class="fs" id="c-doseUnit" style="width:76px" onchange="calcFromDose()">
+            <option>mcg</option><option>mg</option><option>IU</option>
+          </select>
+        </div>
+      </div>
+      <div class="calc-field-box">
+        <div class="calc-field-letter">D</div>
+        <label class="fl">Pin Amount</label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" id="c-vol" type="number" step="0.1" placeholder="e.g. 10" oninput="calcFromVol()">
+          <div class="fi" style="width:60px;text-align:center;padding:12px 6px;opacity:.6;flex-shrink:0">units</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="calc-conc-bar" id="c-conc-display"></div>
+
+    <div class="calc-result hidden" id="calc-result">
+      <div class="calc-result-lbl" id="calc-result-lbl">Result</div>
+      <div class="calc-result-val" id="calc-result-val">—</div>
+      <div class="calc-result-sub" id="calc-result-sub"></div>
+    </div>
+
+    <!-- Syringe visual -->
+    <div class="syringe-wrap">
+      <div class="calc-section-lbl">Syringe Visual</div>
+      <div class="syringe-size-row">
+        <button class="syringe-size-btn on" onclick="setSyringeSize(0.3,'insulin',this)">0.3 ml<br><span style="font-size:10px;font-weight:400">30 units</span></button>
+        <button class="syringe-size-btn" onclick="setSyringeSize(0.5,'insulin',this)">0.5 ml<br><span style="font-size:10px;font-weight:400">50 units</span></button>
+        <button class="syringe-size-btn" onclick="setSyringeSize(1.0,'insulin',this)">1.0 ml<br><span style="font-size:10px;font-weight:400">100 units</span></button>
+      </div>
+      <svg id="syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block">
+        <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
+        <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
+        <rect id="syr-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
+        <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+        <clipPath id="barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
+        <rect id="syr-fluid" x="124" y="426" width="72" height="0" fill="rgba(78,205,196,0.7)" clip-path="url(#barrel-clip)"/>
+        <rect id="syr-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
+        <g id="syr-ticks"></g>
+        <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
+        <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
+        <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
+        <text id="syr-units-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— units</text>
+        <text id="syr-ml-label" x="280" y="458" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.45)" text-anchor="middle">— ml</text>
+      </svg>
+    </div>
+
+    <div class="calc-card">
+      <div class="calc-section-lbl">Syringe Reference Chart</div>
+      <div id="calc-quick-ref"><span style="color:rgba(255,255,255,.5)">Enter A and B to see the chart.</span></div>
+    </div>
+
+    <div class="calc-card">
+      <div class="calc-section-lbl">Saved Doses</div>
+      <select class="fs" id="pep-saved-select" onchange="loadSavedDose()" style="margin-bottom:10px">
+        <option value="">— Load a saved dose —</option>
+      </select>
+      <button class="btn btn-s btn-sm" onclick="saveDose()" style="width:100%">💾 Save Current Dose</button>
+    </div>
+  </div>
+
+  <!-- OIL MODE -->
+  <div id="calc-oil" style="display:none">
+    <div class="calc-card">
+      <div class="calc-section-lbl">Compounds in this injection</div>
+      <div id="oil-compounds-list"></div>
+      <button class="btn btn-s btn-sm" onclick="addOilCompound()" style="width:100%;margin-top:10px">+ Add Compound</button>
+    </div>
+
+    <div class="calc-card" id="oil-result-card" style="display:none">
+      <div class="calc-section-lbl">Draw Volumes</div>
+      <div id="oil-draw-volumes"></div>
+      <div style="border-top:1px solid rgba(255,255,255,.2);margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:rgba(255,255,255,.7)">Total volume</span>
+        <span style="font-size:20px;font-weight:800;color:#fff;font-family:var(--mono)" id="oil-total-vol">0.00 ml</span>
+      </div>
+    </div>
+
+    <div class="syringe-wrap" id="oil-syringe-card" style="display:none">
+      <div class="calc-section-lbl">Syringe Visual (IM)</div>
+      <div class="syringe-size-row">
+        <button class="syringe-size-btn on" onclick="setOilSyrSize(1,this)">1 ml</button>
+        <button class="syringe-size-btn" onclick="setOilSyrSize(2,this)">2 ml</button>
+        <button class="syringe-size-btn" onclick="setOilSyrSize(3,this)">3 ml</button>
+      </div>
+      <svg id="oil-syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block">
+        <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
+        <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
+        <rect id="oil-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
+        <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+        <clipPath id="oil-barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
+        <g id="oil-fluid-stack"></g>
+        <rect id="oil-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
+        <g id="oil-ticks"></g>
+        <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
+        <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
+        <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
+        <text id="oil-vol-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— ml</text>
+      </svg>
+    </div>
+
+    <div class="calc-card">
+      <div class="calc-section-lbl">Saved Stacks</div>
+      <select class="fs" id="oil-saved-select" onchange="loadSavedStack()" style="margin-bottom:10px">
+        <option value="">— Load a saved stack —</option>
+      </select>
+      <button class="btn btn-s btn-sm" onclick="saveStack()" style="width:100%">💾 Save Current Stack</button>
+    </div>
+  </div>
+
+</div>
+
+    <div id="pg-links" class="pg hidden">
+      <div class="sec">Useful Links</div>
+      <div class="link-card" onclick="openLink('https://peptidedosages.com/single-peptide-dosages/selank-10-mg-vial-dosage-protocol/')">
+        <div class="link-icon">💊</div>
+        <div class="link-body">
+          <div class="link-title">Peptide Dosage Protocols</div>
+          <div class="link-sub">peptidedosages.com</div>
+          <div class="link-desc">Single peptide dosage protocols — Selank, BPC-157, and more</div>
+        </div>
+        <div class="link-arrow">›</div>
+      </div>
+      <div class="link-card" onclick="openLink('https://particlepeptides.com/en/content/48-peptide-calculator#')">
+        <div class="link-icon">🧮</div>
+        <div class="link-body">
+          <div class="link-title">Peptide Calculator</div>
+          <div class="link-sub">particlepeptides.com</div>
+          <div class="link-desc">Calculate reconstitution volumes, doses, and injection amounts</div>
+        </div>
+        <div class="link-arrow">›</div>
+      </div>
+    </div>
+
+    <div id="pg-today" class="pg hidden">
       <!-- Date Navigator -->
       <div class="date-nav">
         <button class="date-nav-btn" onclick="changeDay(-1)" title="Previous day">‹</button>
@@ -498,7 +682,6 @@ tr:active td{background:var(--card2)}
 
     </div>
 
-    <!-- PROTOCOL -->
     <div id="pg-proto" class="pg hidden">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div class="sec" style="margin:0">Protocol</div>
@@ -536,13 +719,11 @@ tr:active td{background:var(--card2)}
       </div>
     </div>
 
-    <!-- LOG -->
     <div id="pg-log" class="pg hidden">
       <div class="sec">Dose History</div>
       <div id="log-list"></div>
     </div>
 
-    <!-- INVENTORY -->
     <div id="pg-inv" class="pg hidden">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div class="sec" style="margin:0">Vials &amp; Stock</div>
@@ -551,7 +732,6 @@ tr:active td{background:var(--card2)}
       <div id="inv-list"></div>
     </div>
 
-    <!-- RECORDS (Stats + History + Log combined) -->
     <div id="pg-records" class="pg hidden">
       <!-- Sub-tab selector -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px">
@@ -587,7 +767,6 @@ tr:active td{background:var(--card2)}
       </div>
     </div>
 
-    <!-- STACK SUMMARY -->
     <div id="pg-stack" class="pg hidden">
       <div id="stack-content"></div>
 
@@ -595,197 +774,6 @@ tr:active td{background:var(--card2)}
         <div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:12px;line-height:1.5">Copy your stack as an AI-ready prompt and paste into ChatGPT, Claude, Gemini or any AI assistant for a detailed analysis.</div>
         <button class="btn btn-p" onclick="copyStackPrompt()" id="copy-stack-btn" style="font-size:14px">Copy Stack for AI Analysis</button>
         <div id="copy-stack-confirm" style="font-size:12px;color:var(--success);margin-top:8px;display:none;text-align:center">✓ Prompt copied — paste into your AI of choice</div>
-      </div>
-    </div>
-
-        </div>
-
-    <!-- LINKS -->
-    <div id="pg-links" class="pg hidden">
-      <div class="sec">Useful Links</div>
-      <div class="link-card" onclick="openLink('https://peptidedosages.com/single-peptide-dosages/selank-10-mg-vial-dosage-protocol/')">
-        <div class="link-icon">💊</div>
-        <div class="link-body">
-          <div class="link-title">Peptide Dosage Protocols</div>
-          <div class="link-sub">peptidedosages.com</div>
-          <div class="link-desc">Single peptide dosage protocols — Selank, BPC-157, and more</div>
-        </div>
-        <div class="link-arrow">›</div>
-      </div>
-      <div class="link-card" onclick="openLink('https://particlepeptides.com/en/content/48-peptide-calculator#')">
-        <div class="link-icon">🧮</div>
-        <div class="link-body">
-          <div class="link-title">Peptide Calculator</div>
-          <div class="link-sub">particlepeptides.com</div>
-          <div class="link-desc">Calculate reconstitution volumes, doses, and injection amounts</div>
-        </div>
-        <div class="link-arrow">›</div>
-      </div>
-    </div>
-
-    <!-- CALCULATOR -->
-    <div id="pg-calc" class="pg hidden">
-      <div class="sec">Dosing Calculator</div>
-
-      <!-- Mode toggle -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <button class="calc-mode-btn active" id="cmode-peptide" onclick="setCalcMode('peptide')">
-          💉 Peptide<br><span style="font-size:11px;font-weight:400;opacity:.8">BAC water reconstituted</span>
-        </button>
-        <button class="calc-mode-btn" id="cmode-oil" onclick="setCalcMode('oil')">
-          🧴 Oil-Based / IM<br><span style="font-size:11px;font-weight:400;opacity:.8">Pre-mixed, stackable</span>
-        </button>
-      </div>
-
-      <!-- Load from protocol -->
-      <div class="calc-card">
-        <div class="calc-section-lbl">Load from Protocol (optional)</div>
-        <div style="display:flex;gap:8px">
-          <select class="fs" id="c-compound" onchange="loadFromProtocol()" style="flex:1;margin-bottom:0">
-            <option value="">— Select compound to auto-fill —</option>
-          </select>
-          <button class="btn btn-s btn-sm" onclick="resetCalc()" style="flex-shrink:0;white-space:nowrap">Reset</button>
-        </div>
-      </div>
-
-      <!-- PEPTIDE MODE -->
-      <div id="calc-peptide">
-        <div class="calc-fields-grid">
-          <div class="calc-field-box">
-            <div class="calc-field-letter">A</div>
-            <label class="fl">Vial Amount</label>
-            <div style="display:flex;gap:6px">
-              <input class="fi" id="c-vialAmt" type="number" step="0.1" placeholder="e.g. 5" oninput="calcBoth()">
-              <select class="fs" id="c-vialUnit" style="width:76px" onchange="calcBoth()">
-                <option>mg</option><option>mcg</option><option>IU</option>
-              </select>
-            </div>
-          </div>
-          <div class="calc-field-box">
-            <div class="calc-field-letter">B</div>
-            <label class="fl">BAC Water</label>
-            <div style="display:flex;gap:6px">
-              <input class="fi" id="c-bac" type="number" step="0.1" placeholder="e.g. 2" oninput="calcBoth()">
-              <div class="fi" style="width:52px;text-align:center;padding:12px 6px;opacity:.6;flex-shrink:0">ml</div>
-            </div>
-          </div>
-          <div class="calc-field-box">
-            <div class="calc-field-letter">C</div>
-            <label class="fl">Dose</label>
-            <div style="display:flex;gap:6px">
-              <input class="fi" id="c-dose" type="number" step="0.01" placeholder="e.g. 250" oninput="calcFromDose()">
-              <select class="fs" id="c-doseUnit" style="width:76px" onchange="calcFromDose()">
-                <option>mcg</option><option>mg</option><option>IU</option>
-              </select>
-            </div>
-          </div>
-          <div class="calc-field-box">
-            <div class="calc-field-letter">D</div>
-            <label class="fl">Pin Amount</label>
-            <div style="display:flex;gap:6px">
-              <input class="fi" id="c-vol" type="number" step="0.1" placeholder="e.g. 10" oninput="calcFromVol()">
-              <div class="fi" style="width:60px;text-align:center;padding:12px 6px;opacity:.6;flex-shrink:0">units</div>
-            </div>
-          </div>
-        </div>
-        <div class="calc-conc-bar" id="c-conc-display"></div>
-        <div class="calc-result hidden" id="calc-result">
-          <div class="calc-result-lbl" id="calc-result-lbl">Result</div>
-          <div class="calc-result-val" id="calc-result-val">—</div>
-          <div class="calc-result-sub" id="calc-result-sub"></div>
-        </div>
-        <div class="syringe-wrap">
-          <div class="calc-section-lbl">Syringe Visual</div>
-          <div class="syringe-size-row">
-            <button class="syringe-size-btn on" onclick="setSyringeSize(0.3,'insulin',this)">0.3 ml<br><span style="font-size:10px;font-weight:400">30 units</span></button>
-            <button class="syringe-size-btn" onclick="setSyringeSize(0.5,'insulin',this)">0.5 ml<br><span style="font-size:10px;font-weight:400">50 units</span></button>
-            <button class="syringe-size-btn" onclick="setSyringeSize(1.0,'insulin',this)">1.0 ml<br><span style="font-size:10px;font-weight:400">100 units</span></button>
-          </div>
-          <svg id="syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg">
-            <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
-            <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
-            <rect id="syr-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
-            <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
-            <clipPath id="barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
-            <rect id="syr-fluid" x="124" y="426" width="72" height="0" fill="rgba(78,205,196,0.7)" clip-path="url(#barrel-clip)"/>
-            <rect id="syr-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
-            <g id="syr-ticks"></g>
-            <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
-            <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
-            <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
-            <text id="syr-units-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— units</text>
-            <text id="syr-ml-label" x="280" y="458" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.45)" text-anchor="middle">— ml</text>
-          </svg>
-        </div>
-        <div class="calc-card">
-          <div class="calc-section-lbl">Syringe Reference Chart</div>
-          <div id="calc-quick-ref" style="color:rgba(255,255,255,.6);font-size:13px">Enter vial details above (A &amp; B) to see the full chart.</div>
-        </div>
-        <!-- Saved Peptide Doses -->
-        <div class="calc-card">
-          <div class="calc-section-lbl">Saved Doses</div>
-          <div style="display:flex;gap:8px;margin-bottom:10px">
-            <select class="fs" id="pep-saved-select" style="flex:1" onchange="loadSavedPeptideDose()">
-              <option value="">— Recall a saved dose —</option>
-            </select>
-            <button class="btn btn-s btn-sm" onclick="deleteSavedPeptideDose()" style="flex-shrink:0;color:var(--danger)">Delete</button>
-          </div>
-          <div style="display:flex;gap:8px">
-            <input class="fi" id="pep-save-name" placeholder="Name this dose (e.g. BPC Morning)" style="flex:1">
-            <button class="btn btn-p btn-sm" onclick="savePeptideDose()" style="flex-shrink:0">Save</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- OIL-BASED MODE -->
-      <div id="calc-oil" class="hidden">
-        <p style="font-size:13px;color:var(--text2);margin-bottom:14px">For pre-mixed oil-based compounds (e.g. Testosterone, Deca). Enter concentration per ml and desired dose. Stack multiple compounds to get total draw volume.</p>
-        <div id="oil-compounds-list"></div>
-        <button class="btn btn-s" onclick="addOilCompound()" style="margin-bottom:14px">+ Add Compound</button>
-        <div class="calc-card" style="margin-bottom:12px">
-          <div class="calc-section-lbl">Syringe Size</div>
-          <div class="syringe-size-row">
-            <button class="syringe-size-btn" onclick="setOilSyringe(1.0,this)">1.0 ml</button>
-            <button class="syringe-size-btn on" onclick="setOilSyringe(2.0,this)">2.0 ml</button>
-            <button class="syringe-size-btn" onclick="setOilSyringe(3.0,this)">3.0 ml</button>
-          </div>
-        </div>
-        <div class="calc-result hidden" id="oil-result">
-          <div class="calc-result-lbl">Total Volume to Draw</div>
-          <div class="calc-result-val" id="oil-result-val">—</div>
-          <div class="calc-result-sub" id="oil-result-sub"></div>
-        </div>
-        <div class="syringe-wrap">
-          <div class="calc-section-lbl">Syringe Visual (IM)</div>
-          <svg id="oil-syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg">
-            <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
-            <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
-            <rect id="oil-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
-            <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
-            <clipPath id="oil-barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
-            <g id="oil-fluid-stack"></g>
-            <rect id="oil-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
-            <g id="oil-ticks"></g>
-            <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
-            <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
-            <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
-            <text id="oil-vol-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— ml</text>
-          </svg>
-        </div>
-        <!-- Saved Oil Stacks -->
-        <div class="calc-card" style="margin-top:12px">
-          <div class="calc-section-lbl">Saved Stacks</div>
-          <div style="display:flex;gap:8px;margin-bottom:10px">
-            <select class="fs" id="oil-saved-select" style="flex:1" onchange="loadSavedOilStack()">
-              <option value="">— Recall a saved stack —</option>
-            </select>
-            <button class="btn btn-s btn-sm" onclick="deleteSavedOilStack()" style="flex-shrink:0;color:var(--danger)">Delete</button>
-          </div>
-          <div style="display:flex;gap:8px">
-            <input class="fi" id="oil-save-name" placeholder="Name this stack (e.g. Test + Deca)" style="flex:1">
-            <button class="btn btn-p btn-sm" onclick="saveOilStack()" style="flex-shrink:0">Save</button>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -1111,10 +1099,12 @@ let D={compounds:[],logs:[],inventory:[],history:[]};
 let viewDate=''; // set in init()
 let fColor=COLORS[0], fSite='';
 
-function save(){localStorage.setItem('protocol_data',JSON.stringify(D))}
+function save(){localStorage.setItem('pt_friends_v1',JSON.stringify(D))}
 function load(){
-  const r=localStorage.getItem('protocol_data');
-  const backup=localStorage.getItem('pt_backup');
+  // Clear owner keys so friends data stays separate
+  ['protocol_data','pt_backup'].forEach(k=>localStorage.removeItem(k));
+  const r=localStorage.getItem('pt_friends_v1');
+  const backup=localStorage.getItem('pt_friends_backup');
 
   // Pick the best source: whichever has more logs
   let best=null;
@@ -1135,7 +1125,7 @@ function load(){
     D.inventory = best.inventory || [];
     D.history   = best.history   || [];
     // Re-save to protocol_data to keep them in sync
-    localStorage.setItem('protocol_data', JSON.stringify(D));
+    localStorage.setItem('pt_friends_v1', JSON.stringify(D));
     if(!D.inventory.length){ D.inventory=defaultInventory(); save(); }
   } else {
     D.compounds = DEFAULTS.map(x=>({...x}));
@@ -2132,11 +2122,12 @@ function updatePinLabel(){}
 let calcModeActive='peptide';
 function setCalcMode(mode){
   calcModeActive=mode;
-  document.getElementById('calc-peptide').classList.toggle('hidden',mode!=='peptide');
-  document.getElementById('calc-oil').classList.toggle('hidden',mode!=='oil');
+  document.getElementById('calc-peptide').style.display=mode==='peptide'?'block':'none';
+  document.getElementById('calc-oil').style.display=mode==='oil'?'block':'none';
   document.getElementById('cmode-peptide').classList.toggle('active',mode==='peptide');
   document.getElementById('cmode-oil').classList.toggle('active',mode==='oil');
   if(mode==='oil'){renderOilCompounds();}
+  if(mode==='peptide'){drawSyringe(currentUnits());}
 }
 
 let oilCompounds=[];
@@ -2195,8 +2186,8 @@ function setOilSyringe(ml,btn){
   btn.classList.add('on');calcOil();
 }
 function toMgNorm(amount,unit){return unit==='mcg'?amount/1000:amount;}
-function calcOil(){
-  if(!oilCompounds.length){document.getElementById('oil-result').classList.add('hidden');return;}
+function calcOil(){try{
+  if(!oilCompounds.length){const rc=document.getElementById('oil-result-card');if(rc)rc.style.display='none';return;}
   let totalVol=0;let breakdown=[];let anyValid=false;
   oilCompounds.forEach((c,i)=>{
     const conc=parseFloat(c.conc)||0;const dose=parseFloat(c.dose)||0;
@@ -2207,12 +2198,13 @@ function calcOil(){
     if(el)el.textContent=`→ ${vol.toFixed(3)} ml for ${dose} ${c.doseUnit}`;
     breakdown.push({name:c.name||'Compound '+(i+1),vol,color:OIL_COLORS[i%5]});
   });
-  if(!anyValid){document.getElementById('oil-result').classList.add('hidden');return;}
-  document.getElementById('oil-result-val').textContent=totalVol.toFixed(3)+' ml';
-  const bstr=breakdown.map(b=>`${b.name}: ${b.vol.toFixed(3)}ml`).join(' + ');
-  document.getElementById('oil-result-sub').textContent=bstr+(totalVol>oilSyringeMaxMl?' ⚠️ Exceeds syringe':'');
-  document.getElementById('oil-result').classList.remove('hidden');
+  const rc=document.getElementById('oil-result-card');
+  if(!anyValid){if(rc)rc.style.display='none';return;}
+  if(rc)rc.style.display='block';
+  const tv=document.getElementById('oil-total-vol');if(tv)tv.textContent=totalVol.toFixed(3)+' ml';
+  // breakdown shown in draw volumes div
   drawOilSyringe(breakdown,totalVol);
+}catch(e){console.error("calcOil error:",e.message,e.stack);}
 }
 // ─── SAVED DOSES / STACKS ────────────────────────────────────
 function getSavedDoses(){ try{return JSON.parse(localStorage.getItem('saved_doses')||'[]');}catch(e){return[];} }
@@ -2220,17 +2212,19 @@ function putSavedDoses(arr){ localStorage.setItem('saved_doses',JSON.stringify(a
 function getSavedStacks(){ try{return JSON.parse(localStorage.getItem('saved_stacks')||'[]');}catch(e){return[];} }
 function putSavedStacks(arr){ localStorage.setItem('saved_stacks',JSON.stringify(arr)); }
 
-function populateSavedDoseSelect(){
+function populateSavedDoseSelect(){try{
   const sel=document.getElementById('pep-saved-select');
   const saved=getSavedDoses();
   sel.innerHTML='<option value="">— Recall a saved dose —</option>'+
     saved.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+}catch(e){console.error("function populateSavedDoseSele error:",e.message);}
 }
-function populateSavedStackSelect(){
+function populateSavedStackSelect(){try{
   const sel=document.getElementById('oil-saved-select');
   const saved=getSavedStacks();
   sel.innerHTML='<option value="">— Recall a saved stack —</option>'+
     saved.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+}catch(e){console.error("function populateSavedStackSel error:",e.message);}
 }
 
 function savePeptideDose(){
@@ -2322,9 +2316,12 @@ function deleteSavedOilStack(){
   populateSavedStackSelect();
 }
 
-function drawOilSyringe(compounds,totalMl){
+function drawOilSyringe(compounds,totalMl){try{
   const maxMl=oilSyringeMaxMl;const barrelBot=426;const barrelH=376;
+  const card=document.getElementById('oil-syringe-card');
+  if(card) card.style.display=totalMl>0?'block':'none';
   const stack=document.getElementById('oil-fluid-stack');
+  if(!stack) return;
   let y=barrelBot;let html='';
   compounds.forEach(c=>{
     const h=Math.round(Math.min(1,c.vol/maxMl)*barrelH);
@@ -2333,21 +2330,26 @@ function drawOilSyringe(compounds,totalMl){
   stack.innerHTML=html;
   const totalH=Math.round(Math.min(1,totalMl/maxMl)*barrelH);
   const fillY=barrelBot-totalH;
-  document.getElementById('oil-disc').setAttribute('y',fillY-12);
-  document.getElementById('oil-plunger-rod').setAttribute('height',Math.max(0,fillY-50));
-  const step=0.1;
-  let ticks='';
+  const disc=document.getElementById('oil-disc');
+  if(disc) disc.setAttribute('y',fillY-12);
+  const rod=document.getElementById('oil-plunger-rod');
+  if(rod) rod.setAttribute('height',Math.max(0,fillY-50));
+  const step=0.1;let ticks='';
   for(let ml=0;ml<=maxMl+0.001;ml+=step){
     const mlR=Math.round(ml*10)/10;
     const ty=barrelBot-Math.round((mlR/maxMl)*barrelH);
-    const maj=Math.abs(Math.round(mlR*10)%5)===0; // major tick every 0.5ml
+    const maj=Math.abs(Math.round(mlR*10)%5)===0;
     ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="rgba(255,255,255,0.4)" stroke-width="${maj?1.5:1}"/>`;
     if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">${mlR.toFixed(1)}</text>`;
   }
   if(totalMl>0)ticks+=`<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="rgba(78,205,196,0.8)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
-  document.getElementById('oil-ticks').innerHTML=ticks;
-  document.getElementById('oil-vol-label').textContent=totalMl>0?totalMl.toFixed(3)+' ml':'— ml';
+  const tickEl=document.getElementById('oil-ticks');
+  if(tickEl) tickEl.innerHTML=ticks;
+  const lbl=document.getElementById('oil-vol-label');
+  if(lbl) lbl.textContent=totalMl>0?totalMl.toFixed(3)+' ml':'— ml';
+}catch(e){console.error("drawOilSyringe error:",e.message,e.stack);}
 }
+
 
 // ─── SYRINGE VISUALISER ──────────────────────────────────────
 let syringeMaxMl = 0.3;
@@ -2367,66 +2369,42 @@ function currentUnits(){
 }
 
 function drawSyringe(units){
-  const maxUnits = syringeMaxMl * 100;
-  const barrelTop = 50;
-  const barrelH = 376;
-  const barrelBot = barrelTop + barrelH; // y=426
-
-  // Clamp units
-  const u = Math.min(Math.max(units, 0), maxUnits);
-  const pct = maxUnits > 0 ? u / maxUnits : 0;
-  const fillH = Math.round(pct * barrelH);
-  const fillY = barrelBot - fillH;
-
-  // Update fluid
-  const fluid = document.getElementById('syr-fluid');
-  fluid.setAttribute('y', fillY);
-  fluid.setAttribute('height', fillH);
-  fluid.setAttribute('rx', fillH > 6 ? 4 : 0);
-
-  // Update plunger disc position
-  const disc = document.getElementById('syr-disc');
-  disc.setAttribute('y', fillY - 12);
-
-  // Update plunger rod
-  const rod = document.getElementById('syr-plunger-rod');
-  const rodH = Math.max(0, fillY - 50);
-  rod.setAttribute('height', rodH);
-
-  // Draw tick marks
-  const tickGroup = document.getElementById('syr-ticks');
-  // For IM syringes in ml, ticks represent 0.1ml increments expressed as units
-  const step = syringeType==='im'
-    ? (syringeMaxMl<=1.0 ? 10 : syringeMaxMl<=2.0 ? 20 : 30)
-    : (syringeMaxMl<=0.3 ? 5 : syringeMaxMl<=0.5 ? 5 : 10);
-  let ticks = '';
-  for(let tu = 0; tu <= maxUnits; tu += step){
-    const ty = barrelBot - Math.round((tu/maxUnits)*barrelH);
-    const isMajor = tu % (step*2) === 0;
-    const tickW = isMajor ? 18 : 10;
-    const lbl = isMajor ? (syringeType==='im' ? (tu*0.01).toFixed(1)+'ml' : tu.toString()) : '';
-    ticks += `<line x1="${198}" y1="${ty}" x2="${198+tickW}" y2="${ty}" stroke="rgba(255,255,255,0.5)" stroke-width="${isMajor?1.5:1}"/>`;
-    if(lbl) ticks += `<text x="${222}" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.55)" text-anchor="start">${lbl}</text>`;
-    // Left ticks
-    ticks += `<line x1="${122}" y1="${ty}" x2="${122-tickW/2}" y2="${ty}" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>`;
+  const maxUnits=syringeMaxMl*100;
+  const barrelTop=50,barrelH=376,barrelBot=426;
+  const u=Math.min(Math.max(units||0,0),maxUnits);
+  const pct=maxUnits>0?u/maxUnits:0;
+  const fillH=Math.round(pct*barrelH);
+  const fillY=barrelBot-fillH;
+  const fluid=document.getElementById('syr-fluid');
+  if(fluid){fluid.setAttribute('y',fillY);fluid.setAttribute('height',fillH);fluid.setAttribute('rx',fillH>6?4:0);}
+  const disc=document.getElementById('syr-disc');
+  if(disc) disc.setAttribute('y',fillY-12);
+  const rod=document.getElementById('syr-plunger-rod');
+  if(rod) rod.setAttribute('height',Math.max(0,fillY-50));
+  const tickGroup=document.getElementById('syr-ticks');
+  if(tickGroup){
+    const step=syringeType==='im'?(syringeMaxMl<=1.0?10:syringeMaxMl<=2.0?20:30):(syringeMaxMl<=0.3?5:syringeMaxMl<=0.5?5:10);
+    let ticks='';
+    for(let tu=0;tu<=maxUnits;tu+=step){
+      const ty=barrelBot-Math.round((tu/maxUnits)*barrelH);
+      const isMajor=tu%(step*2)===0;
+      const tickW=isMajor?18:10;
+      const lbl=isMajor?(syringeType==='im'?(tu*0.01).toFixed(1)+'ml':tu.toString()):'';
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+tickW}" y2="${ty}" stroke="rgba(255,255,255,0.5)" stroke-width="${isMajor?1.5:1}"/>`;
+      if(lbl)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.55)" text-anchor="start">${lbl}</text>`;
+      ticks+=`<line x1="122" y1="${ty}" x2="${122-tickW/2}" y2="${ty}" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>`;
+    }
+    if(u>0)ticks+=`<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="rgba(78,205,196,0.8)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    tickGroup.innerHTML=ticks;
   }
-  // Highlight the current fill level
-  if(u > 0){
-    ticks += `<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="rgba(78,205,196,0.8)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
-  }
-  tickGroup.innerHTML = ticks;
-
-  // Labels
-  const ml = (u * 0.01).toFixed(3);
-  if(syringeType === 'im'){
-    // IM: primary = ml, secondary = units
-    const imMl = (u*0.01).toFixed(2);
-    document.getElementById('syr-units-label').textContent = u > 0 ? imMl+' ml' : '— ml';
-    document.getElementById('syr-ml-label').textContent = u > 0 ? u.toFixed(0)+' units' : '— units';
+  const ulbl=document.getElementById('syr-units-label');
+  const mlbl=document.getElementById('syr-ml-label');
+  if(syringeType==='im'){
+    if(ulbl)ulbl.textContent=u>0?(u*0.01).toFixed(2)+' ml':'— ml';
+    if(mlbl)mlbl.textContent=u>0?u.toFixed(0)+' units':'— units';
   } else {
-    // Insulin: primary = units, secondary = ml
-    document.getElementById('syr-units-label').textContent = u > 0 ? u.toFixed(1)+' units' : '— units';
-    document.getElementById('syr-ml-label').textContent = u > 0 ? (u*0.01).toFixed(3)+' ml' : '— ml';
+    if(ulbl)ulbl.textContent=u>0?u.toFixed(1)+' units':'— units';
+    if(mlbl)mlbl.textContent=u>0?(u*0.01).toFixed(3)+' ml':'— ml';
   }
 }
 
@@ -2487,7 +2465,7 @@ function getConc(){
   return vialAmt/bac; // e.g. 5mg / 2ml = 2.5 mg/ml
 }
 
-function updateConcBar(){
+function updateConcBar(){try{
   const el=document.getElementById('c-conc-display');
   const conc=getConc();
   const vialUnit=document.getElementById('c-vialUnit').value;
@@ -2497,6 +2475,7 @@ function updateConcBar(){
     return;
   }
   el.textContent=`Concentration: ${conc.toFixed(4)} ${vialUnit}/ml  ·  ${bac} ml total volume`;
+}catch(e){console.error("function updateConcBar(){ error:",e.message);}
 }
 
 function calcBoth(){
@@ -2565,7 +2544,7 @@ function calcFromVol(){
   resultEl.classList.remove('hidden');
 }
 
-function updateQuickRef(){
+function updateQuickRef(){try{
   const conc=getConc();
   const vialUnit=document.getElementById('c-vialUnit').value;
   const el=document.getElementById('calc-quick-ref');
@@ -2584,6 +2563,7 @@ function updateQuickRef(){
         <span class="calc-ref-vol">${dStr}</span>
       </div>`;
     }).join('');
+}catch(e){console.error("function updateQuickRef(){ error:",e.message);}
 }
 
 function updatePinLabel(){} // kept for compatibility
@@ -2604,7 +2584,7 @@ function masterReset(){
   alert('Reset complete. All data cleared and default compounds loaded.');
 }
 
-function checkBackupReminder(){
+function checkBackupReminder(){try{
   const lastRemind=localStorage.getItem('pt_last_backup_remind');
   const now=Date.now();
   const ONE_WEEK=7*24*60*60*1000;
@@ -2619,6 +2599,7 @@ function checkBackupReminder(){
       }, 1500);
     }
   }
+}catch(e){console.error("function checkBackupReminder() error:",e.message);}
 }
 
 function exportData(){
@@ -2680,7 +2661,7 @@ function importFromFile(input){
 function manualSave(){
   save();
   // Also write to a separate backup key that survives code updates
-  localStorage.setItem('pt_backup', JSON.stringify(D));
+  localStorage.setItem('pt_friends_backup', JSON.stringify(D));
   render();
   const el=document.getElementById('save-confirm');
   el.style.display='block';
@@ -2763,12 +2744,19 @@ window.addEventListener('pagehide', function(){ save(); });
 window.addEventListener('beforeunload', function(){ save(); });
 
 function init(){
+  // Show today tab by default
+  document.getElementById('pg-today').classList.remove('hidden');
   load();
   checkBackupReminder();
   document.getElementById('hdrDate').textContent=new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
   viewDate=tod();
   updateDateNav();
   render();
+  // Pre-init calculator so syringe renders without needing to navigate there
+  try{
+    initCalc();
+    renderOilCompounds();
+  }catch(e){}
 }
 init();
 </script>
