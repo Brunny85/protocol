@@ -324,7 +324,7 @@ tr:active td{background:var(--card2)}
 /* Syringe visualiser */
 .syringe-wrap{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);padding:16px;margin-bottom:12px}
 .syringe-wrap svg{pointer-events:none}
-.syringe-wrap *{pointer-events:none}
+.syringe-wrap svg *{pointer-events:none}
 .syringe-size-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .syringe-size-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s}
 .syringe-size-btn.on{background:#fff;color:#0033A0;border-color:#fff}
@@ -451,12 +451,14 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.62 · 27 Jun 2026</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.71 · 30 Jun 2026</div>
       </div>
     </div>
   </div>
 
   <div class="scroll" id="scr">
+
+    
 
     <div id="pg-calc" class="pg hidden">
 
@@ -620,27 +622,7 @@ tr:active td{background:var(--card2)}
 
 </div>
 
-    <div id="pg-links" class="pg hidden">
-      <div class="sec">Useful Links</div>
-      <div class="link-card" onclick="openLink('https://peptidedosages.com/single-peptide-dosages/selank-10-mg-vial-dosage-protocol/')">
-        <div class="link-icon">💊</div>
-        <div class="link-body">
-          <div class="link-title">Peptide Dosage Protocols</div>
-          <div class="link-sub">peptidedosages.com</div>
-          <div class="link-desc">Single peptide dosage protocols — Selank, BPC-157, and more</div>
-        </div>
-        <div class="link-arrow">›</div>
-      </div>
-      <div class="link-card" onclick="openLink('https://particlepeptides.com/en/content/48-peptide-calculator#')">
-        <div class="link-icon">🧮</div>
-        <div class="link-body">
-          <div class="link-title">Peptide Calculator</div>
-          <div class="link-sub">particlepeptides.com</div>
-          <div class="link-desc">Calculate reconstitution volumes, doses, and injection amounts</div>
-        </div>
-        <div class="link-arrow">›</div>
-      </div>
-    </div>
+    
 
     <div id="pg-today" class="pg hidden">
       <!-- Date Navigator -->
@@ -717,11 +699,27 @@ tr:active td{background:var(--card2)}
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)">
         <button class="btn btn-d" onclick="masterReset()" style="font-size:14px">⚠️ Master Reset — Clear All Data</button>
       </div>
-    </div>
-
-    <div id="pg-log" class="pg hidden">
-      <div class="sec">Dose History</div>
-      <div id="log-list"></div>
+    
+      <!-- Useful Links -->
+      <div class="sec">Useful Links</div>
+      <div class="link-card" onclick="openLink('https://peptidedosages.com/single-peptide-dosages/selank-10-mg-vial-dosage-protocol/')">
+        <div class="link-icon">💊</div>
+        <div class="link-body">
+          <div class="link-title">Peptide Dosage Protocols</div>
+          <div class="link-url">peptidedosages.com</div>
+          <div class="link-desc">Single peptide dosage protocols — Selank, BPC-157, and more</div>
+        </div>
+        <div class="link-arrow">›</div>
+      </div>
+      <div class="link-card" onclick="openLink('https://particlepeptides.com/pages/peptide-calculator')">
+        <div class="link-icon">🧮</div>
+        <div class="link-body">
+          <div class="link-title">Peptide Calculator</div>
+          <div class="link-url">particlepeptides.com</div>
+          <div class="link-desc">Reconstitution calculator for peptide dosing</div>
+        </div>
+        <div class="link-arrow">›</div>
+      </div>
     </div>
 
     <div id="pg-inv" class="pg hidden">
@@ -750,14 +748,33 @@ tr:active td{background:var(--card2)}
 
       <!-- History sub-page -->
       <div id="rec-hist" class="hidden">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div class="sec" style="margin:0">Protocol History</div>
-          <select class="fs" id="hist-filter" onchange="rHist()" style="width:auto;font-size:13px;padding:6px 28px 6px 10px;border-radius:8px">
-            <option value="">All Compounds</option>
-          </select>
+        <!-- View mode toggle -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <button class="rec-tab on" id="histmode-compound" onclick="setHistMode('compound')">💊 By Compound</button>
+          <button class="rec-tab" id="histmode-date" onclick="setHistMode('date')">📅 By Date</button>
         </div>
-        <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Every protocol change is saved automatically.</p>
-        <div id="hist-list"></div>
+
+        <!-- By Compound view -->
+        <div id="hist-compound-view">
+          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+            <select class="fs" id="hist-filter" onchange="rHist()" style="flex:1;margin-bottom:0">
+              <option value="">— Select compound —</option>
+            </select>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Protocol changes saved automatically on each update.</p>
+          <div id="hist-list"></div>
+        </div>
+
+        <!-- By Date view -->
+        <div id="hist-date-view" style="display:none">
+          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+            <select class="fs" id="hist-month-filter" onchange="rHistByDate()" style="flex:1;margin-bottom:0">
+              <option value="">— Select month/year —</option>
+            </select>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Shows your full protocol as it was during that period.</p>
+          <div id="hist-date-list"></div>
+        </div>
       </div>
 
       <!-- Log sub-page -->
@@ -778,6 +795,8 @@ tr:active td{background:var(--card2)}
     </div>
 
   </div>
+
+    
 
   <button class="fab" id="fab" onclick="fabAction()">
     <div class="pulse"></div>
@@ -808,10 +827,6 @@ tr:active td{background:var(--card2)}
     <button class="tb" onclick="nav('records',this)">
       <svg fill="none" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       Records
-    </button>
-    <button class="tb" onclick="nav('links',this)">
-      <svg fill="none" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Links
     </button>
   </div>
 </div>
@@ -1449,7 +1464,7 @@ function togDay(pid,day,e){
 }
 
 function rLog(){
-  const el=document.getElementById('log-list');
+  const el=document.getElementById('log-list');if(!el)return;
   const logs=[...D.logs].sort((a,b)=>new Date(b.t)-new Date(a.t));
   if(!logs.length){el.innerHTML=`<div class="empty"><div class="empty-ic">📋</div><div class="empty-t">No logs yet</div>Tap + to log your first dose</div>`;return;}
   const g={};logs.forEach(l=>{const d=l.t.split('T')[0];if(!g[d])g[d]=[];g[d].push(l);});
@@ -1662,26 +1677,176 @@ function rStats(){
         <div style="font-weight:600;font-size:14px;flex:1">${c.name}</div>
         <div style="font-size:12px;color:var(--text2);font-family:var(--mono)">${logs.length} doses</div>
       </div>
-      <div style="font-size:12px;color:var(--text2)">Last: ${last?fmtD(last.t)+' at '+fmtT(last.t):'Never logged'}</div>
+      <div style="font-size:12px;color:var(--text2)">Last: ${last?fmtD(last.t.split('T')[0])+' at '+fmtT(last.t):'Never logged'}</div>
     </div>`;
   }).join('');
 }
 
+function setHistMode(mode){
+  document.getElementById('histmode-compound').classList.toggle('on', mode==='compound');
+  document.getElementById('histmode-date').classList.toggle('on', mode==='date');
+  document.getElementById('hist-compound-view').style.display = mode==='compound'?'block':'none';
+  document.getElementById('hist-date-view').style.display = mode==='date'?'block':'none';
+  if(mode==='compound') rHist();
+  if(mode==='date') rHistByDate();
+}
+
+function rHistByDate(){
+  const sel = document.getElementById('hist-month-filter');
+  const cur = sel.value;
+
+  // Build list of unique month/years from history
+  const months = {};
+  (D.history||[]).forEach(h=>{
+    const d = new Date(h.savedAt);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const label = d.toLocaleDateString([],{month:'long',year:'numeric'});
+    months[key] = label;
+  });
+
+  sel.innerHTML = '<option value="">— Select month/year —</option>' +
+    Object.keys(months).sort((a,b)=>b.localeCompare(a))
+      .map(k=>`<option value="${k}" ${k===cur?'selected':''}>${months[k]}</option>`).join('');
+
+  const el = document.getElementById('hist-date-list');
+  if(!cur){ el.innerHTML=''; return; }
+
+  if(!D.history||!D.history.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ic">📅</div><div class="empty-t">No history yet</div></div>`;
+    return;
+  }
+
+  // Get all history entries that were active during this month
+  // For each compound, find the most recent entry AT OR BEFORE end of selected month
+  const [yr, mo] = cur.split('-').map(Number);
+  const monthEnd = new Date(yr, mo, 0, 23, 59, 59); // last day of month
+
+  // Group by compound, get latest snap before monthEnd
+  const byCompound = {};
+  D.history.forEach(h=>{
+    const savedAt = new Date(h.savedAt);
+    if(savedAt > monthEnd) return; // after selected month
+    if(!byCompound[h.cid] || new Date(byCompound[h.cid].savedAt) < savedAt){
+      byCompound[h.cid] = h;
+    }
+  });
+
+  const entries = Object.values(byCompound).filter(h=>h.snap && h.snap.active !== false);
+
+  if(!entries.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ic">📅</div><div class="empty-t">No protocol data for this period</div></div>`;
+    return;
+  }
+
+  const FL2={daily:'Daily',bid:'Twice Daily',eod:'Every Other Day',e3d:'Every 3 Days',
+    '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
+    weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',prn:'As Needed'};
+  const DOW_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const fmtDays=days=>(!days||!days.length)?'Every day':[...days].sort((a,b)=>a-b).map(d=>DOW_NAMES[d]).join(', ');
+
+  const monthLabel = months[cur] || cur;
+
+  el.innerHTML = `
+    <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:13px;font-weight:700">${entries.length} active compound${entries.length!==1?'s':''}</div>
+        <div style="font-size:11px;color:var(--text2)">Protocol during ${monthLabel}</div>
+      </div>
+      <button class="btn btn-s btn-sm" onclick="importHistoryProtocol('${cur}')" style="font-size:11px;padding:6px 12px;white-space:nowrap">⬇ Import Protocol</button>
+    </div>
+    ${entries.sort((a,b)=>a.name.localeCompare(b.name)).map(h=>{
+      const s=h.snap;
+      return`<div class="hist-entry">
+        <div class="hist-hdr">
+          <div style="width:9px;height:9px;border-radius:50%;background:${s.color||'var(--accent)'}"></div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700">${h.name}</div>
+            <div class="hist-date">${s.dose||'—'} ${s.unit||''} · ${FL2[s.freq]||s.freq||'—'} · ${s.time||'—'}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+function importHistoryProtocol(monthKey){
+  if(!monthKey) return;
+  const [yr, mo] = monthKey.split('-').map(Number);
+  const monthEnd = new Date(yr, mo, 0, 23, 59, 59);
+
+  const byCompound = {};
+  D.history.forEach(h=>{
+    const savedAt = new Date(h.savedAt);
+    if(savedAt > monthEnd) return;
+    if(!byCompound[h.cid] || new Date(byCompound[h.cid].savedAt) < savedAt){
+      byCompound[h.cid] = h;
+    }
+  });
+
+  const entries = Object.values(byCompound);
+  if(!entries.length) return;
+
+  const months = {};
+  const d = new Date(yr, mo-1, 1);
+  const label = d.toLocaleDateString([],{month:'long',year:'numeric'});
+
+  if(!confirm('Import protocol from '+label+'? This will overwrite your current protocol settings for these '+entries.length+' compound(s).')) return;
+
+  entries.forEach(h=>{
+    const snap = h.snap;
+    const idx = D.compounds.findIndex(c=>c.id===h.cid);
+    if(idx===-1){
+      // Compound doesn't exist - add it back
+      D.compounds.push({...snap, id:h.cid});
+    } else {
+      // Restore snap fields onto existing compound
+      const keep = {id:D.compounds[idx].id, name:D.compounds[idx].name};
+      D.compounds[idx] = {...snap, ...keep};
+    }
+  });
+
+  save();
+  render();
+  nav('records', document.querySelector('.tb[onclick*="records"]'));
+  setRecTab('hist');
+  alert('Protocol imported from '+label+'!');
+}
+
+function importCompoundHistory(histId){
+  const h = (D.history||[]).find(e=>e.id===histId);
+  if(!h) return;
+  const snap = h.snap;
+  if(!confirm('Import this version of '+h.name+' into your current protocol?')) return;
+  const idx = D.compounds.findIndex(c=>c.id===h.cid);
+  if(idx===-1){
+    D.compounds.push({...snap, id:h.cid});
+  } else {
+    const keep = {id:D.compounds[idx].id, name:D.compounds[idx].name};
+    D.compounds[idx] = {...snap, ...keep};
+  }
+  save();
+  render();
+  alert(h.name+' protocol restored!');
+}
+
 function rHist(){
-  // Populate filter dropdown
+  // Populate compound filter
   const sel=document.getElementById('hist-filter');
   const cur=sel.value;
-  sel.innerHTML='<option value="">All Compounds</option>'+
+  sel.innerHTML='<option value="">— Select compound —</option>'+
     D.compounds.map(c=>`<option value="${c.id}" ${c.id===cur?'selected':''}>${c.name}</option>`).join('');
 
   const el=document.getElementById('hist-list');
   if(!D.history||!D.history.length){
-    el.innerHTML=`<div class="empty"><div class="empty-ic">📜</div><div class="empty-t">No history yet</div>Changes will appear here after you save a protocol update.</div>`;
+    el.innerHTML=`<div class="empty"><div class="empty-ic">📜</div><div class="empty-t">No history yet</div>Changes appear here after saving a protocol update.</div>`;
     return;
   }
-  const filter=document.getElementById('hist-filter').value;
+  if(!cur){
+    el.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px">Select a compound above to see its history</div>`;
+    return;
+  }
+
   const items=[...D.history]
-    .filter(h=>!filter||h.cid===filter)
+    .filter(h=>h.cid===cur)
     .sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt));
 
   if(!items.length){
@@ -1690,10 +1855,7 @@ function rHist(){
   }
 
   const DOW_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const fmtDays=days=>{
-    if(!days||days.length===0) return 'Every day';
-    return [...days].sort((a,b)=>a-b).map(d=>DOW_NAMES[d]).join(', ');
-  };
+  const fmtDays=days=>(!days||!days.length)?'Every day':[...days].sort((a,b)=>a-b).map(d=>DOW_NAMES[d]).join(', ');
   const fmtDT=iso=>{
     const d=new Date(iso);
     return d.toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})+
@@ -1705,46 +1867,26 @@ function rHist(){
 
   el.innerHTML=items.map((h,i)=>{
     const s=h.snap;
-    const isLatest=i===0&&(!filter||true);
     return`<div class="hist-entry">
       <div class="hist-hdr">
         <div style="width:9px;height:9px;border-radius:50%;background:${s.color||'var(--accent)'}"></div>
-        <div>
-          <div style="font-size:13px;font-weight:700">${h.name}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">${i===0?'Current':'Version '+(items.length-i)}</div>
           <div class="hist-date">${fmtDT(h.savedAt)}</div>
         </div>
-        <div class="hist-label">${isLatest?'<span style="color:var(--text2);font-size:11px">prev version</span>':''}</div>
-        <button class="btn btn-s btn-sm" style="font-size:11px;padding:5px 10px" onclick="restoreSnap('${h.id}')">Restore</button>
+        ${i>0?`<button class="btn btn-s btn-sm" style="font-size:11px;padding:5px 10px" onclick="importCompoundHistory('${h.id}')">⬇ Import</button>`:'<span style="font-size:11px;color:var(--text2)">Current</span>'}
       </div>
       <div class="hist-body">
-        <div class="hist-field">
-          <div class="hist-field-l">Dose</div>
-          <div class="hist-field-v">${s.dose||'—'} ${s.unit||''}</div>
-        </div>
-        <div class="hist-field">
-          <div class="hist-field-l">Route</div>
-          <div class="hist-field-v">${s.route||'—'}</div>
-        </div>
-        <div class="hist-field">
-          <div class="hist-field-l">Frequency</div>
-          <div class="hist-field-v">${FL2[s.freq]||s.freq||'—'}</div>
-        </div>
-        <div class="hist-field">
-          <div class="hist-field-l">Timing</div>
-          <div class="hist-field-v">${s.time||'—'}${s.clock?' · '+s.clock:''}</div>
-        </div>
-        <div class="hist-field hist-days">
-          <div class="hist-field-l">Days</div>
-          <div class="hist-field-v">${fmtDays(s.days)}</div>
-        </div>
-        ${s.doseNotes?`<div class="hist-field hist-days"><div class="hist-field-l">Dosing Notes</div><div class="hist-field-v" style="font-weight:400;font-size:12px">${s.doseNotes}</div></div>`:''}
-        ${s.timingNotes?`<div class="hist-field hist-days"><div class="hist-field-l">Timing Notes</div><div class="hist-field-v" style="font-weight:400;font-size:12px">${s.timingNotes}</div></div>`:''}
-        ${s.cycle?`<div class="hist-field hist-days"><div class="hist-field-l">Cycle</div><div class="hist-field-v" style="font-weight:400;font-size:12px">${s.cycle}</div></div>`:''}
+        <div class="hist-field"><div class="hist-field-l">Dose</div><div class="hist-field-v">${s.dose||'—'} ${s.unit||''}</div></div>
+        <div class="hist-field"><div class="hist-field-l">Frequency</div><div class="hist-field-v">${FL2[s.freq]||s.freq||'—'}</div></div>
+        <div class="hist-field"><div class="hist-field-l">Timing</div><div class="hist-field-v">${s.time||'—'}${s.clock?' · '+s.clock:''}</div></div>
+        <div class="hist-field hist-days"><div class="hist-field-l">Days</div><div class="hist-field-v">${fmtDays(s.days)}</div></div>
         ${s.notes?`<div class="hist-field hist-days"><div class="hist-field-l">Notes</div><div class="hist-field-v" style="font-weight:400;font-size:12px">${s.notes}</div></div>`:''}
       </div>
     </div>`;
   }).join('');
 }
+
 
 function restoreSnap(hid){
   const h=D.history.find(x=>x.id===hid);if(!h)return;
@@ -1812,12 +1954,12 @@ function nav(pg,btn){
   btn.classList.add('on');
   document.getElementById('scr').scrollTop=0;
   currentPage=pg;
-  document.getElementById('fab').style.display=['records','links','calc','stack'].includes(pg)?'none':'flex';
+  document.getElementById('fab').style.display=['records','calc','stack'].includes(pg)?'none':'flex';
   if(pg==='today'){viewDate=tod();updateDateNav();}
   if(pg==='records') setRecTab(currentRecTab);
   if(pg==='calc') initCalc();
   if(pg==='stack') rStack();
-  const titles={today:'Today',proto:'Protocol',inv:'Inventory',calc:'Calculator',stack:'Stack Summary',records:'Records',links:'Useful Links'};
+  const titles={today:'Today',proto:'Protocol',inv:'Inventory',calc:'Calculator',stack:'Stack Summary',records:'Records'};
   document.getElementById('hdrTitle').textContent=titles[pg]||pg;
 }
 function fabAction(){
@@ -2357,7 +2499,7 @@ let syringeType = 'insulin'; // 'insulin' or 'im'
 function setSyringeSize(ml, type, btn){
   syringeMaxMl = ml;
   syringeType = type;
-  document.querySelectorAll('.syringe-size-btn').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('#syringe-text-display .syringe-size-btn, .syringe-wrap:not(#oil-syringe-card) .syringe-size-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   drawSyringe(currentUnits());
 }
@@ -2474,6 +2616,13 @@ function updateConcBar(){try{
   }
   el.textContent=`Concentration: ${conc.toFixed(4)} ${vialUnit}/ml  ·  ${bac} ml total volume`;
 }catch(e){console.error("function updateConcBar(){ error:",e.message);}
+}
+
+function setOilSyrSize(ml, btn){
+  oilSyringeMaxMl = ml;
+  document.querySelectorAll('#oil-syringe-card .syringe-size-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  calcOil();
 }
 
 function calcBoth(){
@@ -2756,6 +2905,7 @@ function init(){
     renderOilCompounds();
   }catch(e){}
 }
+
 init();
 </script>
 </body>
