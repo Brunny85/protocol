@@ -451,7 +451,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.71 · 30 Jun 2026</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.73 · 2 Jul 2026</div>
       </div>
     </div>
   </div>
@@ -1160,6 +1160,18 @@ const dAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toISOString(
 // - days array is empty (means every day) OR today's DOW is in the days array
 function isDue(c){
   if(!c.active||c.freq==='prn') return false;
+  // Check end date - if compound has expired, don't show it
+  if(c.end && viewDate > c.end) return false;
+  // Check start date - if not started yet, don't show it
+  if(c.start && viewDate < c.start) return false;
+  // Check weeks-based duration
+  if(c.durtype==='weeks' && c.weeks && c.start){
+    const startD = new Date(c.start+'T12:00:00');
+    const endD = new Date(startD);
+    endD.setDate(endD.getDate() + parseInt(c.weeks)*7);
+    const endStr = endD.toISOString().split('T')[0];
+    if(viewDate > endStr) return false;
+  }
   if(!c.days||c.days.length===0) return true;
   // Use viewDate's day of week, not today's
   return c.days.includes(new Date(viewDate+'T12:00:00').getDay());
@@ -1716,18 +1728,28 @@ function rHistByDate(){
     return;
   }
 
-  // Get all history entries that were active during this month
-  // For each compound, find the most recent entry AT OR BEFORE end of selected month
   const [yr, mo] = cur.split('-').map(Number);
   const monthEnd = new Date(yr, mo, 0, 23, 59, 59); // last day of month
+  const monthStart = new Date(yr, mo-1, 1);
 
   // Group by compound, get latest snap before monthEnd
   const byCompound = {};
   D.history.forEach(h=>{
     const savedAt = new Date(h.savedAt);
-    if(savedAt > monthEnd) return; // after selected month
+    if(savedAt > monthEnd) return;
     if(!byCompound[h.cid] || new Date(byCompound[h.cid].savedAt) < savedAt){
       byCompound[h.cid] = h;
+    }
+  });
+
+  // Fall back to current protocol for compounds with no history in/before this period
+  D.compounds.forEach(c=>{
+    if(!byCompound[c.id]){
+      // Include if compound was likely active then (no history = use current settings)
+      byCompound[c.id] = {
+        id:'fallback-'+c.id, cid:c.id, name:c.name,
+        savedAt:monthEnd.toISOString(), snap:{...c}
+      };
     }
   });
 
@@ -1850,7 +1872,33 @@ function rHist(){
     .sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt));
 
   if(!items.length){
-    el.innerHTML=`<div class="empty"><div class="empty-ic">📜</div><div class="empty-t">No history for this compound</div></div>`;
+    // No history yet - show current settings as "Current (no changes recorded)"
+    const c = D.compounds.find(c=>c.id===cur);
+    if(c){
+      const FL2={daily:'Daily',bid:'Twice Daily',eod:'Every Other Day',e3d:'Every 3 Days',
+        '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
+        weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',prn:'As Needed'};
+      const DOW_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const fmtDays=days=>(!days||!days.length)?'Every day':[...days].sort((a,b)=>a-b).map(d=>DOW_NAMES[d]).join(', ');
+      el.innerHTML=`<div class="hist-entry">
+        <div class="hist-hdr">
+          <div style="width:9px;height:9px;border-radius:50%;background:${c.color||'var(--accent)'}"></div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700">Current Settings</div>
+            <div class="hist-date">No changes recorded yet — press Save & Update to start tracking</div>
+          </div>
+          <span style="font-size:11px;color:var(--text2)">Current</span>
+        </div>
+        <div class="hist-body">
+          <div class="hist-field"><div class="hist-field-l">Dose</div><div class="hist-field-v">${c.dose||'—'} ${c.unit||''}</div></div>
+          <div class="hist-field"><div class="hist-field-l">Frequency</div><div class="hist-field-v">${FL2[c.freq]||c.freq||'—'}</div></div>
+          <div class="hist-field"><div class="hist-field-l">Timing</div><div class="hist-field-v">${c.time||'—'}</div></div>
+          <div class="hist-field hist-days"><div class="hist-field-l">Days</div><div class="hist-field-v">${fmtDays(c.days)}</div></div>
+        </div>
+      </div>`;
+    } else {
+      el.innerHTML=`<div class="empty"><div class="empty-ic">📜</div><div class="empty-t">No history for this compound</div></div>`;
+    }
     return;
   }
 
@@ -2806,8 +2854,28 @@ function importFromFile(input){
 }
 
 function manualSave(){
+  // Snapshot ALL compounds to history on every Save & Update
+  if(!D.history) D.history=[];
+  const now = new Date().toISOString();
+  D.compounds.forEach(c=>{
+    D.history.push({
+      id:uid(),
+      cid:c.id,
+      name:c.name,
+      savedAt:now,
+      snap:{...c}
+    });
+  });
+  // Keep history lean - max 50 entries per compound
+  const byCid={};
+  D.history.forEach(h=>{
+    if(!byCid[h.cid]) byCid[h.cid]=[];
+    byCid[h.cid].push(h);
+  });
+  D.history=Object.values(byCid).flatMap(arr=>
+    arr.sort((a,b)=>b.savedAt.localeCompare(a.savedAt)).slice(0,50)
+  );
   save();
-  // Also write to a separate backup key that survives code updates
   localStorage.setItem('pt_backup', JSON.stringify(D));
   render();
   const el=document.getElementById('save-confirm');
