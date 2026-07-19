@@ -451,7 +451,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.75 · 2 Jul 2026</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.77 · 19 Jul 2026</div>
       </div>
     </div>
   </div>
@@ -3015,8 +3015,13 @@ function addDays(dateStr, n){
   return d.toISOString().split('T')[0];
 }
 
+let _cycleReminderList = [];
+let _cycleReminderReminded = {};
+
 function showCycleReminder(list, idx, reminded){
   if(idx >= list.length) return;
+  _cycleReminderList = list;
+  _cycleReminderReminded = reminded || {};
   const {c, endDate, key} = list[idx];
 
   // Create modal overlay
@@ -3090,22 +3095,35 @@ function showCycleReminder(list, idx, reminded){
       </div>
 
       <div style="padding:12px 20px 32px">
-        <button onclick="scheduleCycleNext('${c.id}','${key}',${JSON.stringify(list).replace(/'/g,'\'')},${idx})"
+        <button id="cycle-btn-schedule"
           style="width:100%;padding:14px;background:#0033A0;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px">
           ✅ Schedule Next Cycle
         </button>
-        <button onclick="dismissCycleReminder('${key}',${JSON.stringify(list).replace(/'/g,'\'')},${idx})"
+        <button id="cycle-btn-dismiss"
           style="width:100%;padding:13px;background:none;color:#0033A0;border:1.5px solid #0033A0;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer">
           Remind me later
         </button>
       </div>
     </div>`;
 
+  // Store current index for button handlers
+  overlay._cycleIdx = idx;
+  overlay._cycleKey = key;
+  overlay._cycleCid = c.id;
+
   overlay.id = 'cycle-reminder-overlay';
   document.body.appendChild(overlay);
+
+  document.getElementById('cycle-btn-schedule').addEventListener('click', function(){
+    scheduleCycleNext(overlay._cycleCid, overlay._cycleKey, overlay._cycleIdx);
+  });
+  document.getElementById('cycle-btn-dismiss').addEventListener('click', function(){
+    dismissCycleReminder(overlay._cycleKey, overlay._cycleIdx);
+  });
 }
 
-function scheduleCycleNext(cid, key, list, listIdx){
+function scheduleCycleNext(cid, key, listIdx){
+  const list = _cycleReminderList;
   const startDate = document.getElementById('cycle-next-start').value;
   const weeks     = document.getElementById('cycle-next-weeks').value;
   const dose      = document.getElementById('cycle-next-dose').value;
@@ -3136,7 +3154,7 @@ function scheduleCycleNext(cid, key, list, listIdx){
   }
 
   // Mark as reminded
-  const reminded = JSON.parse(localStorage.getItem('pt_cycle_reminded')||'{}');
+  const reminded = _cycleReminderReminded;
   reminded[key] = tod();
   localStorage.setItem('pt_cycle_reminded', JSON.stringify(reminded));
 
@@ -3151,8 +3169,9 @@ function scheduleCycleNext(cid, key, list, listIdx){
   setTimeout(()=>showCycleReminder(list, listIdx+1, reminded), 300);
 }
 
-function dismissCycleReminder(key, list, listIdx){
-  const reminded = JSON.parse(localStorage.getItem('pt_cycle_reminded')||'{}');
+function dismissCycleReminder(key, listIdx){
+  const list = _cycleReminderList;
+  const reminded = _cycleReminderReminded;
   reminded[key] = 'snoozed';
   localStorage.setItem('pt_cycle_reminded', JSON.stringify(reminded));
   document.getElementById('cycle-reminder-overlay')?.remove();
