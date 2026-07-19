@@ -451,7 +451,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.73 · 2 Jul 2026</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.75 · 2 Jul 2026</div>
       </div>
     </div>
   </div>
@@ -2972,6 +2972,192 @@ function init(){
     initCalc();
     renderOilCompounds();
   }catch(e){}
+  // Check for cycle end reminders
+  setTimeout(checkCycleEndReminders, 800);
+}
+
+// ─── CYCLE END REMINDER ──────────────────────────────────────────────────────
+function getCompoundEndDate(c){
+  if(c.durtype==='enddate' && c.end) return c.end;
+  if(c.durtype==='weeks' && c.weeks && c.start){
+    const startD = new Date(c.start+'T12:00:00');
+    const endD = new Date(startD);
+    endD.setDate(endD.getDate() + parseInt(c.weeks)*7);
+    return endD.toISOString().split('T')[0];
+  }
+  return null;
+}
+
+function checkCycleEndReminders(){
+  const today = tod();
+  const reminded = JSON.parse(localStorage.getItem('pt_cycle_reminded')||'{}');
+  const expired = [];
+
+  D.compounds.filter(c=>c.active).forEach(c=>{
+    const endDate = getCompoundEndDate(c);
+    if(!endDate) return;
+    // Remind if today is within 7 days after end date and haven't reminded this cycle
+    const key = c.id+'_'+endDate;
+    if(today >= endDate && today <= addDays(endDate, 7) && !reminded[key]){
+      expired.push({c, endDate, key});
+    }
+  });
+
+  if(!expired.length) return;
+
+  // Show reminder for first expired compound (queue the rest)
+  showCycleReminder(expired, 0, reminded);
+}
+
+function addDays(dateStr, n){
+  const d = new Date(dateStr+'T12:00:00');
+  d.setDate(d.getDate()+n);
+  return d.toISOString().split('T')[0];
+}
+
+function showCycleReminder(list, idx, reminded){
+  if(idx >= list.length) return;
+  const {c, endDate, key} = list[idx];
+
+  // Create modal overlay
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,51,0.85);z-index:999;display:flex;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom,0px)';
+
+  const endFmt = new Date(endDate+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'});
+
+  const freqOpts = [
+    ['daily','Daily'],['bid','Twice Daily'],['eod','Every Other Day'],['e3d','Every 3 Days'],
+    ['2xweek','2x/Week'],['3xweek','3x/Week'],['4xweek','4x/Week'],['5xweek','5x/Week'],
+    ['weekly','Weekly'],['biweekly','Every 2 Wks'],['monthly','Monthly']
+  ].map(([v,l])=>`<option value="${v}" ${c.freq===v?'selected':''}>${l}</option>`).join('');
+
+  const unitOpts = ['mcg','mg','IU','ml'].map(u=>`<option ${c.unit===u?'selected':''}>${u}</option>`).join('');
+  const timeOpts = ['AM','PM','Both','Any'].map(t=>`<option ${(c.time||'').toUpperCase()===t?'selected':''}>${t}</option>`).join('');
+
+  const inp = (id,type,val,ph,extra='')=>
+    `<input type="${type}" id="${id}" value="${val||''}" placeholder="${ph}"
+      style="width:100%;padding:10px 12px;border:1.5px solid #dde4f5;border-radius:10px;font-size:14px;color:#0033A0;background:#f0f4ff;box-sizing:border-box" ${extra}>`;
+  const sel = (id,opts)=>
+    `<select id="${id}" style="width:100%;padding:10px 12px;border:1.5px solid #dde4f5;border-radius:10px;font-size:14px;color:#0033A0;background:#f0f4ff">${opts}</select>`;
+  const lbl = t=>`<div style="font-size:11px;font-weight:700;color:#0033A0;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 5px">${t}</div>`;
+
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
+      <div style="padding:20px 20px 0">
+        <div style="text-align:center;margin-bottom:4px;font-size:26px">🔔</div>
+        <div style="text-align:center;font-size:17px;font-weight:700;color:#0033A0;margin-bottom:4px">Cycle Complete</div>
+        <div style="text-align:center;font-size:13px;color:#666;margin-bottom:16px">
+          <strong>${c.name}</strong> ended ${endFmt}
+        </div>
+
+        <div style="background:#f0f4ff;border-radius:12px;padding:14px;margin-bottom:4px">
+          ${lbl('Next Cycle Start')}
+          ${inp('cycle-next-start','date',addDays(endDate,1),'')}
+
+          ${lbl('Duration (weeks)')}
+          <div style="display:flex;gap:8px;align-items:center">
+            ${inp('cycle-next-weeks','number',c.weeks||'','e.g. 8','min="1" max="52" style="width:100%;padding:10px 12px;border:1.5px solid #dde4f5;border-radius:10px;font-size:14px;color:#0033A0;background:#fff;box-sizing:border-box"')}
+            <span style="font-size:12px;color:#888;white-space:nowrap">weeks</span>
+          </div>
+          <div style="font-size:11px;color:#888;margin-top:4px">Leave blank to keep current end date type</div>
+        </div>
+
+        <div style="background:#f0f4ff;border-radius:12px;padding:14px;margin-bottom:4px">
+          ${lbl('Dose')}
+          <div style="display:flex;gap:8px">
+            ${inp('cycle-next-dose','number',c.dose||'','e.g. 500')}
+            ${sel('cycle-next-unit',unitOpts)}
+          </div>
+
+          ${lbl('Frequency')}
+          ${sel('cycle-next-freq',freqOpts)}
+
+          ${lbl('Timing')}
+          ${sel('cycle-next-time',timeOpts)}
+
+          ${lbl('Vial Size')}
+          <div style="display:flex;gap:8px;align-items:center">
+            ${inp('cycle-next-vial','number',c.vialSize||'','e.g. 5')}
+            <span style="font-size:12px;color:#888;white-space:nowrap">mg / vial</span>
+          </div>
+
+          ${lbl('BAC Water')}
+          <div style="display:flex;gap:8px;align-items:center">
+            ${inp('cycle-next-bac','number',c.bacWater||'','e.g. 2')}
+            <span style="font-size:12px;color:#888;white-space:nowrap">ml</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:12px 20px 32px">
+        <button onclick="scheduleCycleNext('${c.id}','${key}',${JSON.stringify(list).replace(/'/g,'\'')},${idx})"
+          style="width:100%;padding:14px;background:#0033A0;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px">
+          ✅ Schedule Next Cycle
+        </button>
+        <button onclick="dismissCycleReminder('${key}',${JSON.stringify(list).replace(/'/g,'\'')},${idx})"
+          style="width:100%;padding:13px;background:none;color:#0033A0;border:1.5px solid #0033A0;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer">
+          Remind me later
+        </button>
+      </div>
+    </div>`;
+
+  overlay.id = 'cycle-reminder-overlay';
+  document.body.appendChild(overlay);
+}
+
+function scheduleCycleNext(cid, key, list, listIdx){
+  const startDate = document.getElementById('cycle-next-start').value;
+  const weeks     = document.getElementById('cycle-next-weeks').value;
+  const dose      = document.getElementById('cycle-next-dose').value;
+  const unit      = document.getElementById('cycle-next-unit').value;
+  const freq      = document.getElementById('cycle-next-freq').value;
+  const time      = document.getElementById('cycle-next-time').value;
+  const vialSize  = document.getElementById('cycle-next-vial').value;
+  const bacWater  = document.getElementById('cycle-next-bac').value;
+  if(!startDate){ alert('Please enter a start date'); return; }
+
+  const idx = D.compounds.findIndex(c=>c.id===cid);
+  if(idx > -1){
+    D.compounds[idx].start   = startDate;
+    D.compounds[idx].active  = true;
+    if(dose)     D.compounds[idx].dose     = dose;
+    if(unit)     D.compounds[idx].unit     = unit;
+    if(freq)     D.compounds[idx].freq     = freq;
+    if(time)     D.compounds[idx].time     = time.toLowerCase();
+    if(vialSize) D.compounds[idx].vialSize = vialSize;
+    if(bacWater) D.compounds[idx].bacWater = bacWater;
+    if(weeks){
+      D.compounds[idx].durtype = 'weeks';
+      D.compounds[idx].weeks   = weeks;
+      D.compounds[idx].end     = addDays(startDate, parseInt(weeks)*7);
+    } else {
+      D.compounds[idx].end = '';
+    }
+  }
+
+  // Mark as reminded
+  const reminded = JSON.parse(localStorage.getItem('pt_cycle_reminded')||'{}');
+  reminded[key] = tod();
+  localStorage.setItem('pt_cycle_reminded', JSON.stringify(reminded));
+
+  save();
+  render();
+  document.getElementById('cycle-reminder-overlay')?.remove();
+
+  const nextFmt = new Date(startDate+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long'});
+  alert('✅ Next cycle scheduled from '+nextFmt+'!');
+
+  // Show next reminder in queue
+  setTimeout(()=>showCycleReminder(list, listIdx+1, reminded), 300);
+}
+
+function dismissCycleReminder(key, list, listIdx){
+  const reminded = JSON.parse(localStorage.getItem('pt_cycle_reminded')||'{}');
+  reminded[key] = 'snoozed';
+  localStorage.setItem('pt_cycle_reminded', JSON.stringify(reminded));
+  document.getElementById('cycle-reminder-overlay')?.remove();
+  // Show next in queue
+  setTimeout(()=>showCycleReminder(list, listIdx+1, reminded), 300);
 }
 
 init();
