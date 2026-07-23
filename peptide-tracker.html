@@ -25,7 +25,7 @@
   --r:14px;--tabh:72px;--sb:env(safe-area-inset-bottom,20px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-text-size-adjust:100%}
 #app{height:100%;display:flex;flex-direction:column;overflow:hidden}
 
 /* Header */
@@ -36,7 +36,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .hdr-sub{font-size:13px;color:#5577CC;margin-top:2px}
 
 /* Scroll */
-.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(var(–tabh) + var(–sb) + 48px);min-height:0;overscroll-behavior-y:none;scrollbar-width:none}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(var(–tabh) + var(–sb) + 48px);min-height:0}
 
 /* Tabs */
 .tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffff;
@@ -49,7 +49,7 @@ font-size:10px;font-family:var(–sans);padding-top:8px;transition:color .15s;op
 .tb svg{width:22px;height:22px}
 /* Fade gradient above tab bar */
 .tabs::before{content:’’;position:absolute;top:-40px;left:0;right:0;height:40px;
-background:linear-gradient(to bottom,rgba(0,51,160,0),rgba(0,51,160,0));
+background:linear-gradient(to bottom,transparent,rgba(255,255,255,0));
 pointer-events:none}
 
 /* FAB */
