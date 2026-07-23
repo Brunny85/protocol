@@ -30,7 +30,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 
 /* Header */
 #hdrTitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hdr{background:#fff;padding-top:env(safe-area-inset-top,44px);padding-left:20px;padding-right:20px;padding-bottom:14px;border-bottom:2px solid #0033A0;flex-shrink:0;position:relative;z-index:10}
+.hdr{background:#fff;padding-top:env(safe-area-inset-top,44px);padding-left:20px;padding-right:20px;padding-bottom:14px;border-bottom:2px solid #0033A0;flex-shrink:0;position:relative;z-index:101}
 .hdr h1{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#0033A0}
 .hdr h1 span{color:#0033A0}
 .hdr-sub{font-size:13px;color:#5577CC;margin-top:2px}
@@ -49,7 +49,7 @@ font-size:10px;font-family:var(–sans);padding-top:8px;transition:color .15s;op
 .tb svg{width:22px;height:22px}
 /* Fade gradient above tab bar */
 .tabs::before{content:’’;position:absolute;top:-40px;left:0;right:0;height:40px;
-background:linear-gradient(to bottom,transparent,rgba(255,255,255,0));
+background:linear-gradient(to bottom,rgba(0,51,160,0),rgba(0,51,160,0));
 pointer-events:none}
 
 /* FAB */
@@ -93,7 +93,7 @@ flex-shrink:0;display:flex;align-items:center;justify-content:center;background:
 .chk svg{display:none}
 .chk.done svg{display:block}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.ci-name{font-size:13px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci-name{font-size:13px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 .ci-sub{font-size:10px;color:var(–text2);margin-top:1px}
 .col-empty{padding:14px 13px;font-size:12px;color:var(–text2);text-align:center}
 
@@ -184,7 +184,7 @@ text-align:center;background:#0033A0;color:#fff}
 /* Inline editable cells */
 .ie-name{font-size:13px;font-weight:600;color:#fff;background:transparent;
 border:none;outline:none;width:100%;padding:10px 6px 10px 10px;font-family:var(–sans);
-min-width:90px}
+min-width:120px}
 .ie-dose{font-size:13px;color:#fff;background:transparent;border:none;outline:none;
 width:60px;padding:10px 4px;text-align:center;font-family:var(–mono)}
 .ie-name:focus,.ie-dose:focus{background:rgba(255,255,255,.1);border-radius:4px}
@@ -461,7 +461,7 @@ background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.3 · 23 Jul 2026</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.4 · 23 Jul 2026</div>
       </div>
     </div>
   </div>
@@ -1699,7 +1699,7 @@ function rToday(){
       <div class="chk ${ok?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="dot" style="background:${c.color}"></div>
       <div style="flex:1;min-width:0">
-        <div class="ci-name" style="display:flex;align-items:center;gap:4px">${esc(c.name)}${expiryBadge}</div>
+        <div class="ci-name">${esc(c.name)}${expiryBadge}</div>
         <div class="ci-sub" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${esc(c.dose)} ${esc(c.unit)} · ${esc(c.route)}${pinInfo}</div>
       </div>
     </div>`;
