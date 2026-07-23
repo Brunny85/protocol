@@ -29,7 +29,8 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 #app{height:100%;display:flex;flex-direction:column;overflow:hidden}
 
 /* Header */
-.hdr{background:#fff;padding-top:env(safe-area-inset-top,44px);padding-left:20px;padding-right:20px;padding-bottom:14px;border-bottom:2px solid #0033A0;flex-shrink:0;position:relative;z-index:10}
+#hdrTitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(160px,40vw)}
+.hdr{background:#fff;padding-top:max(env(safe-area-inset-top,0px),16px);padding-left:20px;padding-right:20px;padding-bottom:14px;border-bottom:2px solid #0033A0;flex-shrink:0;position:relative;z-index:10}
 .hdr h1{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#0033A0}
 .hdr h1 span{color:#0033A0}
 .hdr-sub{font-size:13px;color:#5577CC;margin-top:2px}
@@ -212,7 +213,7 @@ user-select:none}
 .edit-btn{background:none;border:none;color:var(–text2);cursor:pointer;padding:8px 6px;font-size:14px}
 .edit-btn:active{color:var(–accent)}
 /* col widths */
-.col-name{min-width:100px;text-align:left!important}
+.col-name{min-width:120px;max-width:160px;text-align:left!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .col-act{width:48px}.col-dose{width:64px}.col-unit{width:56px}.col-time{width:72px}.col-day{width:28px}.col-dt{width:82px;white-space:nowrap}
 /* Protocol inline table */
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(–r);border:1px solid var(–border)}
@@ -457,7 +458,7 @@ background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.1 · 23 Jul 2026</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.2 · 23 Jul 2026</div>
       </div>
     </div>
   </div>
@@ -1558,13 +1559,21 @@ function rStack(){
     return dose+' '+unit;
   }
 
+  function fmtStackDose(val, unit){
+    // Display: integer if whole, else 1 decimal place
+    const d = val % 1 === 0 ? val : parseFloat(val.toFixed(1));
+    return d + ' ' + unit;
+  }
+
   function buildRow(c){
     const dpw=daysPerWeek(c);
-    const dpd=dosesPerDay(c);
-    const jabDose=c.dose*(dpd); // dose on jab days (e.g. BPC Both = 500mcg x2 = 1000mcg per jab day)
-    const weeklyDose=jabDose*dpw;
-    const jabDoseStr=fmtDose(jabDose,c.unit);
-    const weeklyStr=fmtDose(weeklyDose%1===0?weeklyDose:parseFloat(weeklyDose.toFixed(2)),c.unit);
+    // Doses per scheduled injection day (not daily average)
+    // c.dose is always a per-session dose; 'Both' timing means 2 injections per scheduled day
+    const dosesPerSession = c.time === 'Both' ? 2 : 1;
+    const jabDose = roundDose(c.dose * dosesPerSession);
+    const weeklyDose = roundDose(jabDose * dpw);
+    const jabDoseStr = fmtStackDose(jabDose, c.unit);
+    const weeklyStr = fmtStackDose(weeklyDose, c.unit);
     const dpwStr=dpw===7?'Daily':dpw===3.5?'EOD':dpw%1===0?dpw+'x/wk':dpw+'x/wk';
     return`<div class="stack-row">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -3322,6 +3331,12 @@ function showPinDetail(cid){
 }
 
 function initCalc(){
+  // Ensure active input stays visible above keyboard on iOS
+  document.querySelectorAll('#pg-calc input, #pg-calc select').forEach(el=>{
+    el.addEventListener('focus', ()=>{
+      setTimeout(()=>el.scrollIntoView({behavior:'smooth', block:'center'}), 300);
+    }, {passive:true});
+  });
   const sel=document.getElementById('c-compound');
   sel.innerHTML='<option value="">— Select compound to auto-fill —</option>'+
     D.compounds.map(c=>`<option value="${c.id}">${esc(c.name)} (${c.dose||'?'} ${esc(c.unit)})</option>`).join('');
