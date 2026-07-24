@@ -1,11 +1,11 @@
-<!DOCTYPE html><!-- build:20260724174211 -->
+<!DOCTYPE html><!-- build:20260724175502 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="build" content="20260724174211">
+<meta name="build" content="20260724175502">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -407,6 +407,14 @@ tr:active td{background:var(--card2)}
 /* Expiring cycle (within 7 days of end) */
 .ci.expiring{background:rgba(200,32,32,.92)}
 .ci.expiring .ci-sub{color:rgba(255,255,255,.85)}
+.snooze-btn{width:26px;height:26px;border-radius:50%;flex-shrink:0;padding:0;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#fff;opacity:.5;
+  display:flex;align-items:center;justify-content:center}
+.snooze-btn.on{border-color:var(--warn);color:var(--warn);opacity:1}
+.ci.snoozed{opacity:.55}
+.ci.snoozed .chk{opacity:.35}
+.snz-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;
+  background:rgba(245,158,11,.28);color:var(--warn);white-space:nowrap;margin-left:6px}
 .exp-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;
   background:rgba(255,255,255,.28);color:#fff;white-space:nowrap;margin-left:6px}
 .expiry-legend-inner{display:flex;align-items:center;gap:8px;background:rgba(239,68,68,.15);
@@ -461,7 +469,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.93-TEST · 24 Jul 2026</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.96-TEST · 24 Jul 2026</div>
       </div>
     </div>
   </div>
@@ -1025,6 +1033,41 @@ tr:active td{background:var(--card2)}
   </div>
 </div>
 
+<!-- ═══ SNOOZE SHEET ═══ -->
+<div class="ov hidden" id="ov-snooze">
+  <div class="sh">
+    <div class="sh-handle"></div>
+    <div class="sh-title" id="snz-title">Snooze</div>
+    <p style="font-size:13px;color:var(--text2);margin:-10px 0 16px;line-height:1.5">
+      Pauses this dose without changing your protocol. It stays listed on Today and comes back automatically.
+    </p>
+    <div id="snz-current" class="hidden" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);
+      border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:var(--warn)"></div>
+    <div class="fg">
+      <label class="fl">Snooze for</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="applySnooze(1)">Today only</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="applySnooze(3)">3 days</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="applySnooze(7)">1 week</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="applySnooze(14)">2 weeks</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Or until a specific date</label>
+      <div style="display:flex;gap:8px">
+        <input class="fi" id="snz-until" type="date" style="flex:1">
+        <button class="btn btn-p btn-sm" style="flex-shrink:0" onclick="applySnoozeUntil()">Apply</button>
+      </div>
+    </div>
+    <div id="snz-unwrap" class="fg hidden">
+      <button class="btn btn-s" onclick="clearSnooze()">Resume now — cancel this snooze</button>
+    </div>
+    <div class="brow">
+      <button class="btn btn-s" onclick="closeOv('ov-snooze')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ LOG DOSE SHEET ═══ -->
 <div class="ov hidden" id="ov-log">
   <div class="sh">
@@ -1130,7 +1173,7 @@ const DEFAULTS=[
 ];
 
 // ─── STATE ───────────────────────────────────────────────────
-let D={compounds:[],logs:[],inventory:[],history:[]};
+let D={compounds:[],logs:[],inventory:[],history:[],skips:[]};
 let viewDate=''; // set in init()
 let fColor=COLORS[0], fSite='';
 
@@ -1157,6 +1200,7 @@ function load(){
     D.logs      = best.logs      || [];
     D.inventory = best.inventory || [];
     D.history   = best.history   || [];
+    D.skips     = best.skips     || [];
     // Re-save to protocol_data to keep them in sync
     localStorage.setItem('protocol_data', JSON.stringify(D));
     if(!D.inventory.length){ D.inventory=defaultInventory(); save(); }
@@ -1203,6 +1247,75 @@ function doneOnDate(c,slot,date){
   return D.logs.some(l=>l.pid===c.id&&l.t.startsWith(date));
 }
 function doneToday(c,slot){ return doneOnDate(c,slot,viewDate); }
+
+// A snooze marks one dose, on one day, as deliberately skipped.
+// The compound itself is untouched - it returns tomorrow as normal.
+function snoozeFor(c,slot,date){
+  date=date||viewDate; slot=slot||'';
+  return (D.skips||[]).find(k=>{
+    if(k.pid!==c.id || (k.slot||'')!==slot) return false;
+    if(k.from) return date>=k.from && date<=(k.to||k.from);
+    return k.date===date;              // legacy single-day record
+  });
+}
+function isSkipped(c,slot,date){ return !!snoozeFor(c,slot,date); }
+function snoozeEndsOn(c,slot,date){
+  const k=snoozeFor(c,slot,date);
+  if(!k) return '';
+  const to=k.to||k.from||k.date;
+  return (to && to!==(date||viewDate)) ? to : '';
+}
+let _snzPid='', _snzSlot='';
+
+function toggleSkip(pid,slot,e){
+  if(e) e.stopPropagation();
+  const c=D.compounds.find(x=>x.id===pid); if(!c) return;
+  _snzPid=pid; _snzSlot=slot||'';
+  document.getElementById('snz-title').textContent='Snooze '+c.name+(_snzSlot?' ('+_snzSlot.toUpperCase()+')':'');
+  const k=snoozeFor(c,_snzSlot,viewDate);
+  const cur=document.getElementById('snz-current');
+  const unw=document.getElementById('snz-unwrap');
+  if(k){
+    const to=k.to||k.from||k.date;
+    cur.textContent='Currently snoozed until '+new Date(to+'T12:00:00')
+      .toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'});
+    cur.classList.remove('hidden'); unw.classList.remove('hidden');
+  } else {
+    cur.classList.add('hidden'); unw.classList.add('hidden');
+  }
+  document.getElementById('snz-until').value=addDays(viewDate,7);
+  openOv('ov-snooze');
+}
+
+function writeSnooze(from,to){
+  const c=D.compounds.find(x=>x.id===_snzPid); if(!c) return;
+  if(!D.skips) D.skips=[];
+  // replace any existing snooze on this dose, and clear logs inside the range
+  D.skips=D.skips.filter(k=>!(k.pid===_snzPid && (k.slot||'')===_snzSlot));
+  D.logs=D.logs.filter(l=>{
+    if(l.pid!==_snzPid || (l.slot||'')!==_snzSlot) return true;
+    const d=l.t.split('T')[0];
+    return !(d>=from && d<=to);
+  });
+  D.skips.push({id:uid(),pid:_snzPid,slot:_snzSlot,from,to});
+  save(); render(); closeOv('ov-snooze');
+}
+
+function applySnooze(days){
+  writeSnooze(viewDate, addDays(viewDate, Math.max(1,days)-1));
+}
+
+function applySnoozeUntil(){
+  const to=document.getElementById('snz-until').value;
+  if(!to){ alert('Pick a date first.'); return; }
+  if(to<viewDate){ alert('That date is in the past.'); return; }
+  writeSnooze(viewDate, to);
+}
+
+function clearSnooze(){
+  D.skips=(D.skips||[]).filter(k=>!(k.pid===_snzPid && (k.slot||'')===_snzSlot));
+  save(); render(); closeOv('ov-snooze');
+}
 function allDoneToday(c){
   if(c.time==='Both') return doneToday(c,'am')&&doneToday(c,'pm');
   return doneToday(c);
@@ -1217,7 +1330,7 @@ function streak(){
   let s=0;
   for(let i=0;i<=365;i++){
     const d=dAgo(i);
-    if(D.logs.some(l=>l.t.startsWith(d))) s++;
+    if(D.logs.some(l=>l.t.startsWith(d)) || (D.skips||[]).some(k=>k.date===d)) s++;
     else if(i>0) break;
   }
   return s;
@@ -1358,14 +1471,17 @@ function rToday(){
   const due=active.filter(c=>isDue(c));
 
   // For stats: 'Both' compounds count as 2 doses
-  let totalDoses=0, doneDoses=0;
+  let totalDoses=0, doneDoses=0, snoozed=0;
   due.forEach(c=>{
     if(c.time==='Both'){
-      totalDoses+=2;
-      if(doneToday(c,'am')) doneDoses++;
-      if(doneToday(c,'pm')) doneDoses++;
+      ['am','pm'].forEach(sl=>{
+        if(isSkipped(c,sl,viewDate)){ snoozed++; return; }
+        totalDoses++;
+        if(doneToday(c,sl)) doneDoses++;
+      });
     } else {
-      totalDoses+=1;
+      if(isSkipped(c,'',viewDate)){ snoozed++; return; }
+      totalDoses++;
       if(allDoneToday(c)) doneDoses++;
     }
   });
@@ -1383,13 +1499,19 @@ function rToday(){
     const pin = pinBadge(c);
     const dLeft = daysUntilCycleEnd(c);
     const expiring = dLeft!==null && dLeft>=0 && dLeft<=7;
-    return`<div class="ci ${ok?'done':''} ${expiring?'expiring':''}" onclick="quickCheck('${c.id}','${slot||''}')">
+    const snz = isSkipped(c, slot||'', viewDate);
+    const snzTo = snz ? snoozeEndsOn(c, slot||'', viewDate) : '';
+    return`<div class="ci ${ok?'done':''} ${expiring&&!snz?'expiring':''} ${snz?'snoozed':''}" onclick="quickCheck('${c.id}','${slot||''}')">
       <div class="chk ${ok?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="dot" style="background:${c.color}"></div>
       <div style="flex:1;min-width:0">
-        <div class="ci-name">${c.name}${expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':''}</div>
+        <div class="ci-name">${c.name}${snz?'<span class="snz-badge">'+(snzTo?'Back '+fmtD(snzTo):'Snoozed')+'</span>':(expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':'')}</div>
         <div class="ci-sub">${c.dose} ${c.unit} · ${c.route}${pin?` · <span class="pin-badge" onclick="openCalcFor('${c.id}',event)">${pin}</span>`:''}</div>
       </div>
+      <button class="snooze-btn ${snz?'on':''}" title="${snz?'Un-snooze':'Snooze for this day'}"
+        onclick="toggleSkip('${c.id}','${slot||''}',event)">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
     </div>`;
   }
 
@@ -1429,6 +1551,10 @@ function rToday(){
 function quickCheck(pid,slot){
   const c=D.compounds.find(x=>x.id===pid);if(!c)return;
   const t=viewDate;
+  // marking a dose done ends its snooze - you're clearly back on it
+  if(D.skips&&D.skips.length){
+    D.skips=D.skips.filter(k=>!(k.pid===pid && (k.slot||'')===(slot||'')));
+  }
   // For past dates use noon, for today use current time
   let ts;
   if(viewDate===tod()){
@@ -1457,17 +1583,20 @@ function tickAll(){
   const due=D.compounds.filter(c=>c.active&&isDue(c));
   const t=viewDate;
   // Check if everything is done
-  const allDone=due.every(c=>allDoneToday(c));
+  const active=due.filter(c=>!(c.time==='Both'
+      ? (isSkipped(c,'am',t)&&isSkipped(c,'pm',t))
+      : isSkipped(c,'',t)));
+  const allDone=active.every(c=>allDoneToday(c));
   if(allDone){
     D.logs=D.logs.filter(l=>!l.t.startsWith(t)||!due.some(c=>c.id===l.pid));
   } else {
     let ts;
     if(viewDate===tod()){const now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());ts=now.toISOString().slice(0,16);}
     else{ts=viewDate+'T12:00';}
-    due.forEach(c=>{
+    active.forEach(c=>{
       if(c.time==='Both'){
-        if(!doneToday(c,'am')) D.logs.push({id:uid(),pid:c.id,slot:'am',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
-        if(!doneToday(c,'pm')) D.logs.push({id:uid(),pid:c.id,slot:'pm',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
+        if(!doneToday(c,'am')&&!isSkipped(c,'am',t)) D.logs.push({id:uid(),pid:c.id,slot:'am',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
+        if(!doneToday(c,'pm')&&!isSkipped(c,'pm',t)) D.logs.push({id:uid(),pid:c.id,slot:'pm',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
       } else if(!allDoneToday(c)){
         D.logs.push({id:uid(),pid:c.id,slot:'',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
       }
@@ -1549,6 +1678,9 @@ function togActive(pid,e){
   c.active=!c.active;
   if(c.active) startFreshCycle(c);
   save();rProto();rToday();
+  // Activating opens the detail form so the new cycle can be reviewed/adjusted
+  // straight away. Deactivating just switches it off.
+  if(c.active) openEdit(pid);
 }
 
 // Turning a compound on starts a new cycle: today + 12 weeks by default.
@@ -3034,7 +3166,7 @@ function masterReset(){
   localStorage.removeItem('protocol_data');
   ['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6','pt_v7'].forEach(k=>localStorage.removeItem(k));
   // Reload fresh
-  D={compounds:[],logs:[],inventory:[],history:[]};
+  D={compounds:[],logs:[],inventory:[],history:[],skips:[]};
   load();
   render();
   alert('Reset complete. All data cleared and default compounds loaded.');
@@ -3104,6 +3236,7 @@ function importFromFile(input){
       D.logs=imported.logs||[];
       D.inventory=imported.inventory||[];
       D.history=imported.history||[];
+      D.skips=imported.skips||[];
       save();render();
       alert('✓ Data restored successfully!');
     } catch(err){
