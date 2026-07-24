@@ -1,11 +1,12 @@
-<!DOCTYPE html><!-- build:20260627032655 -->
+<!DOCTYPE html><!-- build:20260724160319 -->
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="build" content="20260627034134">
+<meta name="build" content="20260724160319">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -31,122 +32,122 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .hdr-sub{font-size:13px;color:#5577CC;margin-top:2px}
 
 /* Scroll */
-.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(var(--tabh) + var(--sb) + 48px);min-height:0}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(var(–tabh) + var(–sb) + 48px);min-height:0}
 
 /* Tabs */
 .tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffff;
-  border-top:2px solid #0033A0;display:flex;
-  padding-bottom:var(--sb);height:calc(var(--tabh) + var(--sb));z-index:100}
+border-top:2px solid #0033A0;display:flex;
+padding-bottom:var(–sb);height:calc(var(–tabh) + var(–sb));z-index:100}
 .tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:4px;background:none;border:none;color:#0033A0;cursor:pointer;
-  font-size:10px;font-family:var(--sans);padding-top:8px;transition:color .15s;opacity:.45}
+gap:4px;background:none;border:none;color:#0033A0;cursor:pointer;
+font-size:10px;font-family:var(–sans);padding-top:8px;transition:color .15s;opacity:.45}
 .tb.on{color:#0033A0;opacity:1;font-weight:700}
 .tb svg{width:22px;height:22px}
 /* Fade gradient above tab bar */
-.tabs::before{content:'';position:absolute;top:-40px;left:0;right:0;height:40px;
-  background:linear-gradient(to bottom,transparent,rgba(255,255,255,0));
-  pointer-events:none}
+.tabs::before{content:’’;position:absolute;top:-40px;left:0;right:0;height:40px;
+background:linear-gradient(to bottom,transparent,rgba(255,255,255,0));
+pointer-events:none}
 
 /* FAB */
-.fab{position:fixed;bottom:calc(var(--tabh) + var(--sb) + 20px);right:16px;
-  width:56px;height:56px;border-radius:50%;background:#fff;
-  border:2px solid #fff;color:#0033A0;cursor:pointer;display:flex;align-items:center;
-  justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.25);z-index:99}
+.fab{position:fixed;bottom:calc(var(–tabh) + var(–sb) + 20px);right:16px;
+width:56px;height:56px;border-radius:50%;background:#fff;
+border:2px solid #fff;color:#0033A0;cursor:pointer;display:flex;align-items:center;
+justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.25);z-index:99}
 .fab:active{transform:scale(.93)}
 .pulse{position:absolute;width:100%;height:100%;border-radius:50%;
-  border:2px solid rgba(255,255,255,.6);animation:pulse 2s ease-out infinite}
+border:2px solid rgba(255,255,255,.6);animation:pulse 2s ease-out infinite}
 @keyframes pulse{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.7);opacity:0}}
 
 /* Cards / rows */
-.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
-.sec{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px}
+.card{background:var(–card);border-radius:var(–r);padding:16px;margin-bottom:12px;border:1px solid var(–border)}
+.sec{font-size:11px;font-weight:700;color:var(–text2);text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px}
 
 /* Stat bar */
 .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
-.stat{background:var(--card);border-radius:12px;padding:12px;text-align:center;border:1px solid var(--border)}
-.stat-n{font-size:26px;font-weight:700;font-family:var(--mono)}
-.stat-l{font-size:11px;color:var(--text2);margin-top:2px}
-.c-accent{color:var(--accent)}.c-warn{color:var(--warn)}.c-ok{color:var(--success)}
+.stat{background:var(–card);border-radius:12px;padding:12px;text-align:center;border:1px solid var(–border)}
+.stat-n{font-size:26px;font-weight:700;font-family:var(–mono)}
+.stat-l{font-size:11px;color:var(–text2);margin-top:2px}
+.c-accent{color:var(–accent)}.c-warn{color:var(–warn)}.c-ok{color:var(–success)}
 
 /* AM/PM columns */
 .ampm{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.col{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
+.col{background:var(–card);border-radius:var(–r);border:1px solid var(–border);overflow:hidden}
 .col-hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:9px 13px;background:var(--card2);border-bottom:1px solid var(--border)}
+padding:9px 13px;background:var(–card2);border-bottom:1px solid var(–border)}
 .col-ttl{font-size:12px;font-weight:700;letter-spacing:.5px}
 .col-ttl.am{color:#fff;font-weight:800}.col-ttl.pm{color:#BDD4FF;font-weight:800}
-.col-cnt{font-size:11px;color:var(--text2);font-family:var(--mono)}
+.col-cnt{font-size:11px;color:var(–text2);font-family:var(–mono)}
 .ci{display:flex;align-items:center;gap:9px;padding:9px 13px;
-  border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+border-bottom:1px solid var(–border);cursor:pointer;transition:background .1s}
 .ci:last-child{border-bottom:none}
-.ci:active{background:var(--card2)}
+.ci:active{background:var(–card2)}
 .ci.done{opacity:.5}
 .chk{width:22px;height:22px;border-radius:6px;border:2px solid rgba(255,255,255,.35);
-  flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;transition:all .15s}
+flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;transition:all .15s}
 .chk.done{background:#fff;border-color:#fff}
 .chk svg{display:none}
 .chk.done svg{display:block}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .ci-name{font-size:13px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ci-sub{font-size:10px;color:var(--text2);margin-top:1px}
-.col-empty{padding:14px 13px;font-size:12px;color:var(--text2);text-align:center}
+.ci-sub{font-size:10px;color:var(–text2);margin-top:1px}
+.col-empty{padding:14px 13px;font-size:12px;color:var(–text2);text-align:center}
 
 /* Tick all */
-.tickall{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
-  overflow:hidden;margin-bottom:14px}
+.tickall{background:var(–card);border-radius:var(–r);border:1px solid var(–border);
+overflow:hidden;margin-bottom:14px}
 .tickall-row{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer}
-.tickall-row:active{background:var(--card2)}
+.tickall-row:active{background:var(–card2)}
 .tickall-lbl{font-size:14px;font-weight:700}
 
 /* Overlay / Sheet */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;
-  display:flex;align-items:flex-end;backdrop-filter:blur(4px);
-  transition:opacity .15s;opacity:1}
+display:flex;align-items:flex-end;backdrop-filter:blur(4px);
+transition:opacity .15s;opacity:1}
 .ov.hidden{display:none!important}
-.sh{background:var(--bg2);border-radius:20px 20px 0 0;
-  padding:16px 20px calc(28px + var(--sb));width:100%;max-height:93vh;overflow-y:auto}
-.sh-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 14px}
+.sh{background:var(–bg2);border-radius:20px 20px 0 0;
+padding:16px 20px calc(28px + var(–sb));width:100%;max-height:93vh;overflow-y:auto}
+.sh-handle{width:36px;height:4px;background:var(–border);border-radius:99px;margin:0 auto 14px}
 .sh-title{font-size:18px;font-weight:700;margin-bottom:18px}
 
 /* Form */
 .fg{margin-bottom:15px}
-.fl{font-size:13px;color:var(--text2);margin-bottom:6px;display:block;font-weight:500}
+.fl{font-size:13px;color:var(–text2);margin-bottom:6px;display:block;font-weight:500}
 .fi,.fs,.fta{width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);
-  border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;
-  font-family:var(--sans);outline:none;-webkit-appearance:none;appearance:none}
+border-radius:10px;padding:12px 14px;color:var(–text);font-size:15px;
+font-family:var(–sans);outline:none;-webkit-appearance:none;appearance:none}
 .fi:focus,.fs:focus,.fta:focus{border-color:#fff;background:rgba(255,255,255,.2)}
 .fta{min-height:72px;resize:none}
-.fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.fs{background-image:url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘12’ height=‘8’ fill=‘none’%3E%3Cpath d=‘M1 1l5 5 5-5’ stroke=’%23ffffff’ stroke-width=‘1.5’ stroke-linecap=‘round’/%3E%3C/svg%3E”);
+background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.fhint{font-size:11px;color:var(--text2);margin-top:4px}
-.fdiv{height:1px;background:var(--border);margin:16px 0}
+.fhint{font-size:11px;color:var(–text2);margin-top:4px}
+.fdiv{height:1px;background:var(–border);margin:16px 0}
 .fsec{font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;border-left:3px solid rgba(255,255,255,.5);padding-left:8px}
 
 /* Day checkboxes in form */
 .day-chk-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .day-chk-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:6px 2px;border-radius:8px;transition:background .1s}
-.day-chk-item:active{background:var(--card2)}
+.day-chk-item:active{background:var(–card2)}
 .day-chk-box{width:22px;height:22px;border-radius:5px;border:2px solid rgba(255,255,255,.4);
-  background:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+background:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .day-chk-box.on{background:#fff;border-color:#fff}
-.day-chk-box.on::after{content:'✓';font-size:12px;font-weight:700;color:#0033A0}
-.day-chk-lbl{font-size:10px;font-weight:600;color:var(--text2);text-align:center}
-.day-chk-item:has(.day-chk-box.on) .day-chk-lbl{color:var(--accent)}
+.day-chk-box.on::after{content:‘✓’;font-size:12px;font-weight:700;color:#0033A0}
+.day-chk-lbl{font-size:10px;font-weight:600;color:var(–text2);text-align:center}
+.day-chk-item:has(.day-chk-box.on) .day-chk-lbl{color:var(–accent)}
 /* Day picker */
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px}
-.day{background:var(--card);border:1.5px solid var(--border);border-radius:8px;
-  padding:8px 2px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;
-  color:var(--text2);transition:all .15s;user-select:none}
-.day.on{background:rgba(78,205,196,.15);border-color:var(--accent);color:var(--accent)}
+.day{background:var(–card);border:1.5px solid var(–border);border-radius:8px;
+padding:8px 2px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;
+color:var(–text2);transition:all .15s;user-select:none}
+.day.on{background:rgba(78,205,196,.15);border-color:var(–accent);color:var(–accent)}
 
 /* Toggle */
-.tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(–border)}
 .tog{position:relative;width:44px;height:26px;flex-shrink:0}
 .tog input{opacity:0;width:0;height:0}
 .tog-track{position:absolute;inset:0;background:rgba(255,255,255,.25);border-radius:99px;transition:.2s;cursor:pointer}
 .tog input:checked + .tog-track{background:#fff}
-.tog-track:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#0033A0;border-radius:50%;transition:.2s}
+.tog-track:before{content:’’;position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#0033A0;border-radius:50%;transition:.2s}
 .tog input:checked + .tog-track:before{transform:translateX(18px)}
 
 /* Color swatches */
@@ -156,81 +157,81 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 
 /* Buttons */
 .btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:16px;
-  font-weight:600;cursor:pointer;font-family:var(--sans)}
+font-weight:600;cursor:pointer;font-family:var(–sans)}
 .btn:active{opacity:.8}
 .btn-p{background:#fff;color:#0033A0;border:1px solid #fff;font-weight:700}
 .btn-s{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}
-.btn-d{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.btn-d{background:rgba(239,68,68,.15);color:var(–danger);border:1px solid rgba(239,68,68,.3)}
 .btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px}
 .brow{display:flex;gap:10px;margin-top:18px}
 .brow .btn{flex:1}
 
 /* Protocol inline table */
 #proto-tbl{width:100%;border-collapse:collapse;min-width:580px}
-#proto-tbl th{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;
-  letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(--border);
-  text-align:center;white-space:nowrap;background:var(--card2);position:sticky;top:0;z-index:2}
+#proto-tbl th{font-size:10px;font-weight:700;color:var(–text2);text-transform:uppercase;
+letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(–border);
+text-align:center;white-space:nowrap;background:var(–card2);position:sticky;top:0;z-index:2}
 #proto-tbl th.col-name{text-align:left;padding-left:10px}
 #proto-tbl td{padding:0;border-bottom:1px solid rgba(255,255,255,.2);vertical-align:middle;
-  text-align:center;background:#0033A0;color:#fff}
+text-align:center;background:#0033A0;color:#fff}
 #proto-tbl tr:last-child td{border-bottom:none}
 #proto-tbl tr:nth-child(even) td{background:#0033A0}
 /* Inline editable cells */
 .ie-name{font-size:13px;font-weight:600;color:#fff;background:transparent;
-  border:none;outline:none;width:100%;padding:10px 6px 10px 10px;font-family:var(--sans);
-  min-width:90px}
+border:none;outline:none;width:100%;padding:10px 6px 10px 10px;font-family:var(–sans);
+min-width:90px}
 .ie-dose{font-size:13px;color:#fff;background:transparent;border:none;outline:none;
-  width:60px;padding:10px 4px;text-align:center;font-family:var(--mono)}
+width:60px;padding:10px 4px;text-align:center;font-family:var(–mono)}
 .ie-name:focus,.ie-dose:focus{background:rgba(255,255,255,.1);border-radius:4px}
 /* Unit select inline */
 .ie-unit{font-size:11px;background:transparent;border:none;outline:none;color:#BDD4FF;
-  font-family:var(--sans);font-weight:700;padding:10px 2px;cursor:pointer;-webkit-appearance:none;
-  text-align:center;width:52px}
+font-family:var(–sans);font-weight:700;padding:10px 2px;cursor:pointer;-webkit-appearance:none;
+text-align:center;width:52px}
 /* AM/PM select inline */
 .ie-time{font-size:11px;background:transparent;border:none;outline:none;color:#fff;
-  font-family:var(--sans);padding:10px 2px;cursor:pointer;-webkit-appearance:none;
-  text-align:center;width:64px}
+font-family:var(–sans);padding:10px 2px;cursor:pointer;-webkit-appearance:none;
+text-align:center;width:64px}
 /* Active toggle */
 .act-tog{width:36px;height:20px;border-radius:99px;border:none;cursor:pointer;
-  display:inline-flex;align-items:center;padding:3px;transition:background .15s}
+display:inline-flex;align-items:center;padding:3px;transition:background .15s}
 .act-tog.on{background:#fff}.act-tog.off{background:rgba(255,255,255,.2)}
 .act-knob{width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .15s;pointer-events:none}
 .act-tog.on .act-knob{transform:translateX(16px)}
 /* Day Y cell */
 .day-cell{width:28px;padding:8px 2px}
 .day-y{display:inline-flex;align-items:center;justify-content:center;
-  width:20px;height:20px;border-radius:4px;font-size:10px;font-weight:700;
-  cursor:pointer;border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.3);transition:all .12s;
-  user-select:none}
+width:20px;height:20px;border-radius:4px;font-size:10px;font-weight:700;
+cursor:pointer;border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.3);transition:all .12s;
+user-select:none}
 .day-y.on{background:#fff;border-color:#fff;color:#0033A0}
 /* Edit btn */
 .col-edit{width:28px}
-.edit-btn{background:none;border:none;color:var(--text2);cursor:pointer;padding:8px 6px;font-size:14px}
-.edit-btn:active{color:var(--accent)}
+.edit-btn{background:none;border:none;color:var(–text2);cursor:pointer;padding:8px 6px;font-size:14px}
+.edit-btn:active{color:var(–accent)}
 /* col widths */
 .col-name{min-width:100px;text-align:left!important}
 .col-act{width:48px}.col-dose{width:64px}.col-unit{width:56px}.col-time{width:72px}.col-day{width:28px}.col-dt{width:82px;white-space:nowrap}
 /* Protocol inline table */
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--border)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(–r);border:1px solid var(–border)}
 table{width:100%;border-collapse:collapse;min-width:460px}
-th{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;
-  letter-spacing:.6px;padding:9px 8px;border-bottom:1px solid var(--border);
-  text-align:center;white-space:nowrap;background:var(--card2)}
+th{font-size:10px;font-weight:700;color:var(–text2);text-transform:uppercase;
+letter-spacing:.6px;padding:9px 8px;border-bottom:1px solid var(–border);
+text-align:center;white-space:nowrap;background:var(–card2)}
 th:first-child{text-align:left;padding-left:12px}
-td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:middle;
-  text-align:center;font-size:13px;background:var(--card)}
+td{padding:10px 8px;border-bottom:1px solid var(–border);vertical-align:middle;
+text-align:center;font-size:13px;background:var(–card)}
 td:first-child{padding-left:12px;text-align:left}
 tr:last-child td{border-bottom:none}
 tr{cursor:pointer}
-tr:active td{background:var(--card2)}
+tr:active td{background:var(–card2)}
 .p-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px}
-.p-sub{font-size:10px;color:var(--text2);margin-top:2px}
-.ddot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);
-  display:inline-block;cursor:pointer;transition:all .12s;background:transparent}
-.ddot.on{background:var(--accent);border-color:var(--accent)}
+.p-sub{font-size:10px;color:var(–text2);margin-top:2px}
+.ddot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(–border);
+display:inline-block;cursor:pointer;transition:all .12s;background:transparent}
+.ddot.on{background:var(–accent);border-color:var(–accent)}
 .act-pill{display:inline-flex;align-items:center;justify-content:center;
-  width:36px;height:20px;border-radius:99px;cursor:pointer;border:none}
-.act-pill.on{background:var(--accent)}.act-pill.off{background:var(--border)}
+width:36px;height:20px;border-radius:99px;cursor:pointer;border:none}
+.act-pill.on{background:var(–accent)}.act-pill.off{background:var(–border)}
 .pill-knob{width:14px;height:14px;border-radius:50%;background:#fff;pointer-events:none;transition:transform .15s}
 .act-pill.on .pill-knob{transform:translateX(8px)}
 .act-pill.off .pill-knob{transform:translateX(-8px)}
@@ -241,120 +242,121 @@ tr:active td{background:var(--card2)}
 .tb-any{background:rgba(255,255,255,.08);color:#BDD4FF}
 
 /* Log */
-.li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border)}
+.li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(–border)}
 .li-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
 .li-name{font-size:14px;font-weight:600}
-.li-meta{font-size:12px;color:var(--text2);margin-top:2px}
-.li-time{font-size:11px;color:var(--text2);font-family:var(--mono);flex-shrink:0;margin-top:3px}
+.li-meta{font-size:12px;color:var(–text2);margin-top:2px}
+.li-time{font-size:11px;color:var(–text2);font-family:var(–mono);flex-shrink:0;margin-top:3px}
 
 /* Inventory */
-.pb{height:4px;background:var(--border);border-radius:99px;margin-top:6px;overflow:hidden}
+.pb{height:4px;background:var(–border);border-radius:99px;margin-top:6px;overflow:hidden}
 .pbf{height:100%;border-radius:99px;background:#fff}
-.pbf.low{background:var(--warn)}.pbf.crit{background:var(--danger)}
+.pbf.low{background:var(–warn)}.pbf.crit{background:var(–danger)}
 
 /* Sites */
 .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.site{background:var(--card);border:1px solid var(--border);border-radius:10px;
-  padding:9px 6px;text-align:center;cursor:pointer;font-size:12px;color:var(--text2)}
-.site.on{border-color:var(--accent);color:var(--accent);background:rgba(78,205,196,.1)}
+.site{background:var(–card);border:1px solid var(–border);border-radius:10px;
+padding:9px 6px;text-align:center;cursor:pointer;font-size:12px;color:var(–text2)}
+.site.on{border-color:var(–accent);color:var(–accent);background:rgba(78,205,196,.1)}
 .site-ic{font-size:18px;display:block;margin-bottom:3px}
 
 /* Streak */
 .streak{display:flex;gap:4px;flex-wrap:wrap}
-.sd{width:12px;height:12px;border-radius:3px;background:var(--border)}
+.sd{width:12px;height:12px;border-radius:3px;background:var(–border)}
 .sd.on{background:#fff}
 
 /* Misc */
-.empty{text-align:center;padding:44px 20px;color:var(--text2)}
+.empty{text-align:center;padding:44px 20px;color:var(–text2)}
 .empty-ic{font-size:44px;margin-bottom:10px}
-.empty-t{font-size:16px;font-weight:600;color:var(--text);margin-bottom:5px}
+.empty-t{font-size:16px;font-weight:600;color:var(–text);margin-bottom:5px}
 .hidden{display:none!important}
 .pg{display:block}
 ::-webkit-scrollbar{width:0}
 ::-webkit-scrollbar-track{display:none}
 /* Suppress scroll indicator dots */
-* { -webkit-overflow-scrolling: touch; }
-/* Calculator */
-.calc-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.calc-field-box{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+
+- { -webkit-overflow-scrolling: touch; }
+  /* Calculator */
+  .calc-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .calc-field-box{background:#0033A0;border-radius:var(–r);border:1px solid rgba(255,255,255,.2);
   padding:12px 14px;position:relative}
-.calc-field-letter{position:absolute;top:10px;right:12px;width:22px;height:22px;
+  .calc-field-letter{position:absolute;top:10px;right:12px;width:22px;height:22px;
   border-radius:50%;background:#fff;color:#0033A0;font-size:12px;font-weight:800;
   display:flex;align-items:center;justify-content:center}
-.calc-conc-bar{background:rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;
+  .calc-conc-bar{background:rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;
   font-size:13px;color:rgba(255,255,255,.7);text-align:center;margin-bottom:12px;
   min-height:40px;display:flex;align-items:center;justify-content:center}
-.calc-card{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  .calc-card{background:#0033A0;border-radius:var(–r);border:1px solid rgba(255,255,255,.2);
   padding:14px;margin-bottom:12px;touch-action:pan-y}
-.calc-section-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.55);
+  .calc-section-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.55);
   text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
-.calc-result{background:#fff;border-radius:var(--r);padding:20px;text-align:center;
+  .calc-result{background:#fff;border-radius:var(–r);padding:20px;text-align:center;
   margin-bottom:12px;border:2px solid #fff}
-.calc-result-lbl{font-size:11px;font-weight:700;color:#0033A0;text-transform:uppercase;
+  .calc-result-lbl{font-size:11px;font-weight:700;color:#0033A0;text-transform:uppercase;
   letter-spacing:1px;margin-bottom:6px}
-.calc-result-val{font-size:48px;font-weight:800;color:#0033A0;font-family:var(--mono);line-height:1}
-.calc-result-sub{font-size:14px;color:#0033A0;margin-top:6px;opacity:.7}
-.calc-mode-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  .calc-result-val{font-size:48px;font-weight:800;color:#0033A0;font-family:var(–mono);line-height:1}
+  .calc-result-sub{font-size:14px;color:#0033A0;margin-top:6px;opacity:.7}
+  .calc-mode-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
   color:rgba(255,255,255,.7);border-radius:10px;padding:10px 8px;font-size:13px;
-  font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;
+  font-weight:600;cursor:pointer;font-family:var(–sans);transition:all .15s;
   text-align:center;line-height:1.5}
-.calc-mode-btn.active{background:#fff;color:#0033A0;border-color:#fff}
-/* Stack Summary */
-.stack-section{margin-bottom:18px}
-.stack-section-hdr{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);
+  .calc-mode-btn.active{background:#fff;color:#0033A0;border-color:#fff}
+  /* Stack Summary */
+  .stack-section{margin-bottom:18px}
+  .stack-section-hdr{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);
   text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-left:2px}
-.stack-row{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  .stack-row{background:#0033A0;border-radius:var(–r);border:1px solid rgba(255,255,255,.2);
   padding:12px 14px;margin-bottom:8px}
-.stack-row-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.stack-cell{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 10px}
-.stack-lbl{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;
+  .stack-row-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .stack-cell{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 10px}
+  .stack-lbl{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;
   letter-spacing:.6px;margin-bottom:3px}
-.stack-val{font-size:14px;font-weight:700;color:#fff}
+  .stack-val{font-size:14px;font-weight:700;color:#fff}
 
 /* Records sub-tabs */
 .rec-tab{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
-  color:rgba(255,255,255,.6);border-radius:10px;padding:9px 4px;font-size:12px;
-  font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;text-align:center}
+color:rgba(255,255,255,.6);border-radius:10px;padding:9px 4px;font-size:12px;
+font-weight:600;cursor:pointer;font-family:var(–sans);transition:all .15s;text-align:center}
 .rec-tab.on{background:#fff;color:#0033A0;border-color:#fff}
 .calc-ref-row{display:flex;justify-content:space-between;align-items:center;
-  padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px}
+padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px}
 .calc-ref-row:last-child{border-bottom:none}
 .calc-ref-dose{color:#fff;font-weight:600}
-.calc-ref-vol{color:#BDD4FF;font-family:var(--mono)}
+.calc-ref-vol{color:#BDD4FF;font-family:var(–mono)}
 /* Syringe visualiser */
-.syringe-wrap{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);padding:16px;margin-bottom:12px}
+.syringe-wrap{background:#0033A0;border-radius:var(–r);border:1px solid rgba(255,255,255,.2);padding:16px;margin-bottom:12px}
 .syringe-wrap svg{pointer-events:none}
 .syringe-wrap svg *{pointer-events:none}
 .syringe-size-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.syringe-size-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.syringe-size-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:var(–sans);transition:all .15s}
 .syringe-size-btn.on{background:#fff;color:#0033A0;border-color:#fff}
 /* Links */
 .link-card{display:flex;align-items:center;gap:14px;background:#0033A0;
-  border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
-  padding:16px;margin-bottom:12px;cursor:pointer;transition:opacity .15s;touch-action:pan-y}
+border-radius:var(–r);border:1px solid rgba(255,255,255,.2);
+padding:16px;margin-bottom:12px;cursor:pointer;transition:opacity .15s;touch-action:pan-y}
 .link-card:active{opacity:.8}
 .link-icon{font-size:28px;flex-shrink:0}
 .link-body{flex:1;min-width:0}
 .link-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:3px}
-.link-sub{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:5px;font-family:var(--mono)}
+.link-sub{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:5px;font-family:var(–mono)}
 .link-desc{font-size:12px;color:rgba(255,255,255,.75);line-height:1.4}
 .link-arrow{font-size:24px;color:rgba(255,255,255,.4);flex-shrink:0}
 /* Inventory cards */
-.inv-card{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
-  margin-bottom:12px;overflow:hidden;cursor:pointer;transition:opacity .15s}
+.inv-card{background:#0033A0;border-radius:var(–r);border:1px solid rgba(255,255,255,.2);
+margin-bottom:12px;overflow:hidden;cursor:pointer;transition:opacity .15s}
 .inv-card:active{opacity:.85}
 .inv-card-hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 14px;background:rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.15)}
+padding:12px 14px;background:rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.15)}
 .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 14px}
 .inv-f{background:rgba(0,0,0,.2);border-radius:8px;padding:9px 11px}
 .inv-fl{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
 .inv-fv{font-size:15px;font-weight:700;color:#fff}
-.inv-warn .inv-fv{color:var(--warn)}
+.inv-warn .inv-fv{color:var(–warn)}
 .inv-warn .inv-fl{color:rgba(245,158,11,.7)}
 .inv-inuse-bar{display:flex;align-items:center;justify-content:space-between;
-  padding:10px 14px;background:rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.12)}
+padding:10px 14px;background:rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.12)}
 .inv-inuse-pill{display:inline-flex;align-items:center;gap:5px;
-  background:rgba(255,255,255,.15);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600}
+background:rgba(255,255,255,.15);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600}
 .inv-inuse-pill.active{background:rgba(34,197,94,.2);color:#4ade80}
 .inv-inuse-pill.none{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
 .inv-none{color:rgba(255,255,255,.35)!important}
@@ -371,38 +373,49 @@ tr:active td{background:var(--card2)}
 .c-ok{color:#4ade80!important}
 /* Date navigator */
 .date-nav{display:flex;align-items:center;justify-content:space-between;
-  background:#0033A0;border-radius:var(--r);padding:10px 14px;margin-bottom:14px;
-  border:1px solid rgba(255,255,255,.2)}
+background:#0033A0;border-radius:var(–r);padding:10px 14px;margin-bottom:14px;
+border:1px solid rgba(255,255,255,.2)}
 .date-nav-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
-  color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-family:var(--sans);flex-shrink:0}
+color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;cursor:pointer;
+display:flex;align-items:center;justify-content:center;font-family:var(–sans);flex-shrink:0}
 .date-nav-btn:active{background:rgba(255,255,255,.3)}
 .date-nav-btn:disabled{opacity:.3;cursor:default}
 .date-nav-center{text-align:center;flex:1}
 .date-nav-label{font-size:15px;font-weight:700;color:#fff}
 .date-nav-sub{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
 .past-banner{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);
-  border-radius:10px;padding:8px 14px;font-size:13px;color:var(--warn);
-  text-align:center;margin-bottom:12px}
+border-radius:10px;padding:8px 14px;font-size:13px;color:var(–warn);
+text-align:center;margin-bottom:12px}
 .inv-action-btns{display:flex;gap:6px}
 .inv-action-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
-  color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(–sans)}
 .inv-action-btn:active{background:rgba(255,255,255,.25)}
 .inv-action-btn.open{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:#4ade80}
-.inv-action-btn.finish{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:var(--danger)}
+.inv-action-btn.finish{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:var(–danger)}
 /* History */
 .hist-entry{background:rgba(255,255,255,.1);border-radius:10px;border:1px solid rgba(255,255,255,.2);
-  margin-bottom:10px;overflow:hidden}
+margin-bottom:10px;overflow:hidden}
 .hist-hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;
-  background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
-.hist-date{font-size:12px;font-weight:700;color:#8AAEE0;font-family:var(--mono)}
-.hist-label{font-size:11px;color:var(--text2);margin-left:auto}
+background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
+.hist-date{font-size:12px;font-weight:700;color:#8AAEE0;font-family:var(–mono)}
+.hist-label{font-size:11px;color:var(–text2);margin-left:auto}
 .hist-body{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hist-field{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 10px}
-.hist-field-l{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.hist-field-l{font-size:10px;color:var(–text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
 .hist-field-v{font-size:13px;font-weight:600}
 .hist-days{grid-column:1/-1}
+/* Pin badge */
+.pin-badge{font-family:var(–mono);font-weight:700;color:#BDD4FF;white-space:nowrap;
+cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
+/* Expiring cycle (within 7 days of end) */
+.ci.expiring{box-shadow:inset 0 0 0 1px rgba(239,68,68,.55);background:rgba(239,68,68,.10)}
+.exp-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;
+background:rgba(239,68,68,.28);color:#FFC4BA;white-space:nowrap;margin-left:6px}
+.expiry-legend{display:none;align-items:center;gap:8px;background:rgba(239,68,68,.15);
+border:1px solid rgba(239,68,68,.35);border-radius:10px;padding:8px 12px;
+margin-bottom:12px;font-size:12px;color:#FFC4BA}
 </style>
+
 </head>
 <body>
 <div id="app">
@@ -451,18 +464,19 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.77 · 19 Jul 2026</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.88-TEST · 24 Jul 2026</div>
       </div>
     </div>
   </div>
 
   <div class="scroll" id="scr">
 
-    
-
-    <div id="pg-calc" class="pg hidden">
+```
+<div id="pg-calc" class="pg hidden">
+```
 
   <!-- Mode toggle -->
+
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
     <button class="calc-mode-btn active" id="cmode-peptide" onclick="setCalcMode('peptide')">
       💉 Peptide<br><span style="font-size:11px;font-weight:400;opacity:.8">BAC water reconstituted</span>
@@ -473,6 +487,7 @@ tr:active td{background:var(--card2)}
   </div>
 
   <!-- Load from protocol -->
+
   <div class="calc-card">
     <div class="calc-section-lbl">Load from Protocol (optional)</div>
     <div style="display:flex;gap:8px">
@@ -484,6 +499,7 @@ tr:active td{background:var(--card2)}
   </div>
 
   <!-- PEPTIDE MODE -->
+
   <div id="calc-peptide">
     <div class="calc-fields-grid">
       <div class="calc-field-box">
@@ -524,54 +540,58 @@ tr:active td{background:var(--card2)}
       </div>
     </div>
 
-    <div class="calc-conc-bar" id="c-conc-display"></div>
+```
+<div class="calc-conc-bar" id="c-conc-display"></div>
 
-    <div class="calc-result hidden" id="calc-result">
-      <div class="calc-result-lbl" id="calc-result-lbl">Result</div>
-      <div class="calc-result-val" id="calc-result-val">—</div>
-      <div class="calc-result-sub" id="calc-result-sub"></div>
-    </div>
+<div class="calc-result hidden" id="calc-result">
+  <div class="calc-result-lbl" id="calc-result-lbl">Result</div>
+  <div class="calc-result-val" id="calc-result-val">—</div>
+  <div class="calc-result-sub" id="calc-result-sub"></div>
+</div>
 
-    <!-- Syringe visual -->
-    <div class="syringe-wrap">
-      <div class="calc-section-lbl">Syringe Visual</div>
-      <div class="syringe-size-row">
-        <button class="syringe-size-btn on" onclick="setSyringeSize(0.3,'insulin',this)">0.3 ml<br><span style="font-size:10px;font-weight:400">30 units</span></button>
-        <button class="syringe-size-btn" onclick="setSyringeSize(0.5,'insulin',this)">0.5 ml<br><span style="font-size:10px;font-weight:400">50 units</span></button>
-        <button class="syringe-size-btn" onclick="setSyringeSize(1.0,'insulin',this)">1.0 ml<br><span style="font-size:10px;font-weight:400">100 units</span></button>
-      </div>
-      <svg id="syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block">
-        <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
-        <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
-        <rect id="syr-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
-        <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
-        <clipPath id="barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
-        <rect id="syr-fluid" x="124" y="426" width="72" height="0" fill="rgba(78,205,196,0.7)" clip-path="url(#barrel-clip)"/>
-        <rect id="syr-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
-        <g id="syr-ticks"></g>
-        <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
-        <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
-        <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
-        <text id="syr-units-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— units</text>
-        <text id="syr-ml-label" x="280" y="458" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.45)" text-anchor="middle">— ml</text>
-      </svg>
-    </div>
+<!-- Syringe visual -->
+<div class="syringe-wrap">
+  <div class="calc-section-lbl">Syringe Visual</div>
+  <div class="syringe-size-row">
+    <button class="syringe-size-btn on" onclick="setSyringeSize(0.3,'insulin',this)">0.3 ml<br><span style="font-size:10px;font-weight:400">30 units</span></button>
+    <button class="syringe-size-btn" onclick="setSyringeSize(0.5,'insulin',this)">0.5 ml<br><span style="font-size:10px;font-weight:400">50 units</span></button>
+    <button class="syringe-size-btn" onclick="setSyringeSize(1.0,'insulin',this)">1.0 ml<br><span style="font-size:10px;font-weight:400">100 units</span></button>
+  </div>
+  <svg id="syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block">
+    <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
+    <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
+    <rect id="syr-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
+    <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+    <clipPath id="barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
+    <rect id="syr-fluid" x="124" y="426" width="72" height="0" fill="rgba(78,205,196,0.7)" clip-path="url(#barrel-clip)"/>
+    <rect id="syr-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
+    <g id="syr-ticks"></g>
+    <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
+    <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
+    <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
+    <text id="syr-units-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— units</text>
+    <text id="syr-ml-label" x="280" y="458" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.45)" text-anchor="middle">— ml</text>
+  </svg>
+</div>
 
-    <div class="calc-card">
-      <div class="calc-section-lbl">Syringe Reference Chart</div>
-      <div id="calc-quick-ref"><span style="color:rgba(255,255,255,.5)">Enter A and B to see the chart.</span></div>
-    </div>
+<div class="calc-card">
+  <div class="calc-section-lbl">Syringe Reference Chart</div>
+  <div id="calc-quick-ref"><span style="color:rgba(255,255,255,.5)">Enter A and B to see the chart.</span></div>
+</div>
 
-    <div class="calc-card">
-      <div class="calc-section-lbl">Saved Doses</div>
-      <select class="fs" id="pep-saved-select" onchange="loadSavedDose()" style="margin-bottom:10px">
-        <option value="">— Load a saved dose —</option>
-      </select>
-      <button class="btn btn-s btn-sm" onclick="saveDose()" style="width:100%">💾 Save Current Dose</button>
-    </div>
+<div class="calc-card">
+  <div class="calc-section-lbl">Saved Doses</div>
+  <select class="fs" id="pep-saved-select" onchange="loadSavedDose()" style="margin-bottom:10px">
+    <option value="">— Load a saved dose —</option>
+  </select>
+  <button class="btn btn-s btn-sm" onclick="saveDose()" style="width:100%">💾 Save This Dose</button>
+</div>
+```
+
   </div>
 
   <!-- OIL MODE -->
+
   <div id="calc-oil" style="display:none">
     <div class="calc-card">
       <div class="calc-section-lbl">Compounds in this injection</div>
@@ -579,224 +599,236 @@ tr:active td{background:var(--card2)}
       <button class="btn btn-s btn-sm" onclick="addOilCompound()" style="width:100%;margin-top:10px">+ Add Compound</button>
     </div>
 
-    <div class="calc-card" id="oil-result-card" style="display:none">
-      <div class="calc-section-lbl">Draw Volumes</div>
-      <div id="oil-draw-volumes"></div>
-      <div style="border-top:1px solid rgba(255,255,255,.2);margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:13px;color:rgba(255,255,255,.7)">Total volume</span>
-        <span style="font-size:20px;font-weight:800;color:#fff;font-family:var(--mono)" id="oil-total-vol">0.00 ml</span>
-      </div>
-    </div>
+```
+<div class="calc-card" id="oil-result-card" style="display:none">
+  <div class="calc-section-lbl">Draw Volumes</div>
+  <div id="oil-draw-volumes"></div>
+  <div style="border-top:1px solid rgba(255,255,255,.2);margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:13px;color:rgba(255,255,255,.7)">Total volume</span>
+    <span style="font-size:20px;font-weight:800;color:#fff;font-family:var(--mono)" id="oil-total-vol">0.00 ml</span>
+  </div>
+</div>
 
-    <div class="syringe-wrap" id="oil-syringe-card" style="display:none">
-      <div class="calc-section-lbl">Syringe Visual (IM)</div>
-      <div class="syringe-size-row">
-        <button class="syringe-size-btn on" onclick="setOilSyrSize(1,this)">1 ml</button>
-        <button class="syringe-size-btn" onclick="setOilSyrSize(2,this)">2 ml</button>
-        <button class="syringe-size-btn" onclick="setOilSyrSize(3,this)">3 ml</button>
-      </div>
-      <svg id="oil-syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block">
-        <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
-        <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
-        <rect id="oil-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
-        <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
-        <clipPath id="oil-barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
-        <g id="oil-fluid-stack"></g>
-        <rect id="oil-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
-        <g id="oil-ticks"></g>
-        <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
-        <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
-        <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
-        <text id="oil-vol-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— ml</text>
-      </svg>
-    </div>
+<div class="syringe-wrap" id="oil-syringe-card" style="display:none">
+  <div class="calc-section-lbl">Syringe Visual (IM)</div>
+  <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px">💉 Insulin</div>
+  <div class="syringe-size-row">
+    <button class="syringe-size-btn" onclick="setOilSyrSize(0.3,'insulin',this)">0.3 ml</button>
+    <button class="syringe-size-btn" onclick="setOilSyrSize(0.5,'insulin',this)">0.5 ml</button>
+    <button class="syringe-size-btn" onclick="setOilSyrSize(1.0,'insulin',this)">1.0 ml</button>
+  </div>
+  <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px">🩸 IM Needle</div>
+  <div class="syringe-size-row">
+    <button class="syringe-size-btn on" onclick="setOilSyrSize(1,'im',this)">1 ml</button>
+    <button class="syringe-size-btn" onclick="setOilSyrSize(2,'im',this)">2 ml</button>
+    <button class="syringe-size-btn" onclick="setOilSyrSize(3,'im',this)">3 ml</button>
+  </div>
+  <svg id="oil-syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block">
+    <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
+    <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
+    <rect id="oil-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
+    <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+    <clipPath id="oil-barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
+    <g id="oil-fluid-stack"></g>
+    <rect id="oil-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
+    <g id="oil-ticks"></g>
+    <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
+    <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
+    <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
+    <text id="oil-vol-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— ml</text>
+  </svg>
+</div>
 
-    <div class="calc-card">
-      <div class="calc-section-lbl">Saved Stacks</div>
-      <select class="fs" id="oil-saved-select" onchange="loadSavedStack()" style="margin-bottom:10px">
-        <option value="">— Load a saved stack —</option>
-      </select>
-      <button class="btn btn-s btn-sm" onclick="saveStack()" style="width:100%">💾 Save Current Stack</button>
-    </div>
+<div class="calc-card">
+  <div class="calc-section-lbl">Saved Stacks</div>
+  <select class="fs" id="oil-saved-select" onchange="loadSavedStack()" style="margin-bottom:10px">
+    <option value="">— Load a saved stack —</option>
+  </select>
+  <button class="btn btn-s btn-sm" onclick="saveStack()" style="width:100%">💾 Save Current Stack</button>
+</div>
+```
+
   </div>
 
 </div>
 
-    
-
-    <div id="pg-today" class="pg hidden">
-      <!-- Date Navigator -->
-      <div class="date-nav">
-        <button class="date-nav-btn" onclick="changeDay(-1)" title="Previous day">‹</button>
-        <div class="date-nav-center">
-          <div class="date-nav-label" id="nav-date-label">Today</div>
-          <div class="date-nav-sub" id="nav-date-sub"></div>
-        </div>
-        <button class="date-nav-btn" onclick="changeDay(1)" id="nav-next-btn" title="Next day">›</button>
-      </div>
-      <div class="past-banner hidden" id="past-banner">📅 Viewing a past day — tap to mark doses taken</div>
-      <div class="stats">
-        <div class="stat"><div class="stat-n c-ok" id="s-done">0</div><div class="stat-l">Done</div></div>
-        <div class="stat"><div class="stat-n c-warn" id="s-due">0</div><div class="stat-l">Remaining</div></div>
-        <div class="stat"><div class="stat-n c-accent" id="s-streak">0</div><div class="stat-l">Streak</div></div>
-      </div>
-      <div class="ampm" id="ampm"></div>
-      <div class="tickall hidden" id="tickall">
-        <div class="tickall-row" onclick="tickAll()">
-          <div class="chk" id="tick-chk"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <span class="tickall-lbl">Tick All Done</span>
-          <span id="tick-cnt" style="font-size:12px;color:var(--text2);margin-left:auto;font-family:var(--mono)"></span>
-        </div>
-      </div>
-      <button class="btn btn-s" onclick="openAdd()">+ Add Compound</button>
-      <button class="btn btn-p" onclick="manualSave()" id="save-btn" style="margin-top:10px">
-        Save &amp; Update
-      </button>
-      <div id="save-confirm" style="text-align:center;font-size:12px;color:var(--success);margin-top:6px;display:none">✓ Saved successfully</div>
-
-      <!-- Data backup -->
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn btn-s" onclick="exportData()" style="flex:1;font-size:13px">⬇ Save Backup</button>
-        <button class="btn btn-s" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:13px">⬆ Restore Backup</button>
-        <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importFromFile(this)">
-      </div>
-      <div style="font-size:11px;color:rgba(255,255,255,.4);text-align:center;margin-top:6px">Save backup to Files before every update</div>
-
+```
+<div id="pg-today" class="pg hidden">
+  <!-- Date Navigator -->
+  <div class="date-nav">
+    <button class="date-nav-btn" onclick="changeDay(-1)" title="Previous day">‹</button>
+    <div class="date-nav-center">
+      <div class="date-nav-label" id="nav-date-label">Today</div>
+      <div class="date-nav-sub" id="nav-date-sub"></div>
     </div>
-
-    <div id="pg-proto" class="pg hidden">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div class="sec" style="margin:0">Protocol</div>
-        <button class="btn btn-s btn-sm" onclick="openAdd()">+ Add Compound</button>
-      </div>
-      <!-- Horizontally scrollable inline-edit table -->
-      <div class="tbl-wrap">
-        <table id="proto-tbl">
-          <thead>
-            <tr>
-              <th class="col-name">Peptide</th>
-              <th class="col-act">Active</th>
-              <th class="col-dose">Dosage</th>
-              <th class="col-unit">Unit</th>
-              <th class="col-time">AM/PM/Both</th>
-              <th class="col-day">M</th>
-              <th class="col-day">T</th>
-              <th class="col-day">W</th>
-              <th class="col-day">T</th>
-              <th class="col-day">F</th>
-              <th class="col-day">S</th>
-              <th class="col-day">S</th>
-              <th class="col-dt">Start Date</th>
-              <th class="col-dt">End Date</th>
-              <th class="col-dt">Duration</th>
-              <th class="col-edit"></th>
-            </tr>
-          </thead>
-          <tbody id="proto-body"></tbody>
-        </table>
-      </div>
-      <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)">
-        <button class="btn btn-d" onclick="masterReset()" style="font-size:14px">⚠️ Master Reset — Clear All Data</button>
-      </div>
-    
-      <!-- Useful Links -->
-      <div class="sec">Useful Links</div>
-      <div class="link-card" onclick="openLink('https://peptidedosages.com/single-peptide-dosages/selank-10-mg-vial-dosage-protocol/')">
-        <div class="link-icon">💊</div>
-        <div class="link-body">
-          <div class="link-title">Peptide Dosage Protocols</div>
-          <div class="link-url">peptidedosages.com</div>
-          <div class="link-desc">Single peptide dosage protocols — Selank, BPC-157, and more</div>
-        </div>
-        <div class="link-arrow">›</div>
-      </div>
-      <div class="link-card" onclick="openLink('https://particlepeptides.com/pages/peptide-calculator')">
-        <div class="link-icon">🧮</div>
-        <div class="link-body">
-          <div class="link-title">Peptide Calculator</div>
-          <div class="link-url">particlepeptides.com</div>
-          <div class="link-desc">Reconstitution calculator for peptide dosing</div>
-        </div>
-        <div class="link-arrow">›</div>
-      </div>
+    <button class="date-nav-btn" onclick="changeDay(1)" id="nav-next-btn" title="Next day">›</button>
+  </div>
+  <div class="expiry-legend" id="expiry-legend">
+    <span style="font-size:15px">🔴</span>
+    <span>Red border = within 7 days of cycle end. Plan your next cycle soon.</span>
+  </div>
+  <div class="past-banner hidden" id="past-banner">📅 Viewing a past day — tap to mark doses taken</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-n c-ok" id="s-done">0</div><div class="stat-l">Done</div></div>
+    <div class="stat"><div class="stat-n c-warn" id="s-due">0</div><div class="stat-l">Remaining</div></div>
+    <div class="stat"><div class="stat-n c-accent" id="s-streak">0</div><div class="stat-l">Streak</div></div>
+  </div>
+  <div class="ampm" id="ampm"></div>
+  <div class="tickall hidden" id="tickall">
+    <div class="tickall-row" onclick="tickAll()">
+      <div class="chk" id="tick-chk"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="tickall-lbl">Tick All Done</span>
+      <span id="tick-cnt" style="font-size:12px;color:var(--text2);margin-left:auto;font-family:var(--mono)"></span>
     </div>
+  </div>
+  <button class="btn btn-s" onclick="openAdd()">+ Add Compound</button>
+  <button class="btn btn-p" onclick="manualSave()" id="save-btn" style="margin-top:10px">
+    Save &amp; Update
+  </button>
+  <div id="save-confirm" style="text-align:center;font-size:12px;color:var(--success);margin-top:6px;display:none">✓ Saved successfully</div>
 
-    <div id="pg-inv" class="pg hidden">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="sec" style="margin:0">Vials &amp; Stock</div>
-        <button class="btn btn-s btn-sm" onclick="openAddInv()">+ Add Vial</button>
-      </div>
-      <div id="inv-list"></div>
-    </div>
+  <!-- Data backup -->
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn btn-s" onclick="exportData()" style="flex:1;font-size:13px">⬇ Save Backup</button>
+    <button class="btn btn-s" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:13px">⬆ Restore Backup</button>
+    <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importFromFile(this)">
+  </div>
+  <div style="font-size:11px;color:rgba(255,255,255,.4);text-align:center;margin-top:6px">Save backup to Files before every update</div>
 
-    <div id="pg-records" class="pg hidden">
-      <!-- Sub-tab selector -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px">
-        <button class="rec-tab on" id="rectab-stats" onclick="setRecTab('stats')">📊 Stats</button>
-        <button class="rec-tab" id="rectab-hist" onclick="setRecTab('hist')">🕐 History</button>
-        <button class="rec-tab" id="rectab-log" onclick="setRecTab('log')">📋 Log</button>
-      </div>
+</div>
 
-      <!-- Stats sub-page -->
-      <div id="rec-stats">
-        <div class="sec">Adherence — Last 30 Days</div>
-        <div class="card"><div class="streak" id="streak"></div></div>
-        <div class="sec">By Compound</div>
-        <div id="stats-list"></div>
-      </div>
-
-      <!-- History sub-page -->
-      <div id="rec-hist" class="hidden">
-        <!-- View mode toggle -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-          <button class="rec-tab on" id="histmode-compound" onclick="setHistMode('compound')">💊 By Compound</button>
-          <button class="rec-tab" id="histmode-date" onclick="setHistMode('date')">📅 By Date</button>
-        </div>
-
-        <!-- By Compound view -->
-        <div id="hist-compound-view">
-          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
-            <select class="fs" id="hist-filter" onchange="rHist()" style="flex:1;margin-bottom:0">
-              <option value="">— Select compound —</option>
-            </select>
-          </div>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Protocol changes saved automatically on each update.</p>
-          <div id="hist-list"></div>
-        </div>
-
-        <!-- By Date view -->
-        <div id="hist-date-view" style="display:none">
-          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
-            <select class="fs" id="hist-month-filter" onchange="rHistByDate()" style="flex:1;margin-bottom:0">
-              <option value="">— Select month/year —</option>
-            </select>
-          </div>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Shows your full protocol as it was during that period.</p>
-          <div id="hist-date-list"></div>
-        </div>
-      </div>
-
-      <!-- Log sub-page -->
-      <div id="rec-log" class="hidden">
-        <div class="sec">Dose History</div>
-        <div id="log-list"></div>
-      </div>
-    </div>
-
-    <div id="pg-stack" class="pg hidden">
-      <div id="stack-content"></div>
-
-      <div style="background:#0033A0;border:1px solid rgba(255,255,255,.2);border-radius:var(--r);padding:14px;margin-top:4px">
-        <div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:12px;line-height:1.5">Copy your stack as an AI-ready prompt and paste into ChatGPT, Claude, Gemini or any AI assistant for a detailed analysis.</div>
-        <button class="btn btn-p" onclick="copyStackPrompt()" id="copy-stack-btn" style="font-size:14px">Copy Stack for AI Analysis</button>
-        <div id="copy-stack-confirm" style="font-size:12px;color:var(--success);margin-top:8px;display:none;text-align:center">✓ Prompt copied — paste into your AI of choice</div>
-      </div>
-    </div>
-
+<div id="pg-proto" class="pg hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div class="sec" style="margin:0">Protocol</div>
+    <button class="btn btn-s btn-sm" onclick="openAdd()">+ Add Compound</button>
+  </div>
+  <!-- Horizontally scrollable inline-edit table -->
+  <div class="tbl-wrap">
+    <table id="proto-tbl">
+      <thead>
+        <tr>
+          <th class="col-name">Peptide</th>
+          <th class="col-act">Active</th>
+          <th class="col-dose">Dosage</th>
+          <th class="col-unit">Unit</th>
+          <th class="col-time">AM/PM/Both</th>
+          <th class="col-day">M</th>
+          <th class="col-day">T</th>
+          <th class="col-day">W</th>
+          <th class="col-day">T</th>
+          <th class="col-day">F</th>
+          <th class="col-day">S</th>
+          <th class="col-day">S</th>
+          <th class="col-dt">Start Date</th>
+          <th class="col-dt">End Date</th>
+          <th class="col-dt">Duration</th>
+          <th class="col-edit"></th>
+        </tr>
+      </thead>
+      <tbody id="proto-body"></tbody>
+    </table>
+  </div>
+  <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
+  <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)">
+    <button class="btn btn-d" onclick="masterReset()" style="font-size:14px">⚠️ Master Reset — Clear All Data</button>
   </div>
 
-    
+  <!-- Useful Links -->
+  <div class="sec">Useful Links</div>
+  <div class="link-card" onclick="openLink('https://peptidedosages.com/single-peptide-dosages/selank-10-mg-vial-dosage-protocol/')">
+    <div class="link-icon">💊</div>
+    <div class="link-body">
+      <div class="link-title">Peptide Dosage Protocols</div>
+      <div class="link-url">peptidedosages.com</div>
+      <div class="link-desc">Single peptide dosage protocols — Selank, BPC-157, and more</div>
+    </div>
+    <div class="link-arrow">›</div>
+  </div>
+  <div class="link-card" onclick="openLink('https://particlepeptides.com/pages/peptide-calculator')">
+    <div class="link-icon">🧮</div>
+    <div class="link-body">
+      <div class="link-title">Peptide Calculator</div>
+      <div class="link-url">particlepeptides.com</div>
+      <div class="link-desc">Reconstitution calculator for peptide dosing</div>
+    </div>
+    <div class="link-arrow">›</div>
+  </div>
+</div>
+
+<div id="pg-inv" class="pg hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div class="sec" style="margin:0">Vials &amp; Stock</div>
+    <button class="btn btn-s btn-sm" onclick="openAddInv()">+ Add Vial</button>
+  </div>
+  <div id="inv-list"></div>
+</div>
+
+<div id="pg-records" class="pg hidden">
+  <!-- Sub-tab selector -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px">
+    <button class="rec-tab on" id="rectab-stats" onclick="setRecTab('stats')">📊 Stats</button>
+    <button class="rec-tab" id="rectab-hist" onclick="setRecTab('hist')">🕐 History</button>
+    <button class="rec-tab" id="rectab-log" onclick="setRecTab('log')">📋 Log</button>
+  </div>
+
+  <!-- Stats sub-page -->
+  <div id="rec-stats">
+    <div class="sec">Adherence — Last 30 Days</div>
+    <div class="card"><div class="streak" id="streak"></div></div>
+    <div class="sec">By Compound</div>
+    <div id="stats-list"></div>
+  </div>
+
+  <!-- History sub-page -->
+  <div id="rec-hist" class="hidden">
+    <!-- View mode toggle -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <button class="rec-tab on" id="histmode-compound" onclick="setHistMode('compound')">💊 By Compound</button>
+      <button class="rec-tab" id="histmode-date" onclick="setHistMode('date')">📅 By Date</button>
+    </div>
+
+    <!-- By Compound view -->
+    <div id="hist-compound-view">
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+        <select class="fs" id="hist-filter" onchange="rHist()" style="flex:1;margin-bottom:0">
+          <option value="">— Select compound —</option>
+        </select>
+      </div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Protocol changes saved automatically on each update.</p>
+      <div id="hist-list"></div>
+    </div>
+
+    <!-- By Date view -->
+    <div id="hist-date-view" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+        <select class="fs" id="hist-month-filter" onchange="rHistByDate()" style="flex:1;margin-bottom:0">
+          <option value="">— Select month/year —</option>
+        </select>
+      </div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Shows your full protocol as it was during that period.</p>
+      <div id="hist-date-list"></div>
+    </div>
+  </div>
+
+  <!-- Log sub-page -->
+  <div id="rec-log" class="hidden">
+    <div class="sec">Dose History</div>
+    <div id="log-list"></div>
+  </div>
+</div>
+
+<div id="pg-stack" class="pg hidden">
+  <div id="stack-content"></div>
+
+  <div style="background:#0033A0;border:1px solid rgba(255,255,255,.2);border-radius:var(--r);padding:14px;margin-top:4px">
+    <div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:12px;line-height:1.5">Copy your stack as an AI-ready prompt and paste into ChatGPT, Claude, Gemini or any AI assistant for a detailed analysis.</div>
+    <button class="btn btn-p" onclick="copyStackPrompt()" id="copy-stack-btn" style="font-size:14px">Copy Stack for AI Analysis</button>
+    <div id="copy-stack-confirm" style="font-size:12px;color:var(--success);margin-top:8px;display:none;text-align:center">✓ Prompt copied — paste into your AI of choice</div>
+  </div>
+</div>
+```
+
+  </div>
 
   <button class="fab" id="fab" onclick="fabAction()">
     <div class="pulse"></div>
@@ -832,6 +864,7 @@ tr:active td{background:var(--card2)}
 </div>
 
 <!-- ═══ COMPOUND FORM SHEET ═══ -->
+
 <div class="ov hidden" id="ov-form">
   <div class="sh">
     <div class="sh-handle"></div>
@@ -840,172 +873,178 @@ tr:active td{background:var(--card2)}
       <div id="form-dot" style="width:14px;height:14px;border-radius:50%;flex-shrink:0"></div>
     </div>
 
-    <!-- NAME (only shown when adding new) -->
-    <div class="fg" id="form-name-wrap">
-      <label class="fl">Name</label>
-      <input class="fi" id="f-name" placeholder="e.g. BPC-157">
-    </div>
+```
+<!-- NAME (only shown when adding new) -->
+<div class="fg" id="form-name-wrap">
+  <label class="fl">Name</label>
+  <input class="fi" id="f-name" placeholder="e.g. BPC-157" oninput="checkNameHistory()">
+  <div id="f-name-history" style="display:none"></div>
+</div>
 
-    <div class="fdiv"></div>
-    <div class="fsec">① Dosage</div>
-    <div class="fr fg">
-      <div><label class="fl">Amount</label><input class="fi" id="f-dose" type="number" step="0.01" placeholder="0.00"></div>
-      <div><label class="fl">Unit</label>
-        <select class="fs" id="f-unit">
-          <option>mg</option><option>mcg</option><option>IU</option><option>ml</option><option>units</option>
-        </select>
-      </div>
-    </div>
-    <div class="fg"><label class="fl">Route of Administration</label>
-      <select class="fs" id="f-route">
-        <option>SubQ Injection</option><option>IM Injection</option><option>Oral</option>
-        <option>Nasal Spray</option><option>Topical</option><option>IV</option>
+<div class="fdiv"></div>
+<div class="fsec">① Dosage</div>
+<div class="fr fg">
+  <div><label class="fl">Amount</label><input class="fi" id="f-dose" type="number" step="0.01" placeholder="0.00"></div>
+  <div><label class="fl">Unit</label>
+    <select class="fs" id="f-unit">
+      <option>mg</option><option>mcg</option><option>IU</option><option>ml</option><option>units</option>
+    </select>
+  </div>
+</div>
+<div class="fg"><label class="fl">Route of Administration</label>
+  <select class="fs" id="f-route">
+    <option>SubQ Injection</option><option>IM Injection</option><option>Oral</option>
+    <option>Nasal Spray</option><option>Topical</option><option>IV</option>
+  </select>
+</div>
+<div class="fr fg">
+  <div><label class="fl">Vial Size</label>
+    <div style="display:flex;gap:6px">
+      <input class="fi" id="f-vialSize" type="number" step="0.1" placeholder="e.g. 5">
+      <select class="fs" id="f-vialUnit" style="width:76px">
+        <option>mg</option><option>mcg</option><option>IU</option>
       </select>
     </div>
-    <div class="fr fg">
-      <div><label class="fl">Vial Size</label>
-        <div style="display:flex;gap:6px">
-          <input class="fi" id="f-vialSize" type="number" step="0.1" placeholder="e.g. 5">
-          <select class="fs" id="f-vialUnit" style="width:76px">
-            <option>mg</option><option>mcg</option><option>IU</option>
-          </select>
-        </div>
-      </div>
-      <div><label class="fl">BAC Water (ml)</label>
-        <input class="fi" id="f-bac" type="number" step="0.1" placeholder="e.g. 2">
-      </div>
-    </div>
-    <div class="fg"><label class="fl">Dosing Notes</label>
-      <textarea class="fta" id="f-doseNotes" placeholder="e.g. Start 0.25mg, increase 0.25mg/week to target"></textarea>
-    </div>
+  </div>
+  <div><label class="fl">BAC Water (ml)</label>
+    <input class="fi" id="f-bac" type="number" step="0.1" placeholder="e.g. 2">
+  </div>
+</div>
+<div class="fg"><label class="fl">Dosing Notes</label>
+  <textarea class="fta" id="f-doseNotes" placeholder="e.g. Start 0.25mg, increase 0.25mg/week to target"></textarea>
+</div>
 
-    <div class="fdiv"></div>
-    <div class="fsec">② Frequency &amp; Timing</div>
-    <div class="fg"><label class="fl">Frequency</label>
-      <select class="fs" id="f-freq" onchange="onFreq()">
-        <option value="daily">Daily</option>
-        <option value="bid">Twice Daily (BID)</option>
-        <option value="eod">Every Other Day</option>
-        <option value="e3d">Every 3 Days</option>
-        <option value="2xweek">2x per Week</option>
-        <option value="3xweek">3x per Week</option>
-        <option value="4xweek">4x per Week</option>
-        <option value="5xweek">5x per Week</option>
-        <option value="weekly">Once per Week</option>
-        <option value="biweekly">Every 2 Weeks</option>
-        <option value="monthly">Monthly</option>
-        <option value="prn">As Needed (PRN)</option>
-      </select>
+<div class="fdiv"></div>
+<div class="fsec">② Frequency &amp; Timing</div>
+<div class="fg"><label class="fl">Frequency</label>
+  <select class="fs" id="f-freq" onchange="onFreq()">
+    <option value="daily">Daily</option>
+    <option value="bid">Twice Daily (BID)</option>
+    <option value="eod">Every Other Day</option>
+    <option value="e3d">Every 3 Days</option>
+    <option value="2xweek">2x per Week</option>
+    <option value="3xweek">3x per Week</option>
+    <option value="4xweek">4x per Week</option>
+    <option value="5xweek">5x per Week</option>
+    <option value="weekly">Once per Week</option>
+    <option value="biweekly">Every 2 Weeks</option>
+    <option value="monthly">Monthly</option>
+    <option value="prn">As Needed (PRN)</option>
+  </select>
+</div>
+<div class="fg">
+  <label class="fl">Days of Week</label>
+  <div class="day-chk-row" id="f-days">
+    <div class="day-chk-item" onclick="togDayChk(this,1)">
+      <div class="day-chk-box" data-d="1"></div><span class="day-chk-lbl">Mon</span>
     </div>
-    <div class="fg">
-      <label class="fl">Days of Week</label>
-      <div class="day-chk-row" id="f-days">
-        <div class="day-chk-item" onclick="togDayChk(this,1)">
-          <div class="day-chk-box" data-d="1"></div><span class="day-chk-lbl">Mon</span>
-        </div>
-        <div class="day-chk-item" onclick="togDayChk(this,2)">
-          <div class="day-chk-box" data-d="2"></div><span class="day-chk-lbl">Tue</span>
-        </div>
-        <div class="day-chk-item" onclick="togDayChk(this,3)">
-          <div class="day-chk-box" data-d="3"></div><span class="day-chk-lbl">Wed</span>
-        </div>
-        <div class="day-chk-item" onclick="togDayChk(this,4)">
-          <div class="day-chk-box" data-d="4"></div><span class="day-chk-lbl">Thu</span>
-        </div>
-        <div class="day-chk-item" onclick="togDayChk(this,5)">
-          <div class="day-chk-box" data-d="5"></div><span class="day-chk-lbl">Fri</span>
-        </div>
-        <div class="day-chk-item" onclick="togDayChk(this,6)">
-          <div class="day-chk-box" data-d="6"></div><span class="day-chk-lbl">Sat</span>
-        </div>
-        <div class="day-chk-item" onclick="togDayChk(this,0)">
-          <div class="day-chk-box" data-d="0"></div><span class="day-chk-lbl">Sun</span>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button type="button" class="btn btn-s btn-sm" onclick="selectAllDays()" style="font-size:12px;padding:6px 12px">All</button>
-        <button type="button" class="btn btn-s btn-sm" onclick="clearAllDays()" style="font-size:12px;padding:6px 12px">None</button>
-        <button type="button" class="btn btn-s btn-sm" onclick="selectWeekdays()" style="font-size:12px;padding:6px 12px">Weekdays</button>
-      </div>
+    <div class="day-chk-item" onclick="togDayChk(this,2)">
+      <div class="day-chk-box" data-d="2"></div><span class="day-chk-lbl">Tue</span>
     </div>
-    <div class="fr fg">
-      <div><label class="fl">Time of Day</label>
-        <select class="fs" id="f-time">
-          <option value="AM">Morning (AM)</option>
-          <option value="PM">Evening (PM)</option>
-          <option value="Both">AM &amp; PM (Both)</option>
-          <option value="PreWO">Pre-Workout</option>
-          <option value="PostWO">Post-Workout</option>
-          <option value="Fasted">Fasted</option>
-          <option value="BedTime">Bed Time</option>
-          <option value="WithMeal">With Meal</option>
-          <option value="Any">Any Time</option>
-        </select>
-      </div>
-      <div><label class="fl">Clock Time</label>
-        <input class="fi" id="f-clock" type="time">
-      </div>
+    <div class="day-chk-item" onclick="togDayChk(this,3)">
+      <div class="day-chk-box" data-d="3"></div><span class="day-chk-lbl">Wed</span>
     </div>
-    <div class="fg"><label class="fl">Timing Notes</label>
-      <input class="fi" id="f-timingNotes" placeholder="e.g. 30 min fasted, away from thyroid meds">
+    <div class="day-chk-item" onclick="togDayChk(this,4)">
+      <div class="day-chk-box" data-d="4"></div><span class="day-chk-lbl">Thu</span>
     </div>
+    <div class="day-chk-item" onclick="togDayChk(this,5)">
+      <div class="day-chk-box" data-d="5"></div><span class="day-chk-lbl">Fri</span>
+    </div>
+    <div class="day-chk-item" onclick="togDayChk(this,6)">
+      <div class="day-chk-box" data-d="6"></div><span class="day-chk-lbl">Sat</span>
+    </div>
+    <div class="day-chk-item" onclick="togDayChk(this,0)">
+      <div class="day-chk-box" data-d="0"></div><span class="day-chk-lbl">Sun</span>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px">
+    <button type="button" class="btn btn-s btn-sm" onclick="selectAllDays()" style="font-size:12px;padding:6px 12px">All</button>
+    <button type="button" class="btn btn-s btn-sm" onclick="clearAllDays()" style="font-size:12px;padding:6px 12px">None</button>
+    <button type="button" class="btn btn-s btn-sm" onclick="selectWeekdays()" style="font-size:12px;padding:6px 12px">Weekdays</button>
+  </div>
+</div>
+<div class="fr fg">
+  <div><label class="fl">Time of Day</label>
+    <select class="fs" id="f-time">
+      <option value="AM">Morning (AM)</option>
+      <option value="PM">Evening (PM)</option>
+      <option value="Both">AM &amp; PM (Both)</option>
+      <option value="PreWO">Pre-Workout</option>
+      <option value="PostWO">Post-Workout</option>
+      <option value="Fasted">Fasted</option>
+      <option value="BedTime">Bed Time</option>
+      <option value="WithMeal">With Meal</option>
+      <option value="Any">Any Time</option>
+    </select>
+  </div>
+  <div><label class="fl">Clock Time</label>
+    <input class="fi" id="f-clock" type="time">
+  </div>
+</div>
+<div class="fg"><label class="fl">Timing Notes</label>
+  <input class="fi" id="f-timingNotes" placeholder="e.g. 30 min fasted, away from thyroid meds">
+</div>
 
-    <div class="fdiv"></div>
-    <div class="fsec">③ Duration &amp; Cycle</div>
-    <div class="fr fg">
-      <div><label class="fl">Start Date</label><input class="fi" id="f-start" type="date"></div>
-      <div><label class="fl">Duration</label>
-        <select class="fs" id="f-durtype" onchange="onDur()">
-          <option value="ongoing">Ongoing</option>
-          <option value="weeks">Fixed (weeks)</option>
-          <option value="enddate">Fixed (end date)</option>
-        </select>
-      </div>
-    </div>
-    <div class="fg hidden" id="f-weeks-wrap"><label class="fl">Number of Weeks</label>
-      <input class="fi" id="f-weeks" type="number" min="1" placeholder="e.g. 4">
-    </div>
-    <div class="fg hidden" id="f-end-wrap"><label class="fl">End Date</label>
-      <input class="fi" id="f-end" type="date">
-    </div>
-    <div class="fg"><label class="fl">Cycle Pattern</label>
-      <input class="fi" id="f-cycle" placeholder="e.g. 12 weeks on, 4 weeks off">
-    </div>
-    <div class="fg"><label class="fl">Off-Cycle / PCT Notes</label>
-      <input class="fi" id="f-pct" placeholder="e.g. HCG 500 IU EOD x 3 weeks">
-    </div>
+<div class="fdiv"></div>
+<div class="fsec">③ Duration &amp; Cycle</div>
+<div class="fr fg">
+  <div><label class="fl">Start Date</label><input class="fi" id="f-start" type="date" onchange="updateEndPreview()"></div>
+  <div><label class="fl">Duration</label>
+    <select class="fs" id="f-durtype" onchange="onDur()">
+      <option value="ongoing">Ongoing</option>
+      <option value="weeks">Fixed (weeks)</option>
+      <option value="enddate">Fixed (end date)</option>
+    </select>
+  </div>
+</div>
+<div class="fg hidden" id="f-weeks-wrap"><label class="fl">Number of Weeks</label>
+  <input class="fi" id="f-weeks" type="number" min="1" placeholder="e.g. 4" oninput="updateEndPreview()">
+  <div class="fhint" id="f-end-preview"></div>
+</div>
+<div class="fg hidden" id="f-end-wrap"><label class="fl">End Date</label>
+  <input class="fi" id="f-end" type="date">
+</div>
+<div class="fg"><label class="fl">Cycle Pattern</label>
+  <input class="fi" id="f-cycle" placeholder="e.g. 12 weeks on, 4 weeks off">
+</div>
+<div class="fg"><label class="fl">Off-Cycle / PCT Notes</label>
+  <input class="fi" id="f-pct" placeholder="e.g. HCG 500 IU EOD x 3 weeks">
+</div>
 
-    <div class="fdiv"></div>
-    <div class="fsec">④ General</div>
-    <div class="fg"><label class="fl">Category</label>
-      <select class="fs" id="f-cat">
-        <option>Peptide</option><option>Growth Hormone</option><option>Hormone</option>
-        <option>Supplement</option><option>Vitamin</option><option>Nootropic</option><option>Other</option>
-      </select>
-    </div>
-    <div class="fg"><label class="fl">Color Tag</label>
-      <div class="swatches" id="f-colors"></div>
-    </div>
-    <div class="fg"><label class="fl">General Notes</label>
-      <textarea class="fta" id="f-notes" placeholder="Interactions, storage, reconstitution..."></textarea>
-    </div>
-    <div class="tog-row">
-      <span style="font-size:15px">Active in Protocol</span>
-      <label class="tog"><input type="checkbox" id="f-active" checked><div class="tog-track"></div></label>
-    </div>
-    <input type="hidden" id="f-id">
+<div class="fdiv"></div>
+<div class="fsec">④ General</div>
+<div class="fg"><label class="fl">Category</label>
+  <select class="fs" id="f-cat">
+    <option>Peptide</option><option>Growth Hormone</option><option>Hormone</option>
+    <option>Supplement</option><option>Vitamin</option><option>Nootropic</option><option>Other</option>
+  </select>
+</div>
+<div class="fg"><label class="fl">Color Tag</label>
+  <div class="swatches" id="f-colors"></div>
+</div>
+<div class="fg"><label class="fl">General Notes</label>
+  <textarea class="fta" id="f-notes" placeholder="Interactions, storage, reconstitution..."></textarea>
+</div>
+<div class="tog-row">
+  <span style="font-size:15px">Active in Protocol</span>
+  <label class="tog"><input type="checkbox" id="f-active" checked><div class="tog-track"></div></label>
+</div>
+<input type="hidden" id="f-id">
 
-    <div class="brow">
-      <button class="btn btn-s" onclick="closeOv('ov-form')">Cancel</button>
-      <button class="btn btn-p" onclick="saveForm()">Save</button>
-    </div>
-    <div style="margin-top:10px" id="f-del-wrap" class="hidden">
-      <button class="btn btn-d" onclick="delCompound()">Delete Compound</button>
-    </div>
+<div class="brow">
+  <button class="btn btn-s" onclick="closeOv('ov-form')">Cancel</button>
+  <button class="btn btn-p" onclick="saveForm()">Save</button>
+</div>
+<div style="margin-top:10px" id="f-del-wrap" class="hidden">
+  <button class="btn btn-d" onclick="delCompound()">Delete Compound</button>
+</div>
+```
+
   </div>
 </div>
 
 <!-- ═══ LOG DOSE SHEET ═══ -->
+
 <div class="ov hidden" id="ov-log">
   <div class="sh">
     <div class="sh-handle"></div>
@@ -1045,6 +1084,7 @@ tr:active td{background:var(--card2)}
 </div>
 
 <!-- ═══ INVENTORY SHEET ═══ -->
+
 <div class="ov hidden" id="ov-inv">
   <div class="sh">
     <div class="sh-handle"></div>
@@ -1283,6 +1323,47 @@ function rStack(){
   el.innerHTML=buildSection('Peptides & Nootropics', peptides, '💉')+buildSection('Hormones & Compounds', compounds, '🧴');
 }
 
+// Days until this compound's cycle ends (null when it has no end)
+function daysUntilCycleEnd(c){
+  const end=getCompoundEndDate(c);
+  if(!end) return null;
+  const a=new Date(viewDate+'T12:00:00'), b=new Date(end+'T12:00:00');
+  if(isNaN(a)||isNaN(b)) return null;
+  return Math.round((b-a)/86400000);
+}
+function expiryBadge(d){
+  if(d===0) return 'Ends today';
+  if(d===1) return '1 day left';
+  return d+' days left';
+}
+
+// v1.84 — oil-based compounds are pre-mixed: vialSize is mg/ml, not vial content
+function isOilBased(c){
+  const cat=(c.cat||'').toLowerCase();
+  const route=(c.route||'').toLowerCase();
+  return cat==='hormone' || route.indexOf('oil')>-1 || route.indexOf('im injection')>-1;
+}
+
+// Pin amount: ml for oil-based, U-100 units for reconstituted peptides
+function pinBadge(c){
+  const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater), dose=parseFloat(c.dose);
+  if(!vs||!dose) return '';
+  const doseMcg=toMcg(dose, c.unit);
+  if(isOilBased(c)){
+    const concMcg=toMcg(vs, c.vialUnit||'mg');   // concentration per ml
+    if(!concMcg) return '';
+    const ml=doseMcg/concMcg;
+    if(!isFinite(ml)||ml<=0) return '';
+    return '💉 '+ml.toFixed(2)+'ml';
+  }
+  if(!bac) return '';
+  const concMcg=toMcg(vs/bac, c.vialUnit||'mg');
+  if(!concMcg) return '';
+  const units=(doseMcg/concMcg)*100;
+  if(!isFinite(units)||units<=0) return '';
+  return '💉 '+(units<10?units.toFixed(1):units.toFixed(0))+' units';
+}
+
 function rToday(){
   const active=D.compounds.filter(c=>c.active);
   const due=active.filter(c=>isDue(c));
@@ -1310,12 +1391,15 @@ function rToday(){
     // slot is 'am', 'pm', or null (single dose)
     const ok = slot ? doneToday(c,slot) : allDoneToday(c);
     const checkId = slot ? c.id+'_'+slot : c.id;
-    return`<div class="ci ${ok?'done':''}" onclick="quickCheck('${c.id}','${slot||''}')">
+    const pin = pinBadge(c);
+    const dLeft = daysUntilCycleEnd(c);
+    const expiring = dLeft!==null && dLeft>=0 && dLeft<=7;
+    return`<div class="ci ${ok?'done':''} ${expiring?'expiring':''}" onclick="quickCheck('${c.id}','${slot||''}')">
       <div class="chk ${ok?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="dot" style="background:${c.color}"></div>
       <div style="flex:1;min-width:0">
-        <div class="ci-name">${c.name}</div>
-        <div class="ci-sub">${c.dose} ${c.unit} · ${c.route}</div>
+        <div class="ci-name">${c.name}${expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':''}</div>
+        <div class="ci-sub">${c.dose} ${c.unit} · ${c.route}${pin?` · <span class="pin-badge" onclick="openCalcFor('${c.id}',event)">${pin}</span>`:''}</div>
       </div>
     </div>`;
   }
@@ -1336,11 +1420,28 @@ function rToday(){
 
   document.getElementById('ampm').innerHTML=colHTML(amItems,'am')+colHTML(pmItems,'pm');
 
+  // Legend appears only when at least one due compound is near its cycle end
+  const anyExpiring=due.some(c=>{
+    const d=daysUntilCycleEnd(c);
+    return d!==null && d>=0 && d<=7;
+  });
+  const lg=document.getElementById('expiry-legend');
+  if(lg) lg.style.display=anyExpiring?'flex':'none';
+
   const ta=document.getElementById('tickall');
   const allDone=totalDoses>0&&doneDoses===totalDoses;
   ta.classList.toggle('hidden',totalDoses===0);
   document.getElementById('tick-chk').classList.toggle('done',allDone);
   document.getElementById('tick-cnt').textContent=`${doneDoses}/${totalDoses} done`;
+}
+
+// Tapping the pin badge opens Calc with that compound already loaded
+function openCalcFor(pid,e){
+  if(e) e.stopPropagation();
+  const btn=document.querySelector('.tb[onclick*="calc"]');
+  if(btn) nav('calc',btn);
+  const sel=document.getElementById('c-compound');
+  if(sel){ sel.value=pid; loadFromProtocol(); }
 }
 
 function quickCheck(pid,slot){
@@ -2037,6 +2138,26 @@ function onDur(){
   const v=document.getElementById('f-durtype').value;
   document.getElementById('f-weeks-wrap').classList.toggle('hidden',v!=='weeks');
   document.getElementById('f-end-wrap').classList.toggle('hidden',v!=='enddate');
+  updateEndPreview();
+}
+
+// Computed end date shown live under the weeks field
+function calcEndFromWeeks(start,weeks){
+  if(!start||!weeks) return '';
+  const d=new Date(start+'T12:00:00');
+  if(isNaN(d)) return '';
+  d.setDate(d.getDate()+parseInt(weeks)*7);
+  return d.toISOString().split('T')[0];
+}
+function updateEndPreview(){
+  const el=document.getElementById('f-end-preview');
+  if(!el) return;
+  if(document.getElementById('f-durtype').value!=='weeks'){ el.textContent=''; return; }
+  const end=calcEndFromWeeks(document.getElementById('f-start').value,
+                             document.getElementById('f-weeks').value);
+  el.textContent = end
+    ? 'Ends: '+new Date(end+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'})
+    : '';
 }
 
 function getDays(){
@@ -2064,27 +2185,113 @@ function selectWeekdays(){
   });
 }
 
+// v1.83 — typing a name looks for a previous protocol under that name (fuzzy)
+function checkNameHistory(){
+  const el=document.getElementById('f-name-history');
+  if(!el) return;
+  const q=(document.getElementById('f-name').value||'').trim().toLowerCase();
+  if(q.length<2){ el.style.display='none'; el.innerHTML=''; return; }
+  // fuzzy both ways: "BPC" matches "BPC-157", and "BPC-157" matches "BPC"
+  const matches=(D.history||[]).filter(h=>{
+    const n=(h.name||'').trim().toLowerCase();
+    return n && (n.indexOf(q)>-1 || q.indexOf(n)>-1);
+  });
+  if(!matches.length){ el.style.display='none'; el.innerHTML=''; return; }
+  const h=matches.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt))[0];
+  const p=h.snap||{};
+  const when=new Date(h.savedAt).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'});
+  const dur = p.durtype==='weeks'&&p.weeks ? p.weeks+' weeks'
+            : p.durtype==='enddate'&&p.end ? 'until '+p.end
+            : 'Ongoing';
+  const row=(l,v)=>'<div><span style="color:var(--text2)">'+l+':</span> <strong>'+v+'</strong></div>';
+  el.style.display='block';
+  el.innerHTML=
+    '<div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);'+
+    'border-radius:10px;padding:11px 12px;margin-top:8px">'+
+      '<div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px">'+
+      'Used before</div>'+
+      '<div style="font-size:14px;font-weight:700;margin-bottom:2px">'+h.name+'</div>'+
+      '<div style="font-size:11px;color:var(--text2);margin-bottom:8px">Last used '+when+'</div>'+
+      '<div style="font-size:12px;line-height:1.7;margin-bottom:10px">'+
+        row('Dose',(p.dose||'—')+' '+(p.unit||''))+
+        row('Frequency',FL[p.freq]||p.freq||'—')+
+        row('Timing',p.time||'—')+
+        row('Duration',dur)+
+        row('Vial size',p.vialSize?(p.vialSize+' '+(p.vialUnit||'mg')):'—')+
+        row('BAC water',p.bacWater?(p.bacWater+' ml'):'—')+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+        '<button type="button" class="btn btn-p btn-sm" style="font-size:12px;padding:8px 10px;width:100%" '+
+        'onclick="applyNameHistory(&quot;'+h.id+'&quot;)">✅ Load Protocol</button>'+
+        '<button type="button" class="btn btn-s btn-sm" style="font-size:12px;padding:8px 10px;width:100%" '+
+        'onclick="dismissNameHistory()">Start Fresh</button>'+
+      '</div>'+
+    '</div>';
+}
+
+function dismissNameHistory(){
+  const el=document.getElementById('f-name-history');
+  if(el){ el.style.display='none'; el.innerHTML=''; }
+}
+
+function applyNameHistory(histId){
+  const h=(D.history||[]).find(x=>x.id===histId);
+  if(!h||!h.snap) return;
+  const p=h.snap;
+  const set=(id,v)=>{const e=document.getElementById(id); if(e) e.value=(v===undefined||v===null)?'':v;};
+  set('f-dose',p.dose); set('f-unit',p.unit||'mg');
+  set('f-route',p.route||'SubQ Injection');
+  set('f-doseNotes',p.doseNotes);
+  set('f-freq',p.freq||'daily');
+  set('f-time',p.time||'AM');
+  set('f-clock',p.clock);
+  set('f-timingNotes',p.timingNotes);
+  set('f-cat',p.cat||'Peptide');
+  set('f-notes',p.notes);
+  set('f-cycle',p.cycle); set('f-pct',p.pct);
+  set('f-vialSize',p.vialSize); set('f-vialUnit',p.vialUnit||'mg');
+  set('f-bac',p.bacWater);
+  setDays(p.days||[]);
+  // Duration comes across, but the start date deliberately stays as today —
+  // this is a new cycle, not a replay of the old one.
+  if(p.durtype==='weeks' && p.weeks){
+    set('f-durtype','weeks'); set('f-weeks',p.weeks);
+  } else if(p.durtype==='enddate'){
+    set('f-durtype','weeks'); set('f-weeks','12');
+  } else {
+    set('f-durtype','ongoing');
+  }
+  if(p.color){ buildColors(p.color); document.getElementById('form-dot').style.background=p.color; }
+  onFreq(); onDur(); updateEndPreview();
+  dismissNameHistory();
+}
+
 function openAdd(){
   document.getElementById('form-title').textContent='Add Compound';
   document.getElementById('form-name-wrap').classList.remove('hidden');
   document.getElementById('f-del-wrap').classList.add('hidden');
   document.getElementById('f-id').value='';
   document.getElementById('f-name').value='';
+  const nh=document.getElementById('f-name-history');
+  if(nh){ nh.style.display='none'; nh.innerHTML=''; }
   document.getElementById('f-dose').value='';
   document.getElementById('f-doseNotes').value='';
   document.getElementById('f-timingNotes').value='';
   document.getElementById('f-notes').value='';
   document.getElementById('f-cycle').value='';
   document.getElementById('f-pct').value='';
-  document.getElementById('f-start').value='';
-  document.getElementById('f-weeks').value='';
+  document.getElementById('f-start').value=tod();
+  document.getElementById('f-weeks').value='12';
   document.getElementById('f-end').value='';
   document.getElementById('f-clock').value='';
+  document.getElementById('f-vialSize').value='';
+  document.getElementById('f-vialUnit').value='mg';
+  document.getElementById('f-bac').value='';
   document.getElementById('f-freq').value='daily';
   document.getElementById('f-unit').value='mg';
   document.getElementById('f-route').value='SubQ Injection';
   document.getElementById('f-time').value='AM';
-  document.getElementById('f-durtype').value='ongoing';
+  document.getElementById('f-durtype').value='weeks';
   document.getElementById('f-cat').value='Peptide';
   document.getElementById('f-active').checked=true;
   buildColors(COLORS[Math.floor(Math.random()*COLORS.length)]);
@@ -2117,11 +2324,15 @@ function openEdit(pid){
   document.getElementById('f-pct').value=c.pct||'';
   document.getElementById('f-cat').value=c.cat||'Peptide';
   document.getElementById('f-notes').value=c.notes||'';
+  document.getElementById('f-vialSize').value=c.vialSize||'';
+  document.getElementById('f-vialUnit').value=c.vialUnit||'mg';
+  document.getElementById('f-bac').value=c.bacWater||'';
   document.getElementById('f-active').checked=c.active;
   buildColors(c.color);
   document.getElementById('form-dot').style.background=c.color;
   setDays(c.days||[]);
   onFreq();onDur();
+  updateEndPreview();
   openOv('ov-form');
 }
 
@@ -2129,6 +2340,12 @@ function saveForm(){
   const id=document.getElementById('f-id').value;
   const freq=document.getElementById('f-freq').value;
   const days=getDays(); // empty array means every day
+  const fDurtype=document.getElementById('f-durtype').value;
+  const fStart=document.getElementById('f-start').value;
+  const fWeeks=document.getElementById('f-weeks').value;
+  const fEnd=fDurtype==='weeks'
+    ? calcEndFromWeeks(fStart,fWeeks)
+    : document.getElementById('f-end').value;
 
   if(id){
     const idx=D.compounds.findIndex(x=>x.id===id);if(idx===-1)return;
@@ -2151,14 +2368,17 @@ function saveForm(){
       time:document.getElementById('f-time').value,
       clock:document.getElementById('f-clock').value,
       timingNotes:document.getElementById('f-timingNotes').value,
-      start:document.getElementById('f-start').value,
-      durtype:document.getElementById('f-durtype').value,
-      weeks:document.getElementById('f-weeks').value,
-      end:document.getElementById('f-end').value,
+      start:fStart,
+      durtype:fDurtype,
+      weeks:fWeeks,
+      end:fEnd,
       cycle:document.getElementById('f-cycle').value,
       pct:document.getElementById('f-pct').value,
       cat:document.getElementById('f-cat').value,
       notes:document.getElementById('f-notes').value,
+      vialSize:document.getElementById('f-vialSize').value,
+      vialUnit:document.getElementById('f-vialUnit').value,
+      bacWater:document.getElementById('f-bac').value,
       color:fColor,
       active:document.getElementById('f-active').checked,
     };
@@ -2175,14 +2395,17 @@ function saveForm(){
       time:document.getElementById('f-time').value,
       clock:document.getElementById('f-clock').value,
       timingNotes:document.getElementById('f-timingNotes').value,
-      start:document.getElementById('f-start').value,
-      durtype:document.getElementById('f-durtype').value,
-      weeks:document.getElementById('f-weeks').value,
-      end:document.getElementById('f-end').value,
+      start:fStart,
+      durtype:fDurtype,
+      weeks:fWeeks,
+      end:fEnd,
       cycle:document.getElementById('f-cycle').value,
       pct:document.getElementById('f-pct').value,
       cat:document.getElementById('f-cat').value,
       notes:document.getElementById('f-notes').value,
+      vialSize:document.getElementById('f-vialSize').value,
+      vialUnit:document.getElementById('f-vialUnit').value,
+      bacWater:document.getElementById('f-bac').value,
       color:fColor,active:true,
     });
   }
@@ -2314,12 +2537,13 @@ function setCalcMode(mode){
   document.getElementById('calc-oil').style.display=mode==='oil'?'block':'none';
   document.getElementById('cmode-peptide').classList.toggle('active',mode==='peptide');
   document.getElementById('cmode-oil').classList.toggle('active',mode==='oil');
-  if(mode==='oil'){renderOilCompounds();}
+  if(mode==='oil'){renderOilCompounds();calcOil();}
   if(mode==='peptide'){drawSyringe(currentUnits());}
 }
 
 let oilCompounds=[];
-let oilSyringeMaxMl=2.0;
+let oilSyringeMaxMl=1.0;
+let oilSyringeType='im'; // 'insulin' | 'im' — global (v1.86 scope fix)
 const OIL_COLORS=['rgba(239,68,68,0.75)','rgba(96,165,250,0.75)','rgba(251,146,60,0.75)','rgba(163,230,53,0.75)','rgba(168,85,247,0.75)'];
 
 function addOilCompound(){
@@ -2375,7 +2599,13 @@ function setOilSyringe(ml,btn){
 }
 function toMgNorm(amount,unit){return unit==='mcg'?amount/1000:amount;}
 function calcOil(){try{
-  if(!oilCompounds.length){const rc=document.getElementById('oil-result-card');if(rc)rc.style.display='none';return;}
+  const syrCard=document.getElementById('oil-syringe-card');
+  if(syrCard) syrCard.style.display='block';
+  if(!oilCompounds.length){
+    const rc=document.getElementById('oil-result-card');if(rc)rc.style.display='none';
+    drawOilSyringe([],0);
+    return;
+  }
   let totalVol=0;let breakdown=[];let anyValid=false;
   oilCompounds.forEach((c,i)=>{
     const conc=parseFloat(c.conc)||0;const dose=parseFloat(c.dose)||0;
@@ -2387,7 +2617,7 @@ function calcOil(){try{
     breakdown.push({name:c.name||'Compound '+(i+1),vol,color:OIL_COLORS[i%5]});
   });
   const rc=document.getElementById('oil-result-card');
-  if(!anyValid){if(rc)rc.style.display='none';return;}
+  if(!anyValid){if(rc)rc.style.display='none';drawOilSyringe([],0);return;}
   if(rc)rc.style.display='block';
   const tv=document.getElementById('oil-total-vol');if(tv)tv.textContent=totalVol.toFixed(3)+' ml';
   // breakdown shown in draw volumes div
@@ -2415,99 +2645,135 @@ function populateSavedStackSelect(){try{
 }catch(e){console.error("function populateSavedStackSel error:",e.message);}
 }
 
-function savePeptideDose(){
-  const name=document.getElementById('pep-save-name').value.trim();
-  if(!name){alert('Please enter a name for this dose.');return;}
-  const dose={
-    name,
-    vialAmt:document.getElementById('c-vialAmt').value,
-    vialUnit:document.getElementById('c-vialUnit').value,
-    bac:document.getElementById('c-bac').value,
-    dose:document.getElementById('c-dose').value,
-    doseUnit:document.getElementById('c-doseUnit').value,
-    vol:document.getElementById('c-vol').value,
+function saveDose(){
+  const name = prompt('Name this dose (e.g. "BPC 500mcg"):');
+  if(!name || !name.trim()) return;
+  const dose = {
+    name:     name.trim(),
+    cid:      document.getElementById('c-compound').value || '',
+    vialAmt:  document.getElementById('c-vialAmt').value,
+    vialUnit: document.getElementById('c-vialUnit').value,
+    bac:      document.getElementById('c-bac').value,
+    dose:     document.getElementById('c-dose').value,
+    doseUnit: document.getElementById('c-doseUnit').value,
+    vol:      document.getElementById('c-vol').value,
   };
-  const saved=getSavedDoses();
-  // Replace if same name exists
-  const idx=saved.findIndex(s=>s.name===name);
-  if(idx>-1) saved[idx]=dose;
-  else saved.push(dose);
+  const saved = getSavedDoses();
+  const idx = saved.findIndex(x=>x.name===dose.name);
+  if(idx>-1) saved[idx]=dose; else saved.push(dose);
   putSavedDoses(saved);
   populateSavedDoseSelect();
-  document.getElementById('pep-save-name').value='';
-  document.getElementById('pep-saved-select').value=saved.findIndex(s=>s.name===name);
-  alert(`"${name}" saved!`);
+  document.getElementById('pep-saved-select').value = saved.findIndex(x=>x.name===dose.name);
+  alert('"'+dose.name+'" saved. You can recall this or push it to Protocol.');
 }
 
-function loadSavedPeptideDose(){
-  const idx=document.getElementById('pep-saved-select').value;
-  if(idx==='') return;
-  const dose=getSavedDoses()[parseInt(idx)];
-  if(!dose) return;
-  document.getElementById('c-vialAmt').value=dose.vialAmt;
-  document.getElementById('c-vialUnit').value=dose.vialUnit;
-  document.getElementById('c-bac').value=dose.bac;
-  document.getElementById('c-dose').value=dose.dose;
-  document.getElementById('c-doseUnit').value=dose.doseUnit;
-  calcBoth();
+function loadSavedDose(){
+  const raw = document.getElementById('pep-saved-select').value;
+  document.getElementById('push-to-proto-wrap')?.remove();
+  if(raw==='') return;
+  const idx = parseInt(raw);
+  const s = getSavedDoses()[idx];
+  if(!s) return;
+  if(s.vialAmt)  document.getElementById('c-vialAmt').value  = s.vialAmt;
+  if(s.vialUnit) document.getElementById('c-vialUnit').value = s.vialUnit;
+  if(s.bac)      document.getElementById('c-bac').value      = s.bac;
+  if(s.dose)     document.getElementById('c-dose').value     = s.dose;
+  if(s.doseUnit) document.getElementById('c-doseUnit').value = s.doseUnit;
+  if(s.vol)      document.getElementById('c-vol').value      = s.vol;
+  if(s.cid)      document.getElementById('c-compound').value = s.cid;
+  lastEdited='dose';
+  updateConcBar();
+  calcFromDose();
+  showPushToProtocol(idx);
 }
 
-function deleteSavedPeptideDose(){
-  const idx=document.getElementById('pep-saved-select').value;
-  if(idx===''){alert('Select a dose to delete.');return;}
-  const saved=getSavedDoses();
-  const name=saved[parseInt(idx)].name;
-  if(!confirm(`Delete "${name}"?`)) return;
-  saved.splice(parseInt(idx),1);
+function showPushToProtocol(savedIdx){
+  document.getElementById('push-to-proto-wrap')?.remove();
+  const s = getSavedDoses()[savedIdx];
+  if(!s) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'push-to-proto-wrap';
+  wrap.className = 'calc-card';
+  wrap.style.cssText = 'background:#0044CC;border:1.5px solid rgba(255,255,255,.4)';
+  wrap.innerHTML =
+    '<div class="calc-section-lbl">Push to Protocol</div>'+
+    '<p style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:10px">'+
+    'Save this dose calculation back to a compound\'s protocol settings.</p>'+
+    '<select class="fs" id="push-proto-target" style="margin-bottom:10px">'+
+    '<option value="">— Select compound —</option>'+
+    D.compounds.map(c=>'<option value="'+c.id+'"'+(c.id===s.cid?' selected':'')+'>'+c.name+'</option>').join('')+
+    '</select>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+    '<button class="btn btn-s btn-sm" onclick="pushDoseToProtocol('+savedIdx+')" style="background:#fff;color:#0033A0;font-weight:700">⬆ Push to Protocol</button>'+
+    '<button class="btn btn-s btn-sm" onclick="deleteSavedDose('+savedIdx+')" style="background:rgba(239,68,68,.3);border-color:rgba(239,68,68,.5)">🗑 Delete</button>'+
+    '</div>';
+  const doseCard = document.getElementById('pep-saved-select')?.closest('.calc-card');
+  if(doseCard) doseCard.after(wrap);
+}
+
+function pushDoseToProtocol(savedIdx){
+  const s = getSavedDoses()[savedIdx];
+  if(!s) return;
+  const cid = document.getElementById('push-proto-target').value;
+  if(!cid){ alert('Please select a compound.'); return; }
+  const idx = D.compounds.findIndex(c=>c.id===cid);
+  if(idx===-1){ alert('Compound not found.'); return; }
+  const c = D.compounds[idx];
+  if(!confirm('Update '+c.name+' protocol with:\n• Dose: '+s.dose+' '+s.doseUnit+
+    '\n• Vial: '+s.vialAmt+' '+s.vialUnit+'\n• BAC Water: '+s.bac+' ml\n\nThis will overwrite the current settings.')) return;
+  if(!D.history) D.history=[];
+  D.history.push({id:uid(),cid,name:c.name,savedAt:new Date().toISOString(),snap:{...c}});
+  D.compounds[idx] = {...c,
+    dose:     parseFloat(s.dose) || c.dose,
+    unit:     s.doseUnit || c.unit,
+    vialSize: s.vialAmt  || c.vialSize,
+    vialUnit: s.vialUnit || c.vialUnit,
+    bacWater: s.bac      || c.bacWater,
+  };
+  save(); render();
+  document.getElementById('push-to-proto-wrap')?.remove();
+  alert('✅ '+c.name+' protocol updated!');
+}
+
+function deleteSavedDose(savedIdx){
+  const saved = getSavedDoses();
+  const s = saved[savedIdx];
+  if(!s) return;
+  if(!confirm('Delete "'+s.name+'"?')) return;
+  saved.splice(savedIdx,1);
   putSavedDoses(saved);
   populateSavedDoseSelect();
+  document.getElementById('push-to-proto-wrap')?.remove();
 }
 
-function saveOilStack(){
-  const name=document.getElementById('oil-save-name').value.trim();
-  if(!name){alert('Please enter a name for this stack.');return;}
-  if(!oilCompounds.length){alert('Add at least one compound first.');return;}
-  const stack={name, compounds:[...oilCompounds], syringeSize:oilSyringeMaxMl};
-  const saved=getSavedStacks();
-  const idx=saved.findIndex(s=>s.name===name);
-  if(idx>-1) saved[idx]=stack;
-  else saved.push(stack);
+function saveStack(){
+  if(!oilCompounds.length){ alert('Add at least one compound first.'); return; }
+  const name = prompt('Name this stack (e.g. "Test + Deca"):');
+  if(!name || !name.trim()) return;
+  const stack = {name:name.trim(), compounds:[...oilCompounds], syringeSize:oilSyringeMaxMl};
+  const saved = getSavedStacks();
+  const idx = saved.findIndex(x=>x.name===stack.name);
+  if(idx>-1) saved[idx]=stack; else saved.push(stack);
   putSavedStacks(saved);
   populateSavedStackSelect();
-  document.getElementById('oil-save-name').value='';
-  alert(`"${name}" saved!`);
+  alert('"'+stack.name+'" saved.');
 }
 
-function loadSavedOilStack(){
-  const idx=document.getElementById('oil-saved-select').value;
-  if(idx==='') return;
-  const stack=getSavedStacks()[parseInt(idx)];
+function loadSavedStack(){
+  const raw = document.getElementById('oil-saved-select').value;
+  if(raw==='') return;
+  const stack = getSavedStacks()[parseInt(raw)];
   if(!stack) return;
-  oilCompounds=[...stack.compounds.map(c=>({...c,id:uid()}))];
-  oilSyringeMaxMl=stack.syringeSize||2.0;
-  // Update syringe size buttons
-  document.querySelectorAll('#calc-oil .syringe-size-btn').forEach(b=>{
-    b.classList.toggle('on',parseFloat(b.textContent)===oilSyringeMaxMl);
-  });
+  oilCompounds = stack.compounds.map(c=>({...c,id:uid()}));
+  oilSyringeMaxMl = stack.syringeSize || 2.0;
   renderOilCompounds();
   calcOil();
-}
-
-function deleteSavedOilStack(){
-  const idx=document.getElementById('oil-saved-select').value;
-  if(idx===''){alert('Select a stack to delete.');return;}
-  const saved=getSavedStacks();
-  const name=saved[parseInt(idx)].name;
-  if(!confirm(`Delete "${name}"?`)) return;
-  saved.splice(parseInt(idx),1);
-  putSavedStacks(saved);
-  populateSavedStackSelect();
 }
 
 function drawOilSyringe(compounds,totalMl){try{
   const maxMl=oilSyringeMaxMl;const barrelBot=426;const barrelH=376;
   const card=document.getElementById('oil-syringe-card');
-  if(card) card.style.display=totalMl>0?'block':'none';
+  if(card) card.style.display='block';
   const stack=document.getElementById('oil-fluid-stack');
   if(!stack) return;
   let y=barrelBot;let html='';
@@ -2522,19 +2788,36 @@ function drawOilSyringe(compounds,totalMl){try{
   if(disc) disc.setAttribute('y',fillY-12);
   const rod=document.getElementById('oil-plunger-rod');
   if(rod) rod.setAttribute('height',Math.max(0,fillY-50));
-  const step=0.1;let ticks='';
-  for(let ml=0;ml<=maxMl+0.001;ml+=step){
-    const mlR=Math.round(ml*10)/10;
-    const ty=barrelBot-Math.round((mlR/maxMl)*barrelH);
-    const maj=Math.abs(Math.round(mlR*10)%5)===0;
-    ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="rgba(255,255,255,0.4)" stroke-width="${maj?1.5:1}"/>`;
-    if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">${mlR.toFixed(1)}</text>`;
+  let ticks='';
+  if(oilSyringeType==='insulin'){
+    // U-100 scale: read the draw straight off an insulin pin
+    const maxUnits=maxMl*100;
+    const uStep=maxMl<=0.5?5:10;
+    for(let u=0;u<=maxUnits+0.001;u+=uStep){
+      const ty=barrelBot-Math.round((u/maxUnits)*barrelH);
+      const maj=u%(uStep*2)===0;
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="rgba(255,255,255,0.4)" stroke-width="${maj?1.5:1}"/>`;
+      if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">${u}</text>`;
+    }
+  } else {
+    const step=0.1;
+    for(let ml=0;ml<=maxMl+0.001;ml+=step){
+      const mlR=Math.round(ml*10)/10;
+      const ty=barrelBot-Math.round((mlR/maxMl)*barrelH);
+      const maj=Math.abs(Math.round(mlR*10)%5)===0;
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="rgba(255,255,255,0.4)" stroke-width="${maj?1.5:1}"/>`;
+      if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">${mlR.toFixed(1)}</text>`;
+    }
   }
   if(totalMl>0)ticks+=`<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="rgba(78,205,196,0.8)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
   const tickEl=document.getElementById('oil-ticks');
   if(tickEl) tickEl.innerHTML=ticks;
   const lbl=document.getElementById('oil-vol-label');
-  if(lbl) lbl.textContent=totalMl>0?totalMl.toFixed(3)+' ml':'— ml';
+  if(lbl){
+    if(totalMl<=0) lbl.textContent='— ml';
+    else if(oilSyringeType==='insulin') lbl.textContent=(totalMl*100).toFixed(0)+' units ('+totalMl.toFixed(3)+' ml)';
+    else lbl.textContent=totalMl.toFixed(3)+' ml';
+  }
 }catch(e){console.error("drawOilSyringe error:",e.message,e.stack);}
 }
 
@@ -2616,6 +2899,8 @@ function initCalc(){
   updateConcBar();
   updateQuickRef();
   drawSyringe(0);
+  populateSavedDoseSelect();
+  populateSavedStackSelect();
 }
 
 function loadFromProtocol(){
@@ -2623,6 +2908,19 @@ function loadFromProtocol(){
   if(!pid) return;
   const c=D.compounds.find(x=>x.id===pid);
   if(!c) return;
+
+  // v1.86 — oil-based compounds are pre-mixed: vialSize is mg/ml, so they belong
+  // in the oil calculator, not the reconstitution one.
+  if(isOilBased(c)){
+    const du=(c.unit==='mcg')?'mcg':'mg';
+    const vu=(c.vialUnit==='mcg')?'mcg':'mg';
+    oilCompounds=[{id:uid(),name:c.name,conc:c.vialSize||'',unit:vu,dose:c.dose||'',doseUnit:du}];
+    setCalcMode('oil');
+    renderOilCompounds();
+    calcOil();
+    return;
+  }
+
   document.getElementById('c-dose').value=c.dose||'';
   document.getElementById('c-doseUnit').value=c.unit||'mcg';
   if(c.vialSize){
@@ -2632,9 +2930,13 @@ function loadFromProtocol(){
     const inv=D.inventory.filter(x=>x.pid===pid);
     if(inv.length){document.getElementById('c-vialAmt').value=inv[0].qty||'';document.getElementById('c-vialUnit').value=inv[0].unit||'mg';}
   }
-  // BAC water from inventory (preferred) 
-  const inv2=D.inventory.filter(x=>x.pid===pid&&x.bac);
-  if(inv2.length) document.getElementById('c-bac').value=inv2[0].bac;
+  // BAC water: compound field first, then inventory
+  if(c.bacWater){
+    document.getElementById('c-bac').value=c.bacWater;
+  } else {
+    const inv2=D.inventory.filter(x=>x.pid===pid&&x.bac);
+    if(inv2.length) document.getElementById('c-bac').value=inv2[0].bac;
+  }
   lastEdited='dose';updateConcBar();calcFromDose();
 }
 
@@ -2666,10 +2968,11 @@ function updateConcBar(){try{
 }catch(e){console.error("function updateConcBar(){ error:",e.message);}
 }
 
-function setOilSyrSize(ml, btn){
+function setOilSyrSize(ml, type, btn){
   oilSyringeMaxMl = ml;
+  oilSyringeType  = type || 'im';
   document.querySelectorAll('#oil-syringe-card .syringe-size-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
+  if(btn) btn.classList.add('on');
   calcOil();
 }
 
@@ -2978,6 +3281,9 @@ function init(){
 
 // ─── CYCLE END REMINDER ──────────────────────────────────────────────────────
 function getCompoundEndDate(c){
+  // An explicit end date counts regardless of durtype — compounds edited across
+  // versions often carry an end date while durtype still reads 'ongoing'.
+  if(c.end) return c.end;
   if(c.durtype==='enddate' && c.end) return c.end;
   if(c.durtype==='weeks' && c.weeks && c.start){
     const startD = new Date(c.start+'T12:00:00');
@@ -3181,5 +3487,6 @@ function dismissCycleReminder(key, listIdx){
 
 init();
 </script>
+
 </body>
 </html>
