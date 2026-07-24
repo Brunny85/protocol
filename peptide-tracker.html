@@ -1,11 +1,11 @@
-<!DOCTYPE html><!-- build:20260724173141 -->
+<!DOCTYPE html><!-- build:20260724174211 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="build" content="20260724173141">
+<meta name="build" content="20260724174211">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -405,9 +405,10 @@ tr:active td{background:var(--card2)}
 /* Pin badge */
 .pin-badge{font-family:var(--mono);font-weight:700;color:#fff;white-space:nowrap;cursor:pointer}
 /* Expiring cycle (within 7 days of end) */
-.ci.expiring{box-shadow:inset 0 0 0 1px rgba(239,68,68,.55);background:rgba(239,68,68,.10)}
+.ci.expiring{background:rgba(200,32,32,.92)}
+.ci.expiring .ci-sub{color:rgba(255,255,255,.85)}
 .exp-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;
-  background:rgba(239,68,68,.28);color:#FFC4BA;white-space:nowrap;margin-left:6px}
+  background:rgba(255,255,255,.28);color:#fff;white-space:nowrap;margin-left:6px}
 .expiry-legend-inner{display:flex;align-items:center;gap:8px;background:rgba(239,68,68,.15);
   border:1px solid rgba(239,68,68,.35);border-radius:10px;padding:8px 12px;
   margin-bottom:12px;font-size:12px;color:#FFC4BA}
@@ -460,7 +461,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.92-TEST · 24 Jul 2026</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v1.93-TEST · 24 Jul 2026</div>
       </div>
     </div>
   </div>
@@ -1415,7 +1416,7 @@ function rToday(){
   const lg=document.getElementById('expiry-legend');
   if(lg) lg.innerHTML = anyExpiring
     ? '<div class="expiry-legend-inner"><span style="font-size:15px">\u{1F534}</span>'+
-      '<span>Red border = within 7 days of cycle end. Plan your next cycle soon.</span></div>'
+      '<span>Red box = within 7 days of cycle end. Plan your next cycle soon.</span></div>'
     : '';
 
   const ta=document.getElementById('tickall');
@@ -1519,7 +1520,7 @@ function rProto(){
       <td onclick="event.stopPropagation()">${timeSel}</td>
       ${dayCells}
       <td class="col-dt" style="font-size:11px;color:var(--text2);white-space:nowrap">${c.start||'—'}</td>
-      <td class="col-dt" style="font-size:11px;color:var(--text2);white-space:nowrap">${c.end||'—'}</td>
+      <td class="col-dt" style="font-size:11px;color:var(--text2);white-space:nowrap">${getCompoundEndDate(c)||'—'}</td>
       <td class="col-dt" style="font-size:11px;color:var(--text2);white-space:nowrap">${c.durtype==='weeks'&&c.weeks?c.weeks+' wks':c.durtype==='ongoing'?'Ongoing':c.cycle||'—'}</td>
       <td class="col-edit"><button class="edit-btn" onclick="openEdit('${c.id}')" title="Edit full protocol">⋯</button></td>
     </tr>`;
@@ -1545,7 +1546,23 @@ function inlineTime(pid,el){
 function togActive(pid,e){
   e.stopPropagation();
   const c=D.compounds.find(x=>x.id===pid);if(!c)return;
-  c.active=!c.active;save();rProto();rToday();
+  c.active=!c.active;
+  if(c.active) startFreshCycle(c);
+  save();rProto();rToday();
+}
+
+// Turning a compound on starts a new cycle: today + 12 weeks by default.
+// Leaves an in-progress cycle alone, and never overrides a deliberate 'ongoing'.
+function startFreshCycle(c){
+  const end=getCompoundEndDate(c);
+  const finished = end && end < tod();
+  const notStarted = !c.start;
+  if(!(finished || notStarted)) return;
+  c.start = tod();
+  if(c.durtype==='ongoing') return;
+  c.durtype = 'weeks';
+  c.weeks   = c.weeks || '12';
+  c.end     = addDays(c.start, parseInt(c.weeks)*7);
 }
 function togDay(pid,day,e){
   e.stopPropagation();
