@@ -615,7 +615,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0728.0716</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0730.1803</div>
       </div>
     </div>
   </div>
@@ -1073,7 +1073,7 @@ tr:active td{background:var(--card2)}
         <optgroup label="Per day (on selected days)">
           <option value="daily" selected>Once daily</option>
           <option value="bid">Twice daily (BID)</option>
-          <option value="tid">Three times daily (TID)</option>
+          
         </optgroup>
         <optgroup label="Longer intervals">
           <option value="weekly">Weekly</option>
@@ -1480,6 +1480,26 @@ const DEFAULTS=[
   {id:'p15',name:'HCG',                   cat:'Supplement',    dose:0,    unit:'mg', route:'Oral',           freq:'daily',   days:[],         time:'AM',     clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#818CF8',active:false},
 ];
 
+// Return the default compounds with ACTIVE ones re-anchored to be currently live.
+// The static DEFAULTS carry example dates that go stale over time; without this a
+// reset could leave active compounds hidden because their end date is in the past.
+function freshDefaults(){
+  const todayStr=(typeof localDateStr==='function')?localDateStr(new Date()):new Date().toISOString().slice(0,10);
+  const recentStart=(()=>{ const d=new Date(); d.setDate(d.getDate()-14); return (typeof localDateStr==='function')?localDateStr(d):d.toISOString().slice(0,10); })();
+  return DEFAULTS.map(x=>{
+    const c={...x};
+    if(c.active){
+      // Anchor start to two weeks ago and clear any stale end so it reads as ongoing/live.
+      c.start=recentStart;
+      c.end='';
+      if(c.durtype!=='weeks') c.durtype='ongoing';
+      // If it was a fixed-weeks cycle, keep the weeks but restart from the fresh start date.
+    }
+    return c;
+  });
+}
+
+
 // ─── STATE ───────────────────────────────────────────────────
 let D={compounds:[],logs:[],inventory:[],history:[],skips:[]};
 let viewDate=''; // set in init()
@@ -1675,7 +1695,7 @@ function load(){
     if(!_migrationError && !needsMigration(D)) safeWriteJson('protocol_data', D);
     if(!D.inventory.length){ D.inventory=defaultInventory(); save(); }
   } else {
-    D.compounds = DEFAULTS.map(x=>({...x}));
+    D.compounds = freshDefaults();
     D.inventory = defaultInventory();
     save();
   }
@@ -1834,7 +1854,6 @@ function rStack(){
 
   function dosesPerDay(c){
     // Prefer explicit per-day frequency; fall back to AM+PM ("Both") = 2.
-    if(c.freq==='tid') return 3;
     if(c.freq==='bid') return 2;
     return c.time==='Both'?2:1;
   }
@@ -2007,7 +2026,7 @@ function rToday(){
       <div class="chk ${ok?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="var(--c-white)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div style="flex:1;min-width:0">
         <div class="ci-name"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}${snz?'<span class="snz-badge">'+(snzTo?'Back '+fmtD(snzTo):'Snoozed')+'</span>':(expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':'')}</div>
-        ${pin?`<div class="ci-draw" onclick="openCalcFor('${c.id}',event)">${pin}</div>`:''}
+        ${pin?`<div class="ci-draw">${pin}</div>`:''}
         <div class="ci-sub">${effectiveDose(c)} ${c.unit} · ${esc(c.route)}</div>
       </div>
       <button class="snooze-btn ${snz?'on':''}" title="${snz?'Un-snooze':'Snooze for this day'}"
@@ -2039,7 +2058,7 @@ function rToday(){
   });
   const lg=document.getElementById('expiry-legend');
   if(lg) lg.innerHTML = anyExpiring
-    ? '<div class="expiry-legend-inner"><span style="font-size:15px">\u{1F534}</span>'+
+    ? '<div class="expiry-legend-inner"><span style="display:inline-flex;color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/></svg></span>'+
       '<span>Red box = within 7 days of cycle end. Plan your next cycle soon.</span></div>'
     : '';
 
@@ -2692,7 +2711,7 @@ function rHist(){
   // A new period begins only when the weekly dose changes (up or down). Changes to days,
   // timing, route, or how the frequency is represented do NOT create a new protocol as
   // long as the weekly amount is unchanged.
-  const TPD={daily:1,bid:2,tid:3}; const INTERVAL={weekly:1,biweekly:0.5,monthly:12/52,oneweekpermonth:7/4.345,prn:0};
+  const TPD={daily:1,bid:2,tid:3}; const INTERVAL={weekly:1,biweekly:0.5,monthly:12/52,oneweekpermonth:7/4.345,prn:0,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,eod:3.5,e3d:7/3};
   const weeklyDose=sn=>{
     const d=parseFloat(sn.dose); if(!Number.isFinite(d)) return null;
     if(TPD[sn.freq]!==undefined){
@@ -3157,11 +3176,8 @@ async function saveForm(){
     const doseVal=gv('f-dose');
     if(!doseVal || parseFloat(doseVal)<=0) missing.push('Dose');
     if(!freq) missing.push('Frequency');
-    // Days of week: if none ticked AND the frequency is a per-day type, that's ambiguous.
-    const perDayFreqs=['daily','bid','tid'];
-    if(perDayFreqs.includes(freq) && (!days || days.length===0)) missing.push('Days of week (none selected)');
     if(fDurtype!=='ongoing' && !fStart) missing.push('Start date');
-    if(fDurtype!=='ongoing' && !fWeeks && !fEnd) missing.push('Duration or end date');
+    if(fDurtype!=='ongoing' && !fEnd) missing.push('End date');
     // Fields needed to calculate draw volume / syringe amount:
     const vialVal=gv('f-vialSize');
     if(!vialVal || parseFloat(vialVal)<=0) missing.push('Vial size (needed for dose calc)');
@@ -3913,7 +3929,7 @@ async function masterReset(){
   APP_KEYS.forEach(k=>safeRemove(k));
   ['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v6','pt_v7'].forEach(k=>safeRemove(k));
   // Build clean default state directly — do NOT call the recovery-oriented load().
-  const clean={compounds:DEFAULTS.map(x=>({...x})),logs:[],inventory:defaultInventory(),history:[],skips:[],schema:CURRENT_SCHEMA};
+  const clean={compounds:freshDefaults(),logs:[],inventory:defaultInventory(),history:[],skips:[],schema:CURRENT_SCHEMA};
   // Persist + verify BEFORE announcing success.
   const wr=safeWriteJson('protocol_data', clean, true);
   if(!wr.ok){ await ptAlert('Reset could not be completed — writing clean state failed ('+(wr.reason||'error')+'). Nothing was reset.','Reset failed'); return; }
@@ -4097,7 +4113,7 @@ function sameProtocolConfig(a,b){
   // Weekly-dose identity (matches the history view): same weekly dose = same protocol.
   // We still record deliberate detail edits (name, route, vial, notes) so a correction
   // like fixing a route isn't lost — but pure timing/day tweaks won't create a snapshot.
-  const TPD={daily:1,bid:2,tid:3}; const INTERVAL={weekly:1,biweekly:0.5,monthly:12/52,oneweekpermonth:7/4.345,prn:0};
+  const TPD={daily:1,bid:2,tid:3}; const INTERVAL={weekly:1,biweekly:0.5,monthly:12/52,oneweekpermonth:7/4.345,prn:0,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,eod:3.5,e3d:7/3};
   const wk=sn=>{ const d=parseFloat(sn.dose); if(!Number.isFinite(d)) return 'x'+JSON.stringify(sn.dose);
     let dpw; if(TPD[sn.freq]!==undefined){ const dw=(sn.days&&sn.days.length)?sn.days.length:7; dpw=TPD[sn.freq]*dw; } else { dpw=INTERVAL[sn.freq]!==undefined?INTERVAL[sn.freq]:1; }
     return (sn.unit||'')+':'+(d*dpw).toFixed(4); };
@@ -4202,6 +4218,33 @@ document.addEventListener('visibilitychange', function(){
 window.addEventListener('pagehide', function(){ if(!_blockAutosave) save(); });
 window.addEventListener('beforeunload', function(){ if(!_blockAutosave) save(); });
 
+
+// ─── TODAY SWIPE NAVIGATION ──────────────────────────
+// Left/right swipe on the Today page moves to next/previous day.
+function initTodaySwipe(){
+  const el=document.getElementById('pg-today');
+  if(!el) return;
+  let x0=null, y0=null, t0=0, tracking=false;
+  el.addEventListener('touchstart', e=>{
+    if(e.touches.length!==1){ tracking=false; return; }
+    x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); tracking=true;
+  }, {passive:true});
+  el.addEventListener('touchend', e=>{
+    if(!tracking || x0===null){ return; }
+    tracking=false;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-x0, dy=t.clientY-y0, dt=Date.now()-t0;
+    x0=y0=null;
+    // Must be: mostly horizontal, far enough, and not a slow drag.
+    const MIN_DIST=55;
+    if(Math.abs(dx) < MIN_DIST) return;               // too short
+    if(Math.abs(dx) < Math.abs(dy)*1.6) return;       // too vertical (let scroll win)
+    if(dt > 600) return;                              // too slow to be a swipe
+    if(dx < 0) changeDay(1);   // swipe left  -> next day
+    else       changeDay(-1);  // swipe right -> previous day
+  }, {passive:true});
+}
+
 function init(){
   // Show today tab by default
   document.getElementById('pg-today').classList.remove('hidden');
@@ -4217,6 +4260,7 @@ function init(){
     renderOilCompounds();
   }catch(e){}
   // Check for cycle end reminders
+  initTodaySwipe();
   setTimeout(checkCycleEndReminders, 800);
   setTimeout(checkMissedDoses, 1200);
 }
@@ -4309,6 +4353,79 @@ let _kiQueue=[];       // for stack: array of {} to fill
 let _kiIndex=0;
 let _kiActivateId=null;
 
+
+
+function kiFreqChanged(){
+  // Frequency and days-of-week are independent controls (frequency = how the dose
+  // repeats / per-day count or interval; days = which days it runs). They never
+  // conflict, so nothing is disabled here.
+}
+
+
+// ─── WIZARD TITRATION (reuses the shared _titrDraft + phase editor) ──────────
+function kiToggleTitration(){
+  const tog=document.getElementById('ki-titr-tog');
+  const on=tog.classList.contains('off');
+  tog.classList.toggle('off',!on);
+  tog.classList.toggle('on',on);
+  document.getElementById('ki-titr-edit').style.display = on ? 'block' : 'none';
+  if(on && (!_titrDraft || !_titrDraft.length)){
+    const d=parseFloat(document.getElementById('ki-dose').value)||0;
+    _titrDraft=[{dose:d||0, weeks:2}];
+    openTitrationEditor();
+  } else if(!on){
+    _titrDraft=[];
+    document.getElementById('ki-titr-summary').style.display='none';
+  } else {
+    kiRenderTitrSummary();
+  }
+}
+function kiRenderTitrSummary(){
+  const sum=document.getElementById('ki-titr-summary'); if(!sum) return;
+  if(!_titrDraft || !_titrDraft.length){ sum.style.display='none'; return; }
+  const unit=document.getElementById('ki-unit').value||'';
+  const total=_titrDraft.reduce((a,s)=>a+(parseFloat(s.weeks)||0),0);
+  sum.innerHTML=_titrDraft.map(s=>`${s.dose}${unit} × ${s.weeks}wk`).join(' → ')+`<br><span style="color:var(--text-muted)">${total} weeks total</span>`;
+  sum.style.display='block';
+}
+function kiResetTitration(){
+  _titrDraft=[];
+  const tog=document.getElementById('ki-titr-tog');
+  if(tog){ tog.classList.remove('on'); tog.classList.add('off'); }
+  const edit=document.getElementById('ki-titr-edit'); if(edit) edit.style.display='none';
+  const sum=document.getElementById('ki-titr-summary'); if(sum) sum.style.display='none';
+}
+function kiLoadTitration(c){
+  // populate wizard titration UI from an existing compound
+  if(c && c.titration && c.titration.enabled && Array.isArray(c.titration.steps) && c.titration.steps.length){
+    _titrDraft=c.titration.steps.map(s=>({dose:s.dose, weeks:s.weeks}));
+    const tog=document.getElementById('ki-titr-tog');
+    if(tog){ tog.classList.remove('off'); tog.classList.add('on'); }
+    const edit=document.getElementById('ki-titr-edit'); if(edit) edit.style.display='block';
+    kiRenderTitrSummary();
+  } else {
+    kiResetTitration();
+  }
+}
+
+function kiTogDay(item,d){ item.querySelector('.day-chk-box').classList.toggle('on'); }
+function kiGetDays(){ return [...document.querySelectorAll('#ki-days .day-chk-box.on')].map(el=>parseInt(el.dataset.d)); }
+function kiSetDays(mode){
+  const boxes=[...document.querySelectorAll('#ki-days .day-chk-box')];
+  boxes.forEach(b=>{
+    const d=parseInt(b.dataset.d);
+    if(mode==='all') b.classList.add('on');
+    else if(mode==='none') b.classList.remove('on');
+    else if(mode==='weekdays') b.classList.toggle('on', d>=1 && d<=5);
+  });
+}
+function kiSetDaysArr(arr){
+  const set=new Set((arr||[]).map(Number));
+  document.querySelectorAll('#ki-days .day-chk-box').forEach(b=>{
+    b.classList.toggle('on', set.has(parseInt(b.dataset.d)));
+  });
+}
+
 function kiOpenStack(){
   _kiMode='stack'; _kiQueue=[{}]; _kiIndex=0; _kiActivateId=null;
   kiRenderStep();
@@ -4340,6 +4457,8 @@ function kiPopulateFrom(){
   set('ki-name', sn.name); set('ki-dose', sn.dose); set('ki-unit', sn.unit);
   set('ki-freq', sn.freq); set('ki-vial', sn.vialSize); set('ki-bac', sn.bacWater);
   if(sn.weeks) set('ki-weeks', sn.weeks);
+  kiSetDaysArr(sn.days||[]);
+  kiFreqChanged();
 }
 function kiRenderStep(existing){
   kiPopulateOptions();
@@ -4351,6 +4470,9 @@ function kiRenderStep(existing){
   document.getElementById('ki-unit').value='mcg';
   document.getElementById('ki-freq').value='daily';
   document.getElementById('ki-populate').value='';
+  kiSetDaysArr([]); // clear day tickboxes
+  kiResetTitration();
+  setTimeout(kiFreqChanged,0);
   const finishBtn=document.getElementById('ki-finish');
   if(_kiMode==='stack'){
     title.textContent='New protocol '+(_kiIndex+1);
@@ -4367,6 +4489,9 @@ function kiRenderStep(existing){
       set('ki-name', existing.name); set('ki-dose', existing.dose); set('ki-unit', existing.unit||'mcg');
       set('ki-freq', existing.freq||'weekly'); set('ki-vial', existing.vialSize); set('ki-bac', existing.bacWater);
       set('ki-start', existing.start); set('ki-weeks', existing.weeks); set('ki-end', existing.end);
+      kiSetDaysArr(existing.days||[]);
+      kiLoadTitration(existing);
+      setTimeout(kiFreqChanged,0);
     }
   }
 }
@@ -4380,6 +4505,14 @@ function kiSyncDates(src){
     if(!isNaN(d0)&&!isNaN(d1)&&d1>=d0) document.getElementById('ki-weeks').value=Math.max(1,Math.round((d1-d0)/(86400000*7)));
   } else if(src==='start' && weeks){ document.getElementById('ki-end').value=calcEndFromWeeks(start,weeks); }
 }
+
+// Map a frequency to a default AM/PM placement. BID/TID run more than once a day,
+// so they occupy BOTH the AM and PM columns; everything else defaults to AM.
+function timeForFreq(freq){
+  if(freq==='bid') return 'Both';
+  return 'AM';
+}
+
 function kiCollect(){
   const g=id=>document.getElementById(id).value;
   const name=g('ki-name').trim();
@@ -4387,19 +4520,44 @@ function kiCollect(){
   const start=g('ki-start'), weeks=g('ki-weeks'), end=g('ki-end');
   return {
     name, dose:parseFloat(g('ki-dose'))||0, unit:g('ki-unit'),
-    freq:g('ki-freq'), start:start||'', weeks:weeks||'', end:end||'',
+    freq:g('ki-freq'), days:kiGetDays(), start:start||'', weeks:weeks||'', end:end||'',
     durtype: (weeks||end)?'weeks':'ongoing',
     vialSize:g('ki-vial')||'', bacWater:g('ki-bac')||''
   };
 }
-function kiNext(){
+async function kiNext(){
   const data=kiCollect(); if(!data) return;
+
+  // Same missing-field reminder as the full form — warn about anything that affects
+  // Today, the calculator, syringe amounts or reminders. Not a hard block.
+  {
+    const missing=[];
+    if(!data.dose || parseFloat(data.dose)<=0) missing.push('Dose');
+    if(!data.freq) missing.push('Frequency');
+    if(data.durtype!=='ongoing' && !data.start) missing.push('Start date');
+    if(data.durtype!=='ongoing' && !data.end) missing.push('End date');
+    if(!data.vialSize || parseFloat(data.vialSize)<=0) missing.push('Vial size (needed for dose calc)');
+    let routeForCheck = defaultRouteFor(data.name);
+    if(_kiMode==='activate' && _kiActivateId){ const ex=D.compounds.find(x=>x.id===_kiActivateId); if(ex&&ex.route) routeForCheck=ex.route; }
+    const oilish = /oral|topical/i.test(routeForCheck);
+    if(!oilish && (!data.bacWater || parseFloat(data.bacWater)<=0)) missing.push('BAC water (needed for units calc)');
+    if(missing.length){
+      const go = await ptConfirm('Some fields that affect Today, the calculator, syringe amounts and reminders are empty:\n\n• '+missing.join('\n• ')+'\n\nSave anyway and fill them later, or go back now?', 'Missing details', {okText:'Save anyway', cancelText:'Go back & fill'});
+      if(!go) return;
+    }
+  }
+
   if(_kiMode==='stack'){
     // create the compound now
     const c={ id:uid(), name:data.name, dose:data.dose, unit:data.unit, freq:data.freq,
-      route:defaultRouteFor(data.name), days:[], time:'AM', start:data.start, weeks:data.weeks, end:data.end,
+      route:defaultRouteFor(data.name), days:data.days||[], time:timeForFreq(data.freq), start:data.start, weeks:data.weeks, end:data.end,
       durtype:data.durtype, vialSize:data.vialSize, bacWater:data.bacWater, active:true,
       color: (typeof COLORS!=='undefined' && COLORS.length) ? COLORS[D.compounds.length % COLORS.length] : '#4B96E6' };
+    // attach titration if toggled on
+    const titrTog=document.getElementById('ki-titr-tog');
+    if(titrTog && titrTog.classList.contains('on') && Array.isArray(_titrDraft) && _titrDraft.length){
+      c.titration={ enabled:true, steps:_titrDraft.map(st=>({dose:parseFloat(st.dose)||0, weeks:parseFloat(st.weeks)||0})).filter(st=>st.dose>0&&st.weeks>0) };
+    }
     D.compounds.push(c);
     snapshotCompound(c,'create');
     save();
@@ -4412,9 +4570,13 @@ function kiNext(){
     // activate mode: update the compound + activate
     const c=D.compounds.find(x=>x.id===_kiActivateId); if(!c){ closeOv('ov-keyinfo'); return; }
     snapshotCompound(c,'edit');
-    Object.assign(c, { name:data.name, dose:data.dose, unit:data.unit, freq:data.freq,
+    Object.assign(c, { name:data.name, dose:data.dose, unit:data.unit, freq:data.freq, days:data.days||[], time:timeForFreq(data.freq),
       start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
       vialSize:data.vialSize, bacWater:data.bacWater, active:true });
+    const titrTogA=document.getElementById('ki-titr-tog');
+    if(titrTogA && titrTogA.classList.contains('on') && Array.isArray(_titrDraft) && _titrDraft.length){
+      c.titration={ enabled:true, steps:_titrDraft.map(st=>({dose:parseFloat(st.dose)||0, weeks:parseFloat(st.weeks)||0})).filter(st=>st.dose>0&&st.weeks>0) };
+    } else { delete c.titration; }
     if(typeof startFreshCycle==='function' && !c.start) startFreshCycle(c);
     save(); render(); closeOv('ov-keyinfo');
     ptAlert(esc(c.name)+' activated. Open it to add extra detail.');
@@ -4447,7 +4609,7 @@ function openDoseRecall(){
 function recallPeriodsFor(cid){
   // Reuse the weekly-dose period grouping to list past protocols with date ranges.
   const snaps=[...(D.history||[])].filter(h=>h.cid===cid).sort((a,b)=>new Date(a.savedAt)-new Date(b.savedAt));
-  const DPW_TPD={daily:1,bid:2,tid:3}; const IV={weekly:1,biweekly:0.5,monthly:12/52,oneweekpermonth:7/4.345,prn:0};
+  const DPW_TPD={daily:1,bid:2,tid:3}; const IV={weekly:1,biweekly:0.5,monthly:12/52,oneweekpermonth:7/4.345,prn:0,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,eod:3.5,e3d:7/3};
   const wd=sn=>{ const d=parseFloat(sn.dose); if(!Number.isFinite(d))return null; if(DPW_TPD[sn.freq]!==undefined){const dw=(sn.days&&sn.days.length)?sn.days.length:7;return d*DPW_TPD[sn.freq]*dw;} return d*(IV[sn.freq]!==undefined?IV[sn.freq]:1); };
   const sig=sn=>{ if(sn.titration&&sn.titration.enabled&&sn.titration.steps&&sn.titration.steps.length) return 'T'+sn.titration.steps.map(x=>x.dose+'@'+x.weeks).join(','); const w=wd(sn); return (sn.unit||'')+':'+(w==null?'?'+sn.dose:w.toFixed(4)); };
   const periods=[];
@@ -4537,6 +4699,7 @@ function saveTitration(){
   if(!_titrDraft.length){ _titrDraft=[{dose:parseFloat(document.getElementById('f-dose').value)||0, weeks:2}]; }
   closeOv('ov-titration');
   renderTitrSummary();
+  if(typeof kiRenderTitrSummary==='function' && document.getElementById('ki-titr-tog') && document.getElementById('ki-titr-tog').classList.contains('on')) kiRenderTitrSummary();
 }
 function renderTitrSummary(){
   const sum=document.getElementById('f-titr-summary');
@@ -4915,20 +5078,45 @@ window.PT_debug = {
       </div>
 
       <label class="fl">Frequency</label>
-      <select class="fs" id="ki-freq" style="margin-bottom:14px">
+      <select class="fs" id="ki-freq" style="margin-bottom:14px" onchange="kiFreqChanged()">
         <optgroup label="Per day (on selected days)">
-          <option value="daily">Once daily</option>
+          <option value="daily" selected>Once daily</option>
           <option value="bid">Twice daily (BID)</option>
-          <option value="tid">Three times daily (TID)</option>
+          
         </optgroup>
         <optgroup label="Longer intervals">
-          <option value="weekly" selected>Weekly</option>
+          <option value="weekly">Weekly</option>
           <option value="biweekly">Fortnightly (every 2 weeks)</option>
           <option value="monthly">Monthly</option>
           <option value="oneweekpermonth">One week per month</option>
         </optgroup>
         <option value="prn">As needed (PRN)</option>
       </select>
+
+      <label class="fl">Days of week</label>
+      <div class="day-chk-row" id="ki-days" style="margin-bottom:6px">
+        <div class="day-chk-item" onclick="kiTogDay(this,1)"><div class="day-chk-box" data-d="1"></div><span class="day-chk-lbl">Mon</span></div>
+        <div class="day-chk-item" onclick="kiTogDay(this,2)"><div class="day-chk-box" data-d="2"></div><span class="day-chk-lbl">Tue</span></div>
+        <div class="day-chk-item" onclick="kiTogDay(this,3)"><div class="day-chk-box" data-d="3"></div><span class="day-chk-lbl">Wed</span></div>
+        <div class="day-chk-item" onclick="kiTogDay(this,4)"><div class="day-chk-box" data-d="4"></div><span class="day-chk-lbl">Thu</span></div>
+        <div class="day-chk-item" onclick="kiTogDay(this,5)"><div class="day-chk-box" data-d="5"></div><span class="day-chk-lbl">Fri</span></div>
+        <div class="day-chk-item" onclick="kiTogDay(this,6)"><div class="day-chk-box" data-d="6"></div><span class="day-chk-lbl">Sat</span></div>
+        <div class="day-chk-item" onclick="kiTogDay(this,0)"><div class="day-chk-box" data-d="0"></div><span class="day-chk-lbl">Sun</span></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:14px" id="ki-days-btns">
+        <button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px;padding:7px" onclick="kiSetDays('all')">All</button>
+        <button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px;padding:7px" onclick="kiSetDays('none')">None</button>
+        <button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px;padding:7px" onclick="kiSetDays('weekdays')">Weekdays</button>
+      </div>
+
+      <div class="fg">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <label class="fl" style="margin:0">Titration (ramp up / taper down)</label>
+          <button type="button" class="act-tog off" id="ki-titr-tog" onclick="kiToggleTitration()"></button>
+        </div>
+        <div id="ki-titr-summary" style="display:none;margin-top:8px;font-size:13px;color:var(--text-secondary)"></div>
+        <button type="button" id="ki-titr-edit" class="btn btn-s btn-sm" style="display:none;margin-top:8px;font-size:12px" onclick="openTitrationEditor()">Edit titration schedule</button>
+      </div>
 
       <div style="display:flex;gap:8px;margin-bottom:14px">
         <div style="flex:1"><label class="fl">Start date</label><input class="fi" id="ki-start" type="date" onchange="kiSyncDates('start')"></div>
