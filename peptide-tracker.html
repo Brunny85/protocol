@@ -566,6 +566,21 @@ tr:active td{background:var(--card2)}
 .recall-period{display:block;width:100%;text-align:left;background:var(--surface-secondary);
   border:1px solid var(--border-subtle);border-radius:10px;padding:11px 14px;margin-bottom:8px;cursor:pointer}
 .recall-period:hover{border-color:var(--brand)}
+
+/* FAB action picker */
+.fabpick-opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  background:var(--surface-secondary);border:1px solid var(--border-subtle);border-radius:14px;
+  padding:14px 16px;margin-bottom:10px;cursor:pointer;font-family:inherit;color:var(--text)}
+.fabpick-opt:hover{border-color:var(--brand)}
+.fabpick-ic{width:42px;height:42px;border-radius:11px;background:var(--brand);color:#fff;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fabpick-body{flex:1;min-width:0}
+.fabpick-t{font-size:16px;font-weight:700}
+.fabpick-s{font-size:12px;color:var(--text-secondary);margin-top:1px}
+
+.field-error{ outline:2px solid var(--danger, #EF4444) !important; outline-offset:1px;
+  border-color:var(--danger, #EF4444) !important; animation:fieldErrShake .3s ease; }
+@keyframes fieldErrShake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
 </style>
 </head>
 <body>
@@ -615,7 +630,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0730.1803</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0802.1210</div>
       </div>
     </div>
   </div>
@@ -963,6 +978,11 @@ tr:active td{background:var(--card2)}
     </div>
 
     <div id="pg-stack" class="pg hidden">
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button class="rec-tab on" id="stacktab-stack" onclick="setStackTab('stack')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M4 7h16M4 12h16M4 17h16"/></svg> Stack</button>
+        <button class="rec-tab" id="stacktab-prep" onclick="setStackTab('prep')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4M8 14h.01M12 14h.01M16 14h.01"/></svg> Weekly Prep</button>
+      </div>
+      <div id="stack-main">
       <div id="stack-content"></div>
 
       <div style="background:var(--brand);border:1px solid var(--border-subtle);border-radius:var(--r);padding:14px;margin-top:4px">
@@ -970,6 +990,9 @@ tr:active td{background:var(--card2)}
         <button class="btn btn-p" onclick="copyStackPrompt()" id="copy-stack-btn" style="font-size:14px">Copy Stack for AI Analysis</button>
         <div id="copy-stack-confirm" style="font-size:12px;color:var(--success);margin-top:8px;display:none;text-align:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M20 6L9 17l-5-5"/></svg> Prompt copied — paste into your AI of choice</div>
       </div>
+      </div>
+
+      <div id="stack-prep" class="hidden"></div>
     </div>
 
   </div>
@@ -1036,7 +1059,7 @@ tr:active td{background:var(--card2)}
       </div>
     </div>
     <div class="fg"><label class="fl">Route of Administration</label>
-      <select class="fs" id="f-route">
+      <select class="fs" id="f-route" onchange="onRouteChange()">
         <option>SubQ Injection</option><option>IM Injection</option><option>Oral</option>
         <option>Nasal Spray</option><option>Topical</option><option>IV</option>
       </select>
@@ -1054,6 +1077,22 @@ tr:active td{background:var(--card2)}
         <input class="fi" id="f-bac" type="number" step="0.1" placeholder="e.g. 2">
       </div>
     </div>
+
+    <!-- Nasal spray reconstitution (shown when route = Nasal Spray) -->
+    <div id="f-spray-block" style="display:none">
+      <div class="fdiv"></div>
+      <div class="fg"><label class="fl">Saline added (ml)</label>
+        <input class="fi" id="f-saline" type="number" step="0.1" placeholder="e.g. 4.5" oninput="updateSprayCalc()">
+        <div class="fhint">BAC water reconstitutes; saline brings it to final spray volume.</div>
+      </div>
+      <div class="fg"><label class="fl">Volume per spray (ml)</label>
+        <input class="fi" id="f-volPerSpray" type="number" step="0.01" placeholder="e.g. 0.1" oninput="updateSprayCalc()">
+      </div>
+      <div class="fg" id="f-spray-readout" style="display:none;background:var(--surface-secondary);border:1px solid var(--border-subtle);border-radius:12px;padding:12px 14px">
+        <div style="font-size:13px;color:var(--text-secondary)">Reconstitution result</div>
+        <div id="f-spray-result" style="font-size:15px;font-weight:600;margin-top:4px"></div>
+      </div>
+    </div>
     <div class="fg"><label class="fl">Dosing Notes</label>
       <textarea class="fta" id="f-doseNotes" placeholder="e.g. Start 0.25mg, increase 0.25mg/week to target"></textarea>
     </div>
@@ -1063,7 +1102,7 @@ tr:active td{background:var(--card2)}
         <button type="button" class="act-tog off" id="f-titr-tog" onclick="toggleTitration()"></button>
       </div>
       <div id="f-titr-summary" style="display:none;margin-top:8px;font-size:13px;color:var(--text-secondary)"></div>
-      <button type="button" id="f-titr-edit" class="btn btn-s btn-sm" style="display:none;margin-top:8px;font-size:12px" onclick="openTitrationEditor()">Edit titration schedule</button>
+      <button type="button" id="f-titr-edit" class="btn btn-s btn-sm" style="display:none;margin-top:8px;font-size:12px" onclick="openTitrationEditor()">Edit schedule</button>
     </div>
 
     <div class="fdiv"></div>
@@ -1118,7 +1157,7 @@ tr:active td{background:var(--card2)}
     <div class="fr fg">
       <div>      <div id="f-freq-warn" style="display:none;background:var(--warning-soft);border:1px solid var(--warning);border-radius:10px;padding:9px 13px;margin:4px 0 14px;font-size:12px;color:var(--warning-text);line-height:1.4"></div>
       <label class="fl">Time of Day</label>
-        <select class="fs" id="f-time">
+        <select class="fs" id="f-time" onchange="onFTime()">
           <option value="AM">Morning (AM)</option>
           <option value="PM">Evening (PM)</option>
           <option value="Both">AM &amp; PM (Both)</option>
@@ -1141,7 +1180,7 @@ tr:active td{background:var(--card2)}
     <div class="fdiv"></div>
     <div class="fsec">③ Duration &amp; Cycle</div>
     <div class="fr fg">
-      <div><label class="fl">Start Date</label><input class="fi" id="f-start" type="date" onchange="updateEndPreview()"></div>
+      <div><label class="fl">Start Date</label><input class="fi" id="f-start" type="date" onchange="onStartInput()"></div>
       <div><label class="fl">Duration</label>
         <select class="fs" id="f-durtype" onchange="onDur()">
           <option value="ongoing">Ongoing</option>
@@ -1463,21 +1502,23 @@ const FL={daily:'Daily',bid:'Twice Daily',tid:'Three Times Daily',eod:'Every Oth
 
 // ─── DEFAULT COMPOUNDS ───────────────────────────────────────
 const DEFAULTS=[
-  {id:'p1', name:'BPC-157',              cat:'Peptide',       dose:500,  unit:'mcg',route:'SubQ Injection',freq:'daily',   days:[],         time:'Both',clock:'',timingNotes:'',doseNotes:'',start:'2026-06-23',durtype:'weeks',  weeks:'4',end:'',          cycle:'',       pct:'',notes:'',color:'#34D399',active:true},
-  {id:'p2', name:'Retatutride',          cat:'Peptide',       dose:500,  unit:'mcg',route:'SubQ Injection',freq:'3xweek',  days:[2,4,6],    time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'2026-05-18',durtype:'enddate',weeks:'', end:'2026-06-02',cycle:'',       pct:'',notes:'',color:'#4ECDC4',active:true},
-  {id:'p3', name:'TB-500',               cat:'Peptide',       dose:700,  unit:'mcg',route:'SubQ Injection',freq:'daily',   days:[],         time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'2026-06-23',durtype:'weeks',  weeks:'4',end:'',          cycle:'',       pct:'',notes:'',color:'#A78BFA',active:true},
-  {id:'p4', name:'NAD+',                 cat:'Supplement',    dose:0,    unit:'mg', route:'Oral',           freq:'3xweek',  days:[1,3,5],    time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#FDE047',active:false},
+  {id:'p1', name:'BPC-157',              cat:'Peptide',       dose:500,  unit:'mcg',route:'SubQ Injection',freq:'daily',   days:[],         time:'AM' ,clock:'',timingNotes:'',doseNotes:'',start:'',durtype:'weeks',  weeks:'4',end:'',          cycle:'',       pct:'',notes:'',color:'#34D399',active:false},
+  {id:'p2', name:'Retatutride',          cat:'Peptide',       dose:500,  unit:'mcg',route:'SubQ Injection',freq:'3xweek',  days:[2,4,6],    time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',durtype:'enddate',weeks:'', end:'2026-06-02',cycle:'',       pct:'',notes:'',color:'#4ECDC4',active:false},
+  {id:'p3', name:'TB-500',               cat:'Peptide',       dose:700,  unit:'mcg',route:'SubQ Injection',freq:'daily',   days:[],         time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',durtype:'weeks',  weeks:'4',end:'',          cycle:'',       pct:'',notes:'',color:'#A78BFA',active:false},
+  {id:'p4', name:'NAD+',                 cat:'Peptide',       dose:0,    unit:'mg', route:'SubQ Injection',           freq:'3xweek',  days:[1,3,5],    time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#FDE047',active:false},
   {id:'p5', name:'MOTSc',                cat:'Peptide',       dose:5,    unit:'mg', route:'SubQ Injection', freq:'3xweek',  days:[1,3,5],    time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#FB923C',active:false},
   {id:'p6', name:'Selank',               cat:'Nootropic',     dose:200,  unit:'mcg',route:'Nasal Spray',   freq:'5xweek',  days:[1,2,3,4,5],time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#60A5FA',active:false},
-  {id:'p7', name:'GHK-Cu',               cat:'Peptide',       dose:2,    unit:'mg', route:'SubQ Injection', freq:'5xweek',  days:[1,2,3,4,5],time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'enddate', weeks:'',end:'2026-07-02',cycle:'',       pct:'',notes:'',color:'#F59E0B',active:true},
-  {id:'p8', name:'Glutathione',          cat:'Supplement',    dose:200,  unit:'mg', route:'Oral',           freq:'3xweek',  days:[1,3,6],    time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#2DD4BF',active:false},
-  {id:'p9', name:'KPV',                  cat:'Peptide',       dose:500,  unit:'mcg',route:'Oral',           freq:'daily',   days:[],         time:'Any', clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#94A3B8',active:false},
+  {id:'p7', name:'GHK-Cu',               cat:'Peptide',       dose:2,    unit:'mg', route:'SubQ Injection', freq:'5xweek',  days:[1,2,3,4,5],time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'enddate', weeks:'',end:'2026-07-02',cycle:'',       pct:'',notes:'',color:'#F59E0B',active:false},
+  {id:'p8', name:'Glutathione',          cat:'Peptide',       dose:200,  unit:'mg', route:'SubQ Injection',           freq:'3xweek',  days:[1,3,6],    time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#2DD4BF',active:false},
+  {id:'p9', name:'KPV',                  cat:'Peptide',       dose:500,  unit:'mcg',route:'SubQ Injection',           freq:'daily',   days:[],         time:'Any', clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#94A3B8',active:false},
   {id:'p10',name:'Epithalon',            cat:'Peptide',       dose:5000, unit:'mcg',route:'SubQ Injection', freq:'daily',   days:[],         time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#818CF8',active:false},
-  {id:'p11',name:'Test-E',               cat:'Hormone',       dose:62.5, unit:'mg', route:'IM Injection',   freq:'2xweek',  days:[2,6],      time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'2026-06-21',durtype:'ongoing', weeks:'',end:'',          cycle:'Ongoing',pct:'',notes:'',color:'#EF4444',active:true},
+  {id:'p11',name:'Test-E',               cat:'Hormone',       dose:62.5, unit:'mg', route:'IM Injection',   freq:'2xweek',  days:[2,6],      time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',durtype:'ongoing', weeks:'',end:'',          cycle:'Ongoing',pct:'',notes:'',color:'#EF4444',active:false},
   {id:'p12',name:'Deca',                 cat:'Hormone',       dose:62.5, unit:'mg', route:'IM Injection',   freq:'weekly',  days:[2],        time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'enddate', weeks:'',end:'2026-06-04',cycle:'',       pct:'',notes:'',color:'#F472B6',active:false},
-  {id:'p13',name:'Human Growth Hormone', cat:'Growth Hormone',dose:3,    unit:'IU', route:'SubQ Injection', freq:'4xweek',  days:[1,2,3,4],  time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'2026-01-12',durtype:'ongoing', weeks:'',end:'',          cycle:'Ongoing',pct:'',notes:'',color:'#60A5FA',active:true},
+  {id:'p13',name:'Human Growth Hormone', cat:'Growth Hormone',dose:3,    unit:'IU', route:'SubQ Injection', freq:'4xweek',  days:[1,2,3,4],  time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',durtype:'ongoing', weeks:'',end:'',          cycle:'Ongoing',pct:'',notes:'',color:'#60A5FA',active:false},
   {id:'p14',name:'MT2',                   cat:'Peptide',       dose:0,    unit:'mg', route:'SubQ Injection', freq:'eod',     days:[1,3,5],    time:'BedTime',clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#F472B6',active:false},
-  {id:'p15',name:'HCG',                   cat:'Supplement',    dose:0,    unit:'mg', route:'Oral',           freq:'daily',   days:[],         time:'AM',     clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#818CF8',active:false},
+  {id:'p15',name:'HCG',                   cat:'Peptide',       dose:500,  unit:'IU', route:'SubQ Injection',           freq:'daily',   days:[],         time:'AM',     clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#818CF8',active:false},
+  {id:'p16', name:'IPA/CJC',              cat:'Peptide',       dose:100,  unit:'mcg',route:'SubQ Injection', freq:'daily',   days:[],         time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#A78BFA',active:false},
+  {id:'p17', name:'Semax',               cat:'Nootropic',     dose:200,  unit:'mcg',route:'Nasal Spray',   freq:'5xweek',  days:[1,2,3,4,5],time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#F472B6',active:false}
 ];
 
 // Return the default compounds with ACTIVE ones re-anchored to be currently live.
@@ -1503,6 +1544,7 @@ function freshDefaults(){
 // ─── STATE ───────────────────────────────────────────────────
 let D={compounds:[],logs:[],inventory:[],history:[],skips:[]};
 let viewDate=''; // set in init()
+let _firstRun=false;
 let fColor=COLORS[0], fSite='';
 
 function save(){
@@ -1651,6 +1693,20 @@ function runMigration(sourcePayload){
 }
 
 let _migrationFlags=[]; window._calYM=null; window._calSelected=null; let _migrationError=null; let _blockAutosave=false; let _recoveryNotice=null;
+function sanitizeCompounds(arr){
+  // Defensive: drop null/malformed entries and ensure required fields exist, so
+  // data written by an earlier buggy build (e.g. a null slot) can't crash the app.
+  if(!Array.isArray(arr)) return [];
+  return arr.filter(c=>c && typeof c==='object' && c.id).map(c=>{
+    if(c.active===undefined||c.active===null) c.active=false;
+    if(!Array.isArray(c.days)) c.days=[];
+    normalizeSchedule(c);
+    // §5: legacy active records with no trackingStartDate are backfilled from their START
+    // date (preserving prior adherence history), NEVER from today.
+    if(c.active && !c.trackingStartDate) stampTracking(c, 'backfill');
+    return c;
+  });
+}
 function load(){
   // Source selection: protocol_data is authoritative; pt_backup is recovery only.
   // No log-count heuristic. Future schemas are rejected, not loaded.
@@ -1685,7 +1741,7 @@ function load(){
       }
     }
     if(_migrationError){ return; }   // do not commit a failed-migration candidate
-    D.compounds = best.compounds;
+    D.compounds = sanitizeCompounds(best.compounds);
     D.logs      = best.logs      || [];
     D.inventory = best.inventory || [];
     D.history   = best.history   || [];
@@ -1697,6 +1753,7 @@ function load(){
   } else {
     D.compounds = freshDefaults();
     D.inventory = defaultInventory();
+    _firstRun = true;
     save();
   }
 }
@@ -1909,6 +1966,191 @@ function rStack(){
 }
 
 // Days until this compound's cycle ends (null when it has no end)
+// ─── WEEKLY PREPARATION (pre-pull planner) ───────────────────
+// For users who draw a whole week of doses in one sitting. Reuses the frozen
+// scheduling logic (isDue/bucket/effectiveDose) by walking viewDate day by day,
+// then restoring it. Draw amounts mirror pinBadge exactly but return data
+// rather than markup — a static test asserts the two agree.
+let prepWeekOffset = 0;
+
+function prepWeekStart(dateStr){
+  const d = new Date((dateStr||tod())+'T12:00:00');
+  if(isNaN(d)) return tod();
+  const back = (d.getDay()+6)%7;          // Monday = start of week
+  d.setDate(d.getDate()-back);
+  return localDateStr(d);
+}
+
+// Amount to draw for one dose. Returns {kind,value,text} or null when the
+// compound lacks the vial data needed to compute it.
+function prepDraw(c, date){
+  const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater), dose=parseFloat(effectiveDose(c,date));
+  if(!vs||!dose) return null;
+  const doseMcg=toMcg(dose, c.unit);
+  if(isSprayRoute(c.route)){
+    const r=sprayCalc({peptideAmt:c.vialSize, peptideUnit:c.vialUnit||'mg', bacWater:c.bacWater,
+                       saline:c.saline, volPerSpray:c.volPerSpray, doseMcg:dose, doseUnit:c.unit});
+    if(r.ok && r.spraysRounded!=null && r.spraysRounded>0)
+      return {kind:'sprays', value:r.spraysRounded, text:fmtNum(r.spraysRounded)+' spray'+(r.spraysRounded===1?'':'s')};
+    return null;
+  }
+  if(isOilBased(c)){
+    const concMcg=toMcg(vs, c.vialUnit||'mg');
+    if(!concMcg) return null;
+    const ml=doseMcg/concMcg;
+    if(!isFinite(ml)||ml<=0) return null;
+    return {kind:'ml', value:ml, text:ml.toFixed(2)+'ml'};
+  }
+  if(!bac) return null;
+  const concMcg=toMcg(vs/bac, c.vialUnit||'mg');
+  if(!concMcg) return null;
+  const units=(doseMcg/concMcg)*100;
+  if(!isFinite(units)||units<=0) return null;
+  return {kind:'units', value:units, text:(units<10?units.toFixed(1):units.toFixed(0))+' units'};
+}
+
+// Build the whole week. Pure data — no DOM. viewDate is saved and restored.
+function prepWeekData(start){
+  const prev = viewDate;
+  const days = [], totals = {};
+  try{
+    for(let i=0;i<7;i++){
+      const date = addDays(start,i);
+      viewDate = date;                         // frozen isDue reads the global
+      const items = [];
+      (D.compounds||[]).forEach(c=>{
+        if(!c || !isDue(c)) return;
+        const b = bucket(c);
+        const slots = (b==='both') ? ['am','pm'] : [''];
+        slots.forEach(slot=>{
+          const skipped = isSkipped(c, slot, date);
+          const done    = doneOnDate(c, slot, date);
+          const dose    = effectiveDose(c, date);
+          const draw    = prepDraw(c, date);
+          const label   = (b==='both') ? slot.toUpperCase()
+                        : (b==='pm' ? 'PM' : (b==='any' ? 'Any' : 'AM'));
+          items.push({pid:c.id, name:c.name||'Unnamed', color:c.color||'', slot:label,
+                      dose:dose, unit:c.unit||'', draw:draw, skipped:skipped, done:done});
+          if(skipped || done) return;          // already handled — not to be pulled
+          const t = totals[c.id] || (totals[c.id] = {pid:c.id, name:c.name||'Unnamed',
+                      color:c.color||'', unit:c.unit||'', doses:0, mass:0, vol:0, kind:null});
+          t.doses += 1;
+          t.mass  += parseFloat(dose)||0;
+          if(draw){ t.vol += draw.value; t.kind = draw.kind; }
+        });
+      });
+      days.push({date:date, items:items});
+    }
+  } finally { viewDate = prev; }               // always restore, even on throw
+  return {start:start, days:days, totals:Object.values(totals)};
+}
+
+function prepTotalText(t){
+  if(!t.kind || !(t.vol>0)) return '';
+  if(t.kind==='ml')     return t.vol.toFixed(2)+'ml total';
+  if(t.kind==='sprays') return fmtNum(Math.round(t.vol*2)/2)+' sprays total';
+  return (t.vol<10?t.vol.toFixed(1):t.vol.toFixed(0))+' units total';
+}
+
+function prepShift(n){ prepWeekOffset += n; rPrep(); }
+function prepThisWeek(){ prepWeekOffset = 0; rPrep(); }
+
+function rPrep(){
+  const el = document.getElementById('stack-prep');
+  if(!el) return;
+  const start = addDays(prepWeekStart(tod()), prepWeekOffset*7);
+  const end   = addDays(start,6);
+  const data  = prepWeekData(start);
+  const DOW   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const fmtD  = s=>{ const d=new Date(s+'T12:00:00');
+                     return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; };
+  const today = tod();
+
+  const relLbl = prepWeekOffset===0 ? 'This week'
+               : prepWeekOffset===1 ? 'Next week'
+               : prepWeekOffset===-1 ? 'Last week'
+               : (prepWeekOffset>0 ? 'In '+prepWeekOffset+' weeks' : Math.abs(prepWeekOffset)+' weeks ago');
+
+  let h = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">'
+    + '<button class="rec-tab" onclick="prepShift(-1)" aria-label="Previous week" style="padding:8px 12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>'
+    + '<div style="text-align:center;line-height:1.3"><div style="font-size:14px;color:var(--text-primary);font-weight:600">'+esc(relLbl)+'</div>'
+    + '<div style="font-size:11px;color:var(--text-secondary)">'+esc(fmtD(start))+' &ndash; '+esc(fmtD(end))+'</div></div>'
+    + '<button class="rec-tab" onclick="prepShift(1)" aria-label="Next week" style="padding:8px 12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>'
+    + '</div>';
+
+  if(prepWeekOffset!==0)
+    h += '<div style="text-align:center;margin-bottom:12px"><button class="rec-tab" onclick="prepThisWeek()" style="font-size:12px">Back to this week</button></div>';
+
+  const totals = data.totals.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const totalDoses = totals.reduce((a,t)=>a+t.doses,0);
+
+  if(!totalDoses){
+    h += '<div class="empty"><div class="empty-ic" style="color:var(--text-muted)"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></div>'
+       + '<div class="empty-t">Nothing to prepare</div><div>No scheduled doses outstanding this week</div></div>';
+    el.innerHTML = h;
+    return;
+  }
+
+  // ── Pull list: what to draw, in total, for the whole week ──
+  h += '<div style="background:var(--brand);border:1px solid var(--border-subtle);border-radius:var(--r);padding:14px;margin-bottom:12px">'
+     + '<div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:2px">Pull list</div>'
+     + '<div style="font-size:11px;color:var(--text-secondary);margin-bottom:10px">'+totalDoses+' dose'+(totalDoses===1?'':'s')+' outstanding &middot; excludes logged and skipped</div>';
+  totals.forEach(t=>{
+    const tot = prepTotalText(t);
+    h += '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border-subtle)">'
+       + (t.color?'<span style="width:8px;height:8px;border-radius:50%;background:'+esc(t.color)+';flex-shrink:0"></span>':'')
+       + '<div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.name)+'</div>'
+       + '<div style="font-size:11px;color:var(--text-secondary)">'+t.doses+' &times; '+esc(fmtNum(t.mass/t.doses))+esc(t.unit)+'</div></div>'
+       + '<div style="text-align:right;flex-shrink:0"><div style="font-size:13px;color:var(--brand-accent,var(--text-primary));font-weight:600">'+esc(fmtNum(t.mass))+esc(t.unit)+'</div>'
+       + (tot?'<div style="font-size:11px;color:var(--text-secondary)">'+esc(tot)+'</div>':'')
+       + '</div></div>';
+  });
+  h += '</div>';
+
+  // ── Day by day ──
+  data.days.forEach((d,i)=>{
+    const isToday = d.date===today;
+    const past = d.date<today;
+    h += '<div style="background:var(--brand);border:1px solid '+(isToday?'var(--text-primary)':'var(--border-subtle)')+';border-radius:var(--r);padding:12px;margin-bottom:8px'+(past?';opacity:0.55':'')+'">'
+       + '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:'+(d.items.length?'8px':'0')+'">'
+       + '<span style="font-size:13px;font-weight:600;color:var(--text-primary)">'+DOW[i]+'</span>'
+       + '<span style="font-size:11px;color:var(--text-secondary)">'+esc(fmtD(d.date))+'</span>'
+       + (isToday?'<span style="font-size:10px;color:var(--brand-accent,var(--text-primary));margin-left:auto">TODAY</span>':'')
+       + '</div>';
+    if(!d.items.length){
+      h += '<div style="font-size:12px;color:var(--text-muted)">No doses scheduled</div>';
+    } else {
+      d.items.forEach(it=>{
+        const dim = it.done || it.skipped;
+        h += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0'+(dim?';opacity:0.45':'')+'">'
+           + (it.color?'<span style="width:6px;height:6px;border-radius:50%;background:'+esc(it.color)+';flex-shrink:0"></span>':'')
+           + '<span style="font-size:10px;color:var(--text-secondary);width:26px;flex-shrink:0">'+esc(it.slot)+'</span>'
+           + '<span style="flex:1;min-width:0;font-size:12px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(dim?';text-decoration:line-through':'')+'">'+esc(it.name)+'</span>'
+           + '<span style="font-size:12px;color:var(--text-primary);flex-shrink:0">'+esc(fmtNum(parseFloat(it.dose)))+esc(it.unit)+'</span>'
+           + (it.draw?'<span style="font-size:11px;color:var(--text-secondary);flex-shrink:0;min-width:56px;text-align:right">'+esc(it.draw.text)+'</span>':'<span style="min-width:56px"></span>')
+           + '</div>';
+      });
+    }
+    h += '</div>';
+  });
+
+  h += '<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:4px">Draw amounts are calculated from each compound\'s vial size and BAC water, matching the Today tab. Verify against your own syringe before drawing.</div>';
+  el.innerHTML = h;
+}
+
+function setStackTab(tab){
+  currentStackTab = tab;
+  const m=document.getElementById('stack-main'), p=document.getElementById('stack-prep');
+  if(m) m.classList.toggle('hidden', tab!=='stack');
+  if(p) p.classList.toggle('hidden', tab!=='prep');
+  const bs=document.getElementById('stacktab-stack'), bp=document.getElementById('stacktab-prep');
+  if(bs) bs.classList.toggle('on', tab==='stack');
+  if(bp) bp.classList.toggle('on', tab==='prep');
+  const t=document.getElementById('hdrTitle');
+  if(t) t.textContent = tab==='prep' ? 'Weekly Prep' : 'Stack Summary';
+  if(tab==='prep') rPrep(); else rStack();
+}
+
 function daysUntilCycleEnd(c){
   const end=getCompoundEndDate(c);
   if(!end) return null;
@@ -1934,6 +2176,14 @@ function pinBadge(c){
   const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater), dose=parseFloat(effectiveDose(c));
   if(!vs||!dose) return '';
   const doseMcg=toMcg(dose, c.unit);
+  // Nasal spray: show sprays-per-dose instead of a syringe amount.
+  if(isSprayRoute(c.route)){
+    const r=sprayCalc({peptideAmt:c.vialSize, peptideUnit:c.vialUnit||'mg', bacWater:c.bacWater, saline:c.saline, volPerSpray:c.volPerSpray, doseMcg:dose, doseUnit:c.unit});
+    if(r.ok && r.spraysRounded!=null && r.spraysRounded>0){
+      return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 11V6a3 3 0 0 1 6 0v5M7 11h10v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/></svg> '+fmtNum(r.spraysRounded)+' spray'+(r.spraysRounded===1?'':'s');
+    }
+    return '';
+  }
   if(isOilBased(c)){
     const concMcg=toMcg(vs, c.vialUnit||'mg');
     if(!concMcg) return '';
@@ -2480,6 +2730,35 @@ function calSelectCompound(){
   rHistByDate();
 }
 // adherence status for one compound on one date: 'taken'|'paused'|'missed'|'none'
+// §5: trackingStartDate marks when the user actually began TRACKING this protocol in the
+// app (i.e. when the record was created/activated), as distinct from the clinical start
+// date, which may be back-dated. Adherence/missed-dose logic must not retroactively mark
+// days before tracking began as "missed" — those are pre-tracking (not assessed).
+// §5: trackingStartDate marks when adherence assessment begins for a protocol. It is
+// distinct from the clinical start date, which may be back-dated. The rules:
+//   - New activation, start today/future  -> trackingStartDate = start (don't assess before start)
+//   - New activation, deliberately back-dated start -> trackingStartDate = today
+//   - Existing legacy active record (no field) -> backfill from START (preserve its history),
+//     NEVER today (which would erase previously-tracked adherence)
+//   - Editing an existing record -> never reset or introduce a new boundary
+// `context` must be 'create' (new activation) or 'edit'/'backfill' (existing record).
+function stampTracking(c, context){
+  if(!c || !c.active) return c;
+  if(c.trackingStartDate) return c;               // already set -> never change (rule 5)
+  const today=localDateStr(new Date());
+  if(context==='create'){
+    // New activation: if start is today/future, track from start; if back-dated, track from today.
+    if(c.start && c.start>today){ c.trackingStartDate=c.start; }      // future start
+    else if(c.start && c.start<today){ c.trackingStartDate=today; }   // back-dated -> today
+    else { c.trackingStartDate = c.start || today; }                  // start == today
+  } else {
+    // Existing legacy record with no field: preserve historical behaviour by anchoring to
+    // its own start date (NOT today), so its prior adherence history is retained.
+    c.trackingStartDate = c.start || today;
+  }
+  return c;
+}
+
 function adherenceStatus(cid, ds){
   const c=D.compounds.find(x=>x.id===cid);
   // reconstruct config as of that date
@@ -2487,6 +2766,9 @@ function adherenceStatus(cid, ds){
   const cfg=snap?snap.snap:c; if(!cfg) return 'none';
   if(cfg.active===false || cfg.freq==='prn') return 'none';
   if(cfg.start && ds<cfg.start) return 'none';
+  // §5: before tracking began, days are not assessed (pre-tracking), never missed.
+  const trackFloor = c && c.trackingStartDate ? c.trackingStartDate : (cfg.start||null);
+  if(trackFloor && ds<trackFloor) return 'none';
   if(cfg.end && ds>cfg.end) return 'none';
   const dow=new Date(ds+'T12:00:00').getDay();
   const sched=(cfg.days&&cfg.days.length)?cfg.days.includes(dow):true;
@@ -2841,6 +3123,7 @@ function updateDateNav(){
   else{banner.classList.add('hidden');}
 }
 let currentRecTab='stats';
+let currentStackTab='stack';
 
 function setRecTab(tab){
   currentRecTab=tab;
@@ -2866,16 +3149,20 @@ function nav(pg,btn){
   if(pg==='today'){viewDate=tod();updateDateNav();}
   if(pg==='records') setRecTab(currentRecTab);
   if(pg==='calc') initCalc();
-  if(pg==='stack') rStack();
+  if(pg==='stack') setStackTab(currentStackTab);
   const titles={today:'Today',proto:'Protocol',inv:'Inventory',calc:'Calculator',stack:'Stack Summary',records:'Records'};
   document.getElementById('hdrTitle').textContent=titles[pg]||pg;
 }
 function fabAction(){
-  if(currentPage==='inv') openAddInv();
-  // Item 6: when today's protocol is complete, FAB opens Add Record (log) as the
-  // logical next action rather than implying outstanding doses. On Today, openLog
-  // is already the record workflow, so this reinforces it explicitly when done.
-  else openLog(null);
+  // The + button offers a choice: add a new protocol (guided wizard) or log a dose
+  // (including off-protocol / catch-up doses). Inventory keeps its own add-item action.
+  if(currentPage==='inv'){ openAddInv(); return; }
+  openOv('ov-fabpick');
+}
+function fabPick(what){
+  closeOv('ov-fabpick');
+  if(what==='protocol') kiOpenStack();
+  else if(what==='log') openLog(null);
 }
 function closeOv(id){document.getElementById(id).classList.add('hidden')}
 function openOv(id){document.getElementById(id).classList.remove('hidden')}
@@ -2893,9 +3180,47 @@ function pickColor(c,el){
   el.classList.add('on');
 }
 
+// §2/§3: one canonical schedule normaliser. Ensures freq (administrations/day) and time
+// (slots) never contradict. Applied at every load/populate point, not just onchange.
+// Rule: bid <=> 'Both'. For once/interval freqs, 'Both' is invalid -> collapse to 'AM'
+// (unless an explicit single slot was set). Returns the same object, mutated.
+function normalizeSchedule(c){
+  // Resolve any freq/time contradiction on a stored/loaded record WITHOUT changing the
+  // effective number of daily administrations. Historically time:'Both' produced two Today
+  // doses (AM+PM), so a 'Both' record must stay two-a-day — upgrade freq to 'bid', never
+  // collapse to a single slot (which would silently drop the PM dose).
+  if(!c) return c;
+  if(c.time==='Both'){
+    c.freq='bid'; c.time='Both';          // Both => two administrations => bid
+  } else if(c.freq==='bid'){
+    c.time='Both';                        // bid => must occupy both slots
+  }
+  // Single-slot records (AM / PM / Any / etc.) are already consistent — leave untouched.
+  return c;
+}
+
+// §3.6/§2: one canonical administrations-per-day. Frequency and Time of Day must not
+// contradict. bid (Twice Daily) <=> time 'Both' (AM & PM). This keeps them in sync so
+// an incompatible combination can never be saved.
+function syncFreqTime(freqId, timeId, source){
+  const fe=document.getElementById(freqId), te=document.getElementById(timeId);
+  if(!fe||!te) return;
+  if(source==='freq'){
+    if(fe.value==='bid'){ te.value='Both'; }               // twice daily -> AM & PM
+    else if(te.value==='Both'){ te.value='AM'; }            // once/interval -> single slot
+  } else { // source==='time'
+    if(te.value==='Both'){ if(fe.value!=='bid') fe.value='bid'; }   // AM & PM -> twice daily
+    else { if(fe.value==='bid') fe.value='daily'; }                  // single slot -> once daily
+  }
+}
+
 function onFreq(){
+  syncFreqTime('f-freq','f-time','freq');
   checkFreqDaysConflict();
 }
+function onFTime(){ syncFreqTime('f-freq','f-time','time'); }
+function onKiFreq(){ syncFreqTime('ki-freq','ki-time','freq'); if(typeof kiFreqChanged==='function') kiFreqChanged(); }
+function onKiTime(){ syncFreqTime('ki-freq','ki-time','time'); }
 function checkFreqDaysConflict(){
   const el=document.getElementById('f-freq-warn'); if(!el) return;
   const freq=document.getElementById('f-freq').value;
@@ -2925,6 +3250,40 @@ function onDur(){
   document.getElementById('f-end-wrap').style.opacity = ongoing?0.5:1;
   if(w) w.disabled=ongoing; if(e) e.disabled=ongoing;
   if(ongoing){ if(w) w.value=''; if(e) e.value=''; }
+  updateEndPreview();
+}
+// If a chosen start date is before today, confirm the user is intentionally back-dating.
+// Returns a promise<boolean>: true = keep the date, false = user wants to change it.
+async function confirmBackdatedStart(startStr){
+  if(!startStr) return true;
+  const today=localDateStr(new Date());
+  if(startStr>=today) return true;  // ISO yyyy-mm-dd compares lexicographically
+  const d=new Date(startStr+'T12:00:00');
+  const nice=isNaN(d)?startStr:d.toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'});
+  return await ptConfirm('The start date you selected ('+nice+') is before today. Protocols normally start today or later.\n\nAre you back-dating this protocol on purpose?', 'Start date is in the past', {okText:'Yes, back-date it', cancelText:'No, change it'});
+}
+
+async function onStartInput(){
+  const start=document.getElementById('f-start').value;
+  const weeks=document.getElementById('f-weeks').value;
+  const end=document.getElementById('f-end').value;
+  // §: prompt if back-dating. If the user declines, clear the field and stop.
+  if(start){
+    const ok=await confirmBackdatedStart(start);
+    if(!ok){ document.getElementById('f-start').value=''; updateEndPreview(); return; }
+  }
+  if(start && weeks){
+    // Weeks already chosen: the end date follows from the (new) start date.
+    document.getElementById('f-end').value = calcEndFromWeeks(start, weeks);
+    const dt=document.getElementById('f-durtype'); if(dt.value==='ongoing') dt.value='weeks';
+  } else if(start && end && !weeks){
+    // End already chosen but no weeks: derive weeks from start+end.
+    const d0=new Date(start+'T12:00:00'), d1=new Date(end+'T12:00:00');
+    if(!isNaN(d0)&&!isNaN(d1)&&d1>=d0){
+      document.getElementById('f-weeks').value=Math.max(1,Math.round((d1-d0)/(86400000*7)));
+      const dt=document.getElementById('f-durtype'); if(dt.value==='ongoing') dt.value='weeks';
+    }
+  }
   updateEndPreview();
 }
 function onWeeksInput(){
@@ -2962,11 +3321,19 @@ function calcEndFromWeeks(start,weeks){
 function updateEndPreview(){
   const el=document.getElementById('f-end-preview');
   if(!el) return;
-  const end=calcEndFromWeeks(document.getElementById('f-start').value,
-                             document.getElementById('f-weeks').value);
-  el.textContent = end
-    ? 'Ends: '+new Date(end+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'})
-    : '';
+  const start=document.getElementById('f-start').value;
+  const weeks=document.getElementById('f-weeks').value;
+  const end=calcEndFromWeeks(start, weeks);
+  if(end && start){
+    const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'});
+    el.textContent = fmt(start)+' + '+weeks+' week'+(weeks==1?'':'s')+' = '+fmt(end);
+  } else if(end){
+    el.textContent = 'Ends: '+new Date(end+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'});
+  } else if(weeks && !start){
+    el.textContent = 'Enter a start date to calculate the end date.';
+  } else {
+    el.textContent='';
+  }
 }
 
 function getDays(){
@@ -3122,7 +3489,7 @@ function openEdit(pid){
   document.getElementById('f-route').value=c.route;
   document.getElementById('f-doseNotes').value=c.doseNotes||'';
   document.getElementById('f-freq').value=c.freq;
-  document.getElementById('f-time').value=c.time;
+  { const nc=normalizeSchedule({freq:c.freq, time:c.time}); if(document.getElementById('f-freq')) document.getElementById('f-freq').value=nc.freq; document.getElementById('f-time').value=nc.time; }
   document.getElementById('f-clock').value=c.clock||'';
   document.getElementById('f-timingNotes').value=c.timingNotes||'';
   document.getElementById('f-start').value=c.start||'';
@@ -3136,6 +3503,9 @@ function openEdit(pid){
   document.getElementById('f-vialSize').value=c.vialSize||'';
   document.getElementById('f-vialUnit').value=c.vialUnit||'mg';
   document.getElementById('f-bac').value=c.bacWater||'';
+  document.getElementById('f-saline').value=c.saline||'';
+  document.getElementById('f-volPerSpray').value=c.volPerSpray||'';
+  onRouteChange();
   document.getElementById('f-active').checked=c.active;
   buildColors(c.color);
   document.getElementById('form-dot').style.background=c.color;
@@ -3218,6 +3588,8 @@ async function saveForm(){
       vialSize:document.getElementById('f-vialSize').value,
       vialUnit:document.getElementById('f-vialUnit').value,
       bacWater:document.getElementById('f-bac').value,
+      saline:document.getElementById('f-saline').value,
+      volPerSpray:document.getElementById('f-volPerSpray').value,
       color:fColor,
       active:document.getElementById('f-active').checked,
     };
@@ -3245,9 +3617,12 @@ async function saveForm(){
       vialSize:document.getElementById('f-vialSize').value,
       vialUnit:document.getElementById('f-vialUnit').value,
       bacWater:document.getElementById('f-bac').value,
+      saline:document.getElementById('f-saline').value,
+      volPerSpray:document.getElementById('f-volPerSpray').value,
       color:fColor,active:true,
     });
     // Snapshot on creation so the compound enters the historical timeline.
+    stampTracking(D.compounds[D.compounds.length-1], 'create');
     snapshotCompound(D.compounds[D.compounds.length-1], 'create');
   }
   // Attach titration schedule (if the toggle is on and a valid draft exists).
@@ -3294,9 +3669,18 @@ function saveLog(){
   const pid=document.getElementById('l-pid').value;
   const dose=document.getElementById('l-dose').value;
   if(!pid||!dose){ptAlert('Select a compound and enter a dose.');return;}
-  D.logs.push({id:uid(),pid,dose,unit:document.getElementById('l-unit').value,
-    site:fSite,t:document.getElementById('l-time').value||localDateTimeStr(new Date()),
-    notes:document.getElementById('l-notes').value});
+  const t=document.getElementById('l-time').value||localDateTimeStr(new Date());
+  // Determine the slot so Today can reflect the log. "Both" (AM/PM) compounds need a
+  // slot; infer it from the log time (before noon = AM, otherwise PM). Single-dose
+  // compounds use an empty slot.
+  const c=D.compounds.find(x=>x.id===pid);
+  let slot='';
+  if(c && c.time==='Both'){
+    const hr=parseInt((t.split('T')[1]||'00:00').slice(0,2),10);
+    slot = (hr<12) ? 'am' : 'pm';
+  }
+  D.logs.push({id:uid(),pid,slot,dose,unit:document.getElementById('l-unit').value,
+    site:fSite,t,notes:document.getElementById('l-notes').value});
   save();render();closeOv('ov-log');
 }
 
@@ -3937,6 +4321,7 @@ async function masterReset(){
   _migrationError=null; _blockAutosave=false; _recoveryNotice=null;
   render();
   await ptAlert('Reset complete. All app data was erased and the default compounds restored.');
+  offerProtocolSetup();
 }
 
 async function checkBackupReminder(){try{
@@ -4261,6 +4646,7 @@ function init(){
   }catch(e){}
   // Check for cycle end reminders
   initTodaySwipe();
+  if(_firstRun){ _firstRun=false; setTimeout(offerProtocolSetup, 600); }
   setTimeout(checkCycleEndReminders, 800);
   setTimeout(checkMissedDoses, 1200);
 }
@@ -4285,6 +4671,8 @@ function checkMissedDoses(){
       if(!sched) return;
       // within active window?
       if(c.start && ds<c.start) return;
+        // §5: don't flag days before tracking began as missed.
+        if(c.trackingStartDate && ds<c.trackingStartDate) return;
       if(c.end && ds>c.end) return;
       const key=c.id+'|'+ds;
       if(confirmed[key]) return; // already confirmed one way or another
@@ -4369,15 +4757,17 @@ function kiToggleTitration(){
   tog.classList.toggle('off',!on);
   tog.classList.toggle('on',on);
   document.getElementById('ki-titr-edit').style.display = on ? 'block' : 'none';
-  if(on && (!_titrDraft || !_titrDraft.length)){
-    const d=parseFloat(document.getElementById('ki-dose').value)||0;
-    _titrDraft=[{dose:d||0, weeks:2}];
+  if(on){
+    // Go straight to the schedule builder. Seed a first phase from the current dose
+    // if there's no draft yet.
+    if(!_titrDraft || !_titrDraft.length){
+      const d=parseFloat(document.getElementById('ki-dose').value)||0;
+      _titrDraft=[{dose:d||0, weeks:2}];
+    }
     openTitrationEditor();
-  } else if(!on){
+  } else {
     _titrDraft=[];
     document.getElementById('ki-titr-summary').style.display='none';
-  } else {
-    kiRenderTitrSummary();
   }
 }
 function kiRenderTitrSummary(){
@@ -4426,6 +4816,62 @@ function kiSetDaysArr(arr){
   });
 }
 
+
+let _kiChosenId=null;  // when a pre-loaded compound is picked, its id (activate, don't duplicate)
+function kiPopulateChooser(){
+  const sel=document.getElementById('ki-choose');
+  const wrap=document.getElementById('ki-choose-wrap');
+  if(!sel||!wrap) return;
+  // list inactive compounds (the pre-loaded library not yet in the user's protocol)
+  const avail=(D.compounds||[]).filter(c=>c.active===false);
+  if(_kiMode==='stack' && avail.length){
+    wrap.style.display='block';
+    sel.innerHTML='<option value="">\u2014 Add your own \u2014</option>'+
+      avail.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+    sel.value='';
+  } else {
+    wrap.style.display='none';
+  }
+}
+function kiChooseCompound(){
+  const id=document.getElementById('ki-choose').value;
+  _kiChosenId = id || null;
+  if(!id){
+    // "Add your own" — clear to blank for a new compound
+    ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+    return;
+  }
+  const c=D.compounds.find(x=>x.id===id); if(!c) return;
+  // pre-fill the wizard fields from the chosen pre-loaded compound
+  const set=(f,v)=>{const el=document.getElementById(f);if(el&&v!=null)el.value=v;};
+  set('ki-name', c.name); set('ki-dose', c.dose); set('ki-unit', c.unit||'mcg');
+  set('ki-freq', c.freq||'daily'); set('ki-vial', c.vialSize); set('ki-bac', c.bacWater);
+  // Normalize a possibly-contradictory stored schedule before displaying it.
+  { const nc=normalizeSchedule({freq:c.freq, time:c.time}); set('ki-freq', nc.freq||'daily'); set('ki-time', (['AM','PM','Both'].includes(nc.time)?nc.time:'AM')); }
+  // §3: inactive preloaded compound → start defaults to today (not a stale stored date).
+  set('ki-start', (c.active && c.start) ? c.start : localDateStr(new Date()));
+  kiSetDaysArr(c.days||[]);
+  if(typeof kiFreqChanged==='function') kiFreqChanged();
+}
+
+
+// Offer a guided protocol setup (used after Master Reset and on first run).
+async function offerProtocolSetup(){
+  const go = await ptConfirm('Would you like to set up your protocol now? You can pick from the pre-loaded compounds or add your own, one at a time.', 'Set up your protocol', {okText:'Start setup', cancelText:"I'll do it later"});
+  if(go) kiOpenStack();
+}
+
+let _kiDurtype='ongoing';
+function kiSetDurtype(t){
+  _kiDurtype=t;
+  document.querySelectorAll('#ki-durtype-btns .ki-dur-opt').forEach(b=>{
+    b.classList.toggle('on', b.dataset.dur===t);
+  });
+  // Ongoing hides weeks/end (not required). Fixed length shows them.
+  const ww=document.getElementById('ki-weeks-wrap'), ew=document.getElementById('ki-end-wrap');
+  if(ww) ww.style.display = (t==='weeks')?'block':'none';
+  if(ew) ew.style.display = (t==='weeks')?'block':'none';
+}
 function kiOpenStack(){
   _kiMode='stack'; _kiQueue=[{}]; _kiIndex=0; _kiActivateId=null;
   kiRenderStep();
@@ -4456,6 +4902,7 @@ function kiPopulateFrom(){
   const set=(id,val)=>{ const el=document.getElementById(id); if(el&&val!=null) el.value=val; };
   set('ki-name', sn.name); set('ki-dose', sn.dose); set('ki-unit', sn.unit);
   set('ki-freq', sn.freq); set('ki-vial', sn.vialSize); set('ki-bac', sn.bacWater);
+  if(['AM','PM','Both'].includes(sn.time)) set('ki-time', sn.time);
   if(sn.weeks) set('ki-weeks', sn.weeks);
   kiSetDaysArr(sn.days||[]);
   kiFreqChanged();
@@ -4467,10 +4914,16 @@ function kiRenderStep(existing){
   const nextBtn=document.getElementById('ki-next');
   // clear fields
   ['ki-name','ki-dose','ki-vial','ki-bac','ki-start','ki-weeks','ki-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  // Default start date to today (so a new protocol starts now unless changed).
+  { const st=document.getElementById('ki-start'); if(st){ st.value=(typeof localDateStr==='function')?localDateStr(new Date()):new Date().toISOString().slice(0,10); } }
   document.getElementById('ki-unit').value='mcg';
   document.getElementById('ki-freq').value='daily';
+  document.getElementById('ki-time').value='AM';
   document.getElementById('ki-populate').value='';
   kiSetDaysArr([]); // clear day tickboxes
+  _kiChosenId=null;
+  kiSetDurtype('ongoing');
+  kiPopulateChooser();
   kiResetTitration();
   setTimeout(kiFreqChanged,0);
   const finishBtn=document.getElementById('ki-finish');
@@ -4478,7 +4931,9 @@ function kiRenderStep(existing){
     title.textContent='New protocol '+(_kiIndex+1);
     prog.textContent = _kiStackCount>0 ? (_kiStackCount+' added so far — add another below') : 'First compound of your new stack';
     nextBtn.textContent='Save & add next';
-    if(finishBtn) finishBtn.style.display = _kiStackCount>0 ? 'block' : 'none';
+    // Finish is available from the first entry (§ wizard requirement): a user adding one
+    // compound can save+exit directly without needing "Save & add next" then a blank step.
+    if(finishBtn) finishBtn.style.display='block';
   } else {
     title.textContent='Activate protocol';
     prog.textContent='Set the key info to activate this compound';
@@ -4488,17 +4943,27 @@ function kiRenderStep(existing){
       const set=(id,v)=>{ const el=document.getElementById(id); if(el&&v!=null) el.value=v; };
       set('ki-name', existing.name); set('ki-dose', existing.dose); set('ki-unit', existing.unit||'mcg');
       set('ki-freq', existing.freq||'weekly'); set('ki-vial', existing.vialSize); set('ki-bac', existing.bacWater);
-      set('ki-start', existing.start); set('ki-weeks', existing.weeks); set('ki-end', existing.end);
+      { const ne=normalizeSchedule({freq:existing.freq, time:existing.time}); set('ki-freq', ne.freq||'weekly'); set('ki-time', (['AM','PM','Both'].includes(ne.time)?ne.time:'AM')); }
+      // §3.2/§3: an inactive preloaded compound should NOT carry a stale start date into a
+      // new activation — default to today. An already-active compound keeps its real start.
+      const _kiStartVal = (existing.active && existing.start) ? existing.start : localDateStr(new Date());
+      set('ki-start', _kiStartVal); set('ki-weeks', existing.weeks); set('ki-end', existing.end);
+      kiSetDurtype((existing.durtype==='weeks'||existing.weeks||existing.end)?'weeks':'ongoing');
       kiSetDaysArr(existing.days||[]);
       kiLoadTitration(existing);
       setTimeout(kiFreqChanged,0);
     }
   }
 }
-function kiSyncDates(src){
+async function kiSyncDates(src){
   const start=document.getElementById('ki-start').value;
   const weeks=document.getElementById('ki-weeks').value;
   const end=document.getElementById('ki-end').value;
+  // §: when the start date changes, prompt if it's back-dated. Decline → clear it.
+  if(src==='start' && start){
+    const ok=await confirmBackdatedStart(start);
+    if(!ok){ document.getElementById('ki-start').value=''; return; }
+  }
   if(src==='weeks' && start && weeks){ document.getElementById('ki-end').value=calcEndFromWeeks(start,weeks); }
   else if(src==='end' && start && end){
     const d0=new Date(start+'T12:00:00'), d1=new Date(end+'T12:00:00');
@@ -4520,49 +4985,127 @@ function kiCollect(){
   const start=g('ki-start'), weeks=g('ki-weeks'), end=g('ki-end');
   return {
     name, dose:parseFloat(g('ki-dose'))||0, unit:g('ki-unit'),
-    freq:g('ki-freq'), days:kiGetDays(), start:start||'', weeks:weeks||'', end:end||'',
-    durtype: (weeks||end)?'weeks':'ongoing',
+    freq:g('ki-freq'), days:kiGetDays(), time:g('ki-time')||'AM',
+    start:start||'', weeks:weeks||'', end:end||'',
+    durtype: _kiDurtype,
     vialSize:g('ki-vial')||'', bacWater:g('ki-bac')||''
   };
 }
-async function kiNext(){
+function kiFinishStack(){
+  // §3.1: Finish must save the current entry first (same path as Save & add next),
+  // then close. If the current step is blank (nothing entered), just close.
+  if(kiStepHasEntry()){ kiNext('finish'); return; }
+  closeOv('ov-keyinfo'); _kiMode=null; render();
+  if(_kiStackCount>0) ptAlert('Stack created — open any compound to add finer detail.');
+  _kiStackCount=0;
+}
+function kiStepHasEntry(){
+  // Does the current wizard step have anything worth saving? (name or dose or a chosen compound)
+  const g=id=>{const el=document.getElementById(id);return el?String(el.value||'').trim():'';};
+  return !!(_kiChosenId || g('ki-name') || (g('ki-dose') && parseFloat(g('ki-dose'))>0));
+}
+function kiHighlightField(field, persist){
+  // Map a validator field name to the wizard element id, then highlight (+ optionally scroll).
+  const map={ name:'ki-name', dose:'ki-dose', unit:'ki-unit', route:'ki-route', freq:'ki-freq',
+    start:'ki-start', end:'ki-end', weeks:'ki-weeks', vialSize:'ki-vial', bacWater:'ki-bac',
+    volPerSpray:'ki-volPerSpray', titration:'ki-titr-tog' };
+  const el=document.getElementById(map[field]||field);
+  if(!el) return;
+  el.classList.add('field-error');
+  // Clear this field's error as soon as the user edits it (leave others highlighted).
+  if(!el._kiErrHook){
+    el._kiErrHook=true;
+    const clear=()=>el.classList.remove('field-error');
+    el.addEventListener('input', clear);
+    el.addEventListener('change', clear);
+  }
+  if(!persist){ setTimeout(()=>el.classList.remove('field-error'), 2500); }
+}
+function kiScrollToField(field){
+  const map={ name:'ki-name', dose:'ki-dose', unit:'ki-unit', route:'ki-route', freq:'ki-freq',
+    start:'ki-start', end:'ki-end', weeks:'ki-weeks', vialSize:'ki-vial', bacWater:'ki-bac',
+    volPerSpray:'ki-volPerSpray', titration:'ki-titr-tog' };
+  const el=document.getElementById(map[field]||field);
+  if(el){ try{ el.scrollIntoView({block:'center', behavior:'smooth'}); }catch(e){} }
+}
+let _kiSaving=false;
+async function kiNext(after){
+  after = after || 'advance';  // 'advance' = Save & add next; 'finish' = save then close
+  if(_kiSaving) return;        // double-submit protection: ignore rapid repeated taps
+  _kiSaving=true;
+  try{
+    await kiNextInner(after);
+  } finally {
+    _kiSaving=false;
+  }
+}
+async function kiNextInner(after){
   const data=kiCollect(); if(!data) return;
 
-  // Same missing-field reminder as the full form — warn about anything that affects
-  // Today, the calculator, syringe amounts or reminders. Not a hard block.
+  // §3.4/§6: canonical validation. An active protocol must be complete & schedulable,
+  // otherwise it won't appear on Today. Block the save, keep the wizard open, and point
+  // at the first missing field with a specific message.
   {
-    const missing=[];
-    if(!data.dose || parseFloat(data.dose)<=0) missing.push('Dose');
-    if(!data.freq) missing.push('Frequency');
-    if(data.durtype!=='ongoing' && !data.start) missing.push('Start date');
-    if(data.durtype!=='ongoing' && !data.end) missing.push('End date');
-    if(!data.vialSize || parseFloat(data.vialSize)<=0) missing.push('Vial size (needed for dose calc)');
-    let routeForCheck = defaultRouteFor(data.name);
-    if(_kiMode==='activate' && _kiActivateId){ const ex=D.compounds.find(x=>x.id===_kiActivateId); if(ex&&ex.route) routeForCheck=ex.route; }
-    const oilish = /oral|topical/i.test(routeForCheck);
-    if(!oilish && (!data.bacWater || parseFloat(data.bacWater)<=0)) missing.push('BAC water (needed for units calc)');
-    if(missing.length){
-      const go = await ptConfirm('Some fields that affect Today, the calculator, syringe amounts and reminders are empty:\n\n• '+missing.join('\n• ')+'\n\nSave anyway and fill them later, or go back now?', 'Missing details', {okText:'Save anyway', cancelText:'Go back & fill'});
-      if(!go) return;
+    // Resolve the route being used (chosen/activate compound keeps its own route).
+    let route = defaultRouteFor(data.name);
+    if(_kiChosenId){ const ex=D.compounds.find(x=>x.id===_kiChosenId); if(ex&&ex.route) route=ex.route; }
+    else if(_kiMode==='activate' && _kiActivateId){ const ex=D.compounds.find(x=>x.id===_kiActivateId); if(ex&&ex.route) route=ex.route; }
+    const draft=Object.assign({}, data, {route});
+    const titrTogV=document.getElementById('ki-titr-tog');
+    if(titrTogV && titrTogV.classList.contains('on')) draft.titration={enabled:true, steps:_titrDraft||[]};
+    const v=validateProtocolDraft(draft, {requireName: !_kiChosenId && _kiMode==='stack'});
+    if(!v.ok){
+      // §4: highlight EVERY invalid field and show a combined summary; scroll to the first.
+      v.errors.forEach(e=>kiHighlightField(e.field, true));
+      kiScrollToField(v.errors[0].field);
+      const summary='Please complete the following before continuing:\n\n• '+v.errors.map(e=>e.message).join('\n• ');
+      await ptAlert(summary, 'Missing information');
+      return;
     }
   }
 
   if(_kiMode==='stack'){
-    // create the compound now
-    const c={ id:uid(), name:data.name, dose:data.dose, unit:data.unit, freq:data.freq,
-      route:defaultRouteFor(data.name), days:data.days||[], time:timeForFreq(data.freq), start:data.start, weeks:data.weeks, end:data.end,
-      durtype:data.durtype, vialSize:data.vialSize, bacWater:data.bacWater, active:true,
-      color: (typeof COLORS!=='undefined' && COLORS.length) ? COLORS[D.compounds.length % COLORS.length] : '#4B96E6' };
-    // attach titration if toggled on
+    // Attach titration if toggled on (shared by both new + chosen paths).
     const titrTog=document.getElementById('ki-titr-tog');
-    if(titrTog && titrTog.classList.contains('on') && Array.isArray(_titrDraft) && _titrDraft.length){
-      c.titration={ enabled:true, steps:_titrDraft.map(st=>({dose:parseFloat(st.dose)||0, weeks:parseFloat(st.weeks)||0})).filter(st=>st.dose>0&&st.weeks>0) };
+    const titr = (titrTog && titrTog.classList.contains('on') && Array.isArray(_titrDraft) && _titrDraft.length)
+      ? { enabled:true, steps:_titrDraft.map(st=>({dose:parseFloat(st.dose)||0, weeks:parseFloat(st.weeks)||0})).filter(st=>st.dose>0&&st.weeks>0) }
+      : null;
+    let c;
+    if(_kiChosenId){
+      // A pre-loaded compound was chosen: activate + update the EXISTING one (no duplicate).
+      c=D.compounds.find(x=>x.id===_kiChosenId);
+      if(c){
+        Object.assign(c, { dose:data.dose, unit:data.unit, freq:data.freq,
+          days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')),
+          start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
+          vialSize:data.vialSize, bacWater:data.bacWater, active:true });
+        if(titr) c.titration=titr; else delete c.titration;
+      }
     }
-    D.compounds.push(c);
-    snapshotCompound(c,'create');
+    if(!c){
+      // "Add your own" (or chosen id not found): create a new compound.
+      c={ id:uid(), name:data.name, dose:data.dose, unit:data.unit, freq:data.freq,
+        route:defaultRouteFor(data.name), days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')), start:data.start, weeks:data.weeks, end:data.end,
+        durtype:data.durtype, vialSize:data.vialSize, bacWater:data.bacWater, active:true,
+        color: (typeof COLORS!=='undefined' && COLORS.length) ? COLORS[D.compounds.length % COLORS.length] : '#4B96E6' };
+      if(titr) c.titration=titr;
+      D.compounds.push(c);
+    }
+    if(c) stampTracking(c,'create');
+    if(c) snapshotCompound(c,'create');
     save();
+    // §3.1/§6: verify persistence before navigating.
+    const persisted = D.compounds.some(x=>x && x.id===(c&&c.id));
+    if(!persisted){ ptAlert('Could not save this protocol. Please try again.'); return; }
     _kiStackCount=(_kiStackCount||0)+1;
-    // Immediately present a fresh popup for the next compound. No intermediate confirm.
+    if(after==='finish'){
+      // Save complete — now close the wizard.
+      closeOv('ov-keyinfo'); _kiMode=null; render();
+      if(_kiStackCount>0) ptAlert('Stack created — open any compound to add finer detail.');
+      _kiStackCount=0;
+      return;
+    }
+    // advance: present a fresh popup for the next compound.
     _kiIndex++;
     kiRenderStep();
     return;
@@ -4570,22 +5113,18 @@ async function kiNext(){
     // activate mode: update the compound + activate
     const c=D.compounds.find(x=>x.id===_kiActivateId); if(!c){ closeOv('ov-keyinfo'); return; }
     snapshotCompound(c,'edit');
-    Object.assign(c, { name:data.name, dose:data.dose, unit:data.unit, freq:data.freq, days:data.days||[], time:timeForFreq(data.freq),
+    Object.assign(c, { name:data.name, dose:data.dose, unit:data.unit, freq:data.freq, days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')),
       start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
       vialSize:data.vialSize, bacWater:data.bacWater, active:true });
     const titrTogA=document.getElementById('ki-titr-tog');
     if(titrTogA && titrTogA.classList.contains('on') && Array.isArray(_titrDraft) && _titrDraft.length){
       c.titration={ enabled:true, steps:_titrDraft.map(st=>({dose:parseFloat(st.dose)||0, weeks:parseFloat(st.weeks)||0})).filter(st=>st.dose>0&&st.weeks>0) };
     } else { delete c.titration; }
+    stampTracking(c,'create');
     if(typeof startFreshCycle==='function' && !c.start) startFreshCycle(c);
     save(); render(); closeOv('ov-keyinfo');
     ptAlert(esc(c.name)+' activated. Open it to add extra detail.');
   }
-}
-function kiFinishStack(){
-  closeOv('ov-keyinfo'); _kiMode=null; render();
-  if(_kiStackCount>0) ptAlert('Stack created — open any compound to add finer detail.');
-  _kiStackCount=0;
 }
 function defaultRouteFor(name){
   // Sensible route defaults by name; user can refine in the detail page.
@@ -4696,7 +5235,12 @@ function removeTitrationStep(i){
 function saveTitration(){
   // keep only valid phases
   _titrDraft=_titrDraft.filter(s=>(parseFloat(s.dose)>0)&&(parseFloat(s.weeks)>0));
-  if(!_titrDraft.length){ _titrDraft=[{dose:parseFloat(document.getElementById('f-dose').value)||0, weeks:2}]; }
+  if(!_titrDraft.length){
+    // Seed from whichever dose field is in play (wizard ki-dose, else main form f-dose).
+    const kiOpen=document.getElementById('ki-titr-tog') && document.getElementById('ki-titr-tog').classList.contains('on');
+    const dEl=document.getElementById(kiOpen?'ki-dose':'f-dose');
+    _titrDraft=[{dose:parseFloat(dEl&&dEl.value)||0, weeks:2}];
+  }
   closeOv('ov-titration');
   renderTitrSummary();
   if(typeof kiRenderTitrSummary==='function' && document.getElementById('ki-titr-tog') && document.getElementById('ki-titr-tog').classList.contains('on')) kiRenderTitrSummary();
@@ -4709,6 +5253,107 @@ function renderTitrSummary(){
   sum.innerHTML=_titrDraft.map(s=>`${s.dose}${unit} × ${s.weeks}wk`).join(' → ')+`<br><span style="color:var(--text-muted)">${total} weeks total</span>`;
   sum.style.display='block';
 }
+
+
+// ─── SPRAY-MODE FORM WIRING ──────────────────────────
+function onRouteChange(){
+  const route=document.getElementById('f-route').value;
+  const block=document.getElementById('f-spray-block');
+  if(block) block.style.display = isSprayRoute(route) ? 'block' : 'none';
+  if(isSprayRoute(route)) updateSprayCalc();
+}
+function updateSprayCalc(){
+  const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
+  const r=sprayCalc({
+    peptideAmt:g('f-vialSize'), peptideUnit:g('f-vialUnit'),
+    bacWater:g('f-bac'), saline:g('f-saline'),
+    volPerSpray:g('f-volPerSpray'),
+    doseMcg:g('f-dose'), doseUnit:g('f-unit')
+  });
+  const ro=document.getElementById('f-spray-readout');
+  const rr=document.getElementById('f-spray-result');
+  if(!ro||!rr) return;
+  if(!r.ok){ ro.style.display='none'; return; }
+  ro.style.display='block';
+  let txt = fmtNum(r.mcgPerSpray)+' mcg per spray (final volume '+fmtNum(r.finalVolume)+' ml)';
+  if(r.sprays!=null){
+    txt += ' — your dose = '+fmtNum(r.spraysRounded)+' spray'+(r.spraysRounded===1?'':'s');
+    if(Math.abs(r.sprays-r.spraysRounded)>0.01) txt+=' (≈'+fmtNum(r.sprays)+')';
+  }
+  rr.textContent = txt;
+}
+function fmtNum(n){ if(!Number.isFinite(n)) return '?'; return (Math.round(n*100)/100).toString(); }
+
+// ─── CANONICAL PROTOCOL VALIDATION (§3.4, §6) ────────────
+// One shared validator used by every protocol creation/edit path. Takes a draft
+// object; returns {ok:boolean, errors:[{field, message}]}. Field names map to
+// element ids where practical so callers can highlight/scroll.
+function validateProtocolDraft(d, ctx){
+  ctx=ctx||{};
+  const errors=[];
+  const num=v=>{ const n=parseFloat(v); return Number.isFinite(n)?n:NaN; };
+  const has=v=>v!=null && String(v).trim()!=='';
+  // Name (only required when creating brand-new / add-your-own; activation has it)
+  if(ctx.requireName && !has(d.name)) errors.push({field:'name', message:'Compound name is required.'});
+  // Dose
+  if(!(num(d.dose)>0)) errors.push({field:'dose', message:'Dose is required.'});
+  // Unit
+  if(!has(d.unit)) errors.push({field:'unit', message:'Unit is required.'});
+  // Route
+  if(!has(d.route)) errors.push({field:'route', message:'Administration route is required.'});
+  // Frequency
+  if(!has(d.freq)) errors.push({field:'freq', message:'Frequency is required.'});
+  // Duration: ongoing requires a start date (but no end); fixed-length requires start + end/weeks.
+  const durtype=d.durtype||(has(d.weeks)||has(d.end)?'weeks':'ongoing');
+  if(!has(d.start)) errors.push({field:'start', message:'Start date is required before this protocol can be activated.'});
+  if(durtype!=='ongoing'){
+    if(!has(d.end) && !has(d.weeks)) errors.push({field:'end', message:'Duration (weeks or end date) is required before this protocol can be activated.'});
+  }
+  // Injectable routes need vial size (for draw calc). Nasal/oral/topical do not.
+  const injectable=isInjectableRoute(d.route);
+  if(injectable){
+    if(!(num(d.vialSize)>0)) errors.push({field:'vialSize', message:'Vial size is required for injectable protocols.'});
+    // BAC water required for reconstituted peptides (not oil-based)
+    if(!isOilBasedRoute(d.route) && !(num(d.bacWater)>0)) errors.push({field:'bacWater', message:'BAC water is required to calculate the dose.'});
+  }
+  // Nasal route needs reconstitution fields
+  if(isSprayRoute(d.route)){
+    if(!(num(d.vialSize)>0)) errors.push({field:'vialSize', message:'Peptide amount is required for nasal spray.'});
+    if(!(num(d.volPerSpray)>0)) errors.push({field:'volPerSpray', message:'Volume per spray is required for nasal spray.'});
+  }
+  // Titration: if enabled, must have at least one valid phase
+  if(d.titration && d.titration.enabled){
+    const steps=(d.titration.steps||[]).filter(st=>num(st.dose)>0 && num(st.weeks)>0);
+    if(!steps.length) errors.push({field:'titration', message:'At least one titration phase (dose + weeks) is required.'});
+  }
+  return {ok:errors.length===0, errors};
+}
+// Route helpers (defensive; centralise route classification).
+function isInjectableRoute(route){ return /subq|sub-q|intramuscular|\bim\b|injection/i.test(route||'') && !isSprayRoute(route); }
+function isOilBasedRoute(route){ return /\bim\b|intramuscular/i.test(route||''); }
+
+// ─── NASAL SPRAY RECONSTITUTION ──────────────────────────
+// Peptide reconstituted with BAC water then brought to final volume with saline.
+// Dose is entered in mcg; the app reports mcg-per-spray and sprays-per-dose.
+function sprayCalc({peptideAmt, peptideUnit, bacWater, saline, finalVolume, volPerSpray, doseMcg, doseUnit}){
+  const fv = (finalVolume!=null && parseFloat(finalVolume)>0) ? parseFloat(finalVolume)
+             : ((parseFloat(bacWater)||0)+(parseFloat(saline)||0));
+  const pep = parseFloat(peptideAmt);
+  const vps = parseFloat(volPerSpray);
+  let dose = parseFloat(doseMcg);
+  // normalise peptide amount to mcg
+  let pepMcg = pep;
+  if(peptideUnit==='mg') pepMcg = pep*1000;
+  // normalise dose to mcg if given in mg
+  if(doseUnit==='mg' && Number.isFinite(dose)) dose = dose*1000;
+  if(!(fv>0) || !(pep>0) || !(vps>0)) return {ok:false};
+  const concMcgPerMl = pepMcg / fv;
+  const mcgPerSpray = concMcgPerMl * vps;
+  const sprays = (Number.isFinite(dose) && dose>0) ? dose / mcgPerSpray : null;
+  return {ok:true, finalVolume:fv, concMcgPerMl, mcgPerSpray, sprays,
+          spraysRounded: sprays!=null ? Math.round(sprays*2)/2 : null};
+}
+function isSprayRoute(route){ return /nasal/i.test(route||''); }
 
 // ─── TITRATION ENGINE ──────────────────────────
 // A compound may carry: titration = { enabled:true, steps:[{dose, weeks}, ...] }.
@@ -5029,7 +5674,7 @@ window.PT_debug = {
 </script>
 
   <!-- Titration editor -->
-  <div id="ov-titration" class="ov hidden">
+  <div id="ov-titration" class="ov hidden" style="z-index:300">
     <div class="sh">
       <div class="sh-handle"></div>
       <div class="sh-title">Titration schedule</div>
@@ -5068,6 +5713,13 @@ window.PT_debug = {
         <select class="fs" id="ki-populate" onchange="kiPopulateFrom()"><option value="">— Start blank —</option></select>
       </div>
 
+      <div class="fg" id="ki-choose-wrap" style="display:none">
+        <label class="fl">Choose a compound</label>
+        <select class="fs" id="ki-choose" onchange="kiChooseCompound()">
+          <option value="">— Add your own —</option>
+        </select>
+      </div>
+
       <label class="fl">Name</label>
       <input class="fi" id="ki-name" placeholder="e.g. BPC-157" style="margin-bottom:14px">
 
@@ -5078,7 +5730,7 @@ window.PT_debug = {
       </div>
 
       <label class="fl">Frequency</label>
-      <select class="fs" id="ki-freq" style="margin-bottom:14px" onchange="kiFreqChanged()">
+      <select class="fs" id="ki-freq" onchange="onKiFreq()" style="margin-bottom:14px">
         <optgroup label="Per day (on selected days)">
           <option value="daily" selected>Once daily</option>
           <option value="bid">Twice daily (BID)</option>
@@ -5109,6 +5761,13 @@ window.PT_debug = {
         <button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px;padding:7px" onclick="kiSetDays('weekdays')">Weekdays</button>
       </div>
 
+      <label class="fl">Time of day</label>
+      <select class="fs" id="ki-time" style="margin-bottom:14px" onchange="onKiTime()">
+        <option value="AM">Morning (AM)</option>
+        <option value="PM">Evening (PM)</option>
+        <option value="Both">AM &amp; PM (Both)</option>
+      </select>
+
       <div class="fg">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <label class="fl" style="margin:0">Titration (ramp up / taper down)</label>
@@ -5118,12 +5777,20 @@ window.PT_debug = {
         <button type="button" id="ki-titr-edit" class="btn btn-s btn-sm" style="display:none;margin-top:8px;font-size:12px" onclick="openTitrationEditor()">Edit titration schedule</button>
       </div>
 
+      <label class="fl">Duration</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px" id="ki-durtype-btns">
+        <button type="button" class="btn btn-s btn-sm ki-dur-opt on" data-dur="ongoing" style="flex:1;font-size:13px;padding:8px" onclick="kiSetDurtype('ongoing')">Ongoing</button>
+        <button type="button" class="btn btn-s btn-sm ki-dur-opt" data-dur="weeks" style="flex:1;font-size:13px;padding:8px" onclick="kiSetDurtype('weeks')">Fixed length</button>
+      </div>
+
       <div style="display:flex;gap:8px;margin-bottom:14px">
         <div style="flex:1"><label class="fl">Start date</label><input class="fi" id="ki-start" type="date" onchange="kiSyncDates('start')"></div>
-        <div style="width:90px"><label class="fl">Weeks</label><input class="fi" id="ki-weeks" type="number" min="1" placeholder="wks" oninput="kiSyncDates('weeks')"></div>
+        <div style="width:90px" id="ki-weeks-wrap"><label class="fl">Weeks</label><input class="fi" id="ki-weeks" type="number" min="1" placeholder="wks" oninput="kiSyncDates('weeks')"></div>
       </div>
-      <label class="fl">End date</label>
-      <input class="fi" id="ki-end" type="date" onchange="kiSyncDates('end')" style="margin-bottom:14px">
+      <div id="ki-end-wrap">
+        <label class="fl">End date</label>
+        <input class="fi" id="ki-end" type="date" onchange="kiSyncDates('end')" style="margin-bottom:14px">
+      </div>
 
       <div style="display:flex;gap:8px;margin-bottom:14px">
         <div style="flex:1"><label class="fl">Vial size</label><input class="fi" id="ki-vial" type="number" step="0.01" placeholder="e.g. 5"></div>
@@ -5135,6 +5802,34 @@ window.PT_debug = {
         <button type="button" class="btn btn-s" style="flex:1;display:none" id="ki-finish" onclick="kiFinishStack()">Finish</button>
         <button type="button" class="btn btn-p" style="flex:1" id="ki-next" onclick="kiNext()">Save</button>
       </div>
+    </div>
+  </div>
+
+  <!-- FAB action picker -->
+  <div id="ov-fabpick" class="ov hidden">
+    <div class="sh">
+      <div class="sh-handle"></div>
+      <div class="sh-title">Add</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">What would you like to add?</div>
+      <button type="button" class="fabpick-opt" onclick="fabPick('protocol')">
+        <div class="fabpick-ic">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="fabpick-body">
+          <div class="fabpick-t">Add protocol</div>
+          <div class="fabpick-s">Set up a new compound with the guided wizard</div>
+        </div>
+      </button>
+      <button type="button" class="fabpick-opt" onclick="fabPick('log')">
+        <div class="fabpick-ic">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div class="fabpick-body">
+          <div class="fabpick-t">Log a dose</div>
+          <div class="fabpick-s">Record a dose, including off-protocol or catch-up doses</div>
+        </div>
+      </button>
+      <button type="button" class="btn btn-s" style="width:100%;margin-top:8px" onclick="closeOv('ov-fabpick')">Cancel</button>
     </div>
   </div>
 </body>
