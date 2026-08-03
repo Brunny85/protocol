@@ -630,7 +630,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0802.1210</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0802.1630</div>
       </div>
     </div>
   </div>
@@ -1967,10 +1967,12 @@ function rStack(){
 
 // Days until this compound's cycle ends (null when it has no end)
 // ─── WEEKLY PREPARATION (pre-pull planner) ───────────────────
-// For users who draw a whole week of doses in one sitting. Reuses the frozen
-// scheduling logic (isDue/bucket/effectiveDose) by walking viewDate day by day,
-// then restoring it. Draw amounts mirror pinBadge exactly but return data
-// rather than markup — a static test asserts the two agree.
+// A static worksheet: everything scheduled for the week, so the user can sit
+// down and draw it all in one go. Deliberately ignores what has already been
+// logged or skipped — the point is the full week's requirement, not what's left.
+// Reuses the frozen scheduling logic (isDue/bucket/effectiveDose) by walking
+// viewDate day by day, then restoring it. Draw amounts mirror pinBadge exactly
+// but return data rather than markup — a static test asserts the two agree.
 let prepWeekOffset = 0;
 
 function prepWeekStart(dateStr){
@@ -2010,6 +2012,7 @@ function prepDraw(c, date){
 }
 
 // Build the whole week. Pure data — no DOM. viewDate is saved and restored.
+// STATIC: logged and skipped doses are counted like any other.
 function prepWeekData(start){
   const prev = viewDate;
   const days = [], totals = {};
@@ -2023,19 +2026,20 @@ function prepWeekData(start){
         const b = bucket(c);
         const slots = (b==='both') ? ['am','pm'] : [''];
         slots.forEach(slot=>{
-          const skipped = isSkipped(c, slot, date);
-          const done    = doneOnDate(c, slot, date);
-          const dose    = effectiveDose(c, date);
-          const draw    = prepDraw(c, date);
-          const label   = (b==='both') ? slot.toUpperCase()
-                        : (b==='pm' ? 'PM' : (b==='any' ? 'Any' : 'AM'));
+          const dose = effectiveDose(c, date);
+          const draw = prepDraw(c, date);
+          const label = (b==='both') ? slot.toUpperCase()
+                      : (b==='pm' ? 'PM' : (b==='any' ? 'Any' : 'AM'));
           items.push({pid:c.id, name:c.name||'Unnamed', color:c.color||'', slot:label,
-                      dose:dose, unit:c.unit||'', draw:draw, skipped:skipped, done:done});
-          if(skipped || done) return;          // already handled — not to be pulled
+                      dose:dose, unit:c.unit||'', draw:draw});
+          const dv = parseFloat(dose)||0;
           const t = totals[c.id] || (totals[c.id] = {pid:c.id, name:c.name||'Unnamed',
-                      color:c.color||'', unit:c.unit||'', doses:0, mass:0, vol:0, kind:null});
+                      color:c.color||'', unit:c.unit||'', route:c.route||'',
+                      doses:0, mass:0, vol:0, kind:null, minDose:dv, maxDose:dv});
           t.doses += 1;
-          t.mass  += parseFloat(dose)||0;
+          t.mass  += dv;
+          if(dv < t.minDose) t.minDose = dv;
+          if(dv > t.maxDose) t.maxDose = dv;
           if(draw){ t.vol += draw.value; t.kind = draw.kind; }
         });
       });
@@ -2045,11 +2049,19 @@ function prepWeekData(start){
   return {start:start, days:days, totals:Object.values(totals)};
 }
 
+// Total volume across the week, in the compound's own measure.
 function prepTotalText(t){
   if(!t.kind || !(t.vol>0)) return '';
-  if(t.kind==='ml')     return t.vol.toFixed(2)+'ml total';
-  if(t.kind==='sprays') return fmtNum(Math.round(t.vol*2)/2)+' sprays total';
-  return (t.vol<10?t.vol.toFixed(1):t.vol.toFixed(0))+' units total';
+  if(t.kind==='ml')     return t.vol.toFixed(2)+'ml';
+  if(t.kind==='sprays') return fmtNum(Math.round(t.vol*2)/2)+' sprays';
+  return (t.vol<10?t.vol.toFixed(1):t.vol.toFixed(0))+' units';
+}
+
+// Per-dose amount, shown as a range when titration moves it mid-week.
+function prepPerDoseText(t){
+  if(!t.doses) return '';
+  if(t.minDose===t.maxDose) return fmtNum(t.minDose)+t.unit;
+  return fmtNum(t.minDose)+'\u2013'+fmtNum(t.maxDose)+t.unit;
 }
 
 function prepShift(n){ prepWeekOffset += n; rPrep(); }
@@ -2061,17 +2073,15 @@ function rPrep(){
   const start = addDays(prepWeekStart(tod()), prepWeekOffset*7);
   const end   = addDays(start,6);
   const data  = prepWeekData(start);
-  const DOW   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const fmtD  = s=>{ const d=new Date(s+'T12:00:00');
-                     return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; };
-  const today = tod();
+  const MON   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtD  = s=>{ const d=new Date(s+'T12:00:00'); return d.getDate()+' '+MON[d.getMonth()]; };
 
   const relLbl = prepWeekOffset===0 ? 'This week'
                : prepWeekOffset===1 ? 'Next week'
                : prepWeekOffset===-1 ? 'Last week'
                : (prepWeekOffset>0 ? 'In '+prepWeekOffset+' weeks' : Math.abs(prepWeekOffset)+' weeks ago');
 
-  let h = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">'
+  let h = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px">'
     + '<button class="rec-tab" onclick="prepShift(-1)" aria-label="Previous week" style="padding:8px 12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>'
     + '<div style="text-align:center;line-height:1.3"><div style="font-size:14px;color:var(--text-primary);font-weight:600">'+esc(relLbl)+'</div>'
     + '<div style="font-size:11px;color:var(--text-secondary)">'+esc(fmtD(start))+' &ndash; '+esc(fmtD(end))+'</div></div>'
@@ -2086,55 +2096,41 @@ function rPrep(){
 
   if(!totalDoses){
     h += '<div class="empty"><div class="empty-ic" style="color:var(--text-muted)"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></div>'
-       + '<div class="empty-t">Nothing to prepare</div><div>No scheduled doses outstanding this week</div></div>';
+       + '<div class="empty-t">Nothing scheduled</div><div>No doses fall in this week</div></div>';
     el.innerHTML = h;
     return;
   }
 
-  // ── Pull list: what to draw, in total, for the whole week ──
-  h += '<div style="background:var(--brand);border:1px solid var(--border-subtle);border-radius:var(--r);padding:14px;margin-bottom:12px">'
-     + '<div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:2px">Pull list</div>'
-     + '<div style="font-size:11px;color:var(--text-secondary);margin-bottom:10px">'+totalDoses+' dose'+(totalDoses===1?'':'s')+' outstanding &middot; excludes logged and skipped</div>';
+  // ── Headline: total doses to pull for the week ──
+  h += '<div style="background:var(--brand);border:1px solid var(--border-subtle);border-radius:var(--r);padding:18px 14px;margin-bottom:14px;text-align:center">'
+     + '<div style="font-size:46px;line-height:1;font-weight:700;color:var(--text-primary);letter-spacing:-1px">'+totalDoses+'</div>'
+     + '<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;text-transform:uppercase;letter-spacing:0.8px">dose'+(totalDoses===1?'':'s')+' to prepare</div>'
+     + '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">'+totals.length+' compound'+(totals.length===1?'':'s')+' &middot; full week, regardless of what\'s logged</div>'
+     + '</div>';
+
+  // ── Per compound: count is the hero, amounts secondary ──
   totals.forEach(t=>{
     const tot = prepTotalText(t);
-    h += '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border-subtle)">'
-       + (t.color?'<span style="width:8px;height:8px;border-radius:50%;background:'+esc(t.color)+';flex-shrink:0"></span>':'')
-       + '<div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.name)+'</div>'
-       + '<div style="font-size:11px;color:var(--text-secondary)">'+t.doses+' &times; '+esc(fmtNum(t.mass/t.doses))+esc(t.unit)+'</div></div>'
-       + '<div style="text-align:right;flex-shrink:0"><div style="font-size:13px;color:var(--brand-accent,var(--text-primary));font-weight:600">'+esc(fmtNum(t.mass))+esc(t.unit)+'</div>'
-       + (tot?'<div style="font-size:11px;color:var(--text-secondary)">'+esc(tot)+'</div>':'')
+    h += '<div style="background:var(--brand);border:1px solid var(--border-subtle);border-radius:var(--r);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:14px">'
+       + '<div style="flex-shrink:0;min-width:56px;text-align:center">'
+       +   '<div style="font-size:34px;line-height:1;font-weight:700;color:var(--text-primary);letter-spacing:-0.5px">'+t.doses+'</div>'
+       +   '<div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-top:3px">'+(t.doses===1?'dose':'doses')+'</div>'
+       + '</div>'
+       + '<div style="flex:1;min-width:0">'
+       +   '<div style="display:flex;align-items:center;gap:6px">'
+       +     (t.color?'<span style="width:8px;height:8px;border-radius:50%;background:'+esc(t.color)+';flex-shrink:0"></span>':'')
+       +     '<span style="font-size:15px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.name)+'</span>'
+       +   '</div>'
+       +   '<div style="font-size:12px;color:var(--text-secondary);margin-top:3px">'+esc(prepPerDoseText(t))+' per dose'
+       +     (tot?' &middot; '+esc(tot)+' each':'')+'</div>'
+       +   '<div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Week total: '
+       +     '<span style="color:var(--text-primary);font-weight:600">'+esc(fmtNum(t.mass))+esc(t.unit)+'</span>'
+       +     (tot?' &middot; <span style="color:var(--text-primary);font-weight:600">'+esc(prepTotalText({kind:t.kind,vol:t.vol}))+'</span>':'')
+       +   '</div>'
        + '</div></div>';
   });
-  h += '</div>';
 
-  // ── Day by day ──
-  data.days.forEach((d,i)=>{
-    const isToday = d.date===today;
-    const past = d.date<today;
-    h += '<div style="background:var(--brand);border:1px solid '+(isToday?'var(--text-primary)':'var(--border-subtle)')+';border-radius:var(--r);padding:12px;margin-bottom:8px'+(past?';opacity:0.55':'')+'">'
-       + '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:'+(d.items.length?'8px':'0')+'">'
-       + '<span style="font-size:13px;font-weight:600;color:var(--text-primary)">'+DOW[i]+'</span>'
-       + '<span style="font-size:11px;color:var(--text-secondary)">'+esc(fmtD(d.date))+'</span>'
-       + (isToday?'<span style="font-size:10px;color:var(--brand-accent,var(--text-primary));margin-left:auto">TODAY</span>':'')
-       + '</div>';
-    if(!d.items.length){
-      h += '<div style="font-size:12px;color:var(--text-muted)">No doses scheduled</div>';
-    } else {
-      d.items.forEach(it=>{
-        const dim = it.done || it.skipped;
-        h += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0'+(dim?';opacity:0.45':'')+'">'
-           + (it.color?'<span style="width:6px;height:6px;border-radius:50%;background:'+esc(it.color)+';flex-shrink:0"></span>':'')
-           + '<span style="font-size:10px;color:var(--text-secondary);width:26px;flex-shrink:0">'+esc(it.slot)+'</span>'
-           + '<span style="flex:1;min-width:0;font-size:12px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+(dim?';text-decoration:line-through':'')+'">'+esc(it.name)+'</span>'
-           + '<span style="font-size:12px;color:var(--text-primary);flex-shrink:0">'+esc(fmtNum(parseFloat(it.dose)))+esc(it.unit)+'</span>'
-           + (it.draw?'<span style="font-size:11px;color:var(--text-secondary);flex-shrink:0;min-width:56px;text-align:right">'+esc(it.draw.text)+'</span>':'<span style="min-width:56px"></span>')
-           + '</div>';
-      });
-    }
-    h += '</div>';
-  });
-
-  h += '<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:4px">Draw amounts are calculated from each compound\'s vial size and BAC water, matching the Today tab. Verify against your own syringe before drawing.</div>';
+  h += '<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:8px">Draw amounts are calculated from each compound\'s vial size and BAC water, matching the Today tab. Verify against your own syringe before drawing.</div>';
   el.innerHTML = h;
 }
 
