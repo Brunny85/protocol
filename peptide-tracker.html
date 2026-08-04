@@ -630,7 +630,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0802.1630</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0804.1027</div>
       </div>
     </div>
   </div>
@@ -769,7 +769,7 @@ tr:active td{background:var(--card2)}
     </div>
 
     <div class="syringe-wrap" id="oil-syringe-card" style="display:none">
-      <div class="calc-section-lbl">Syringe Visual (IM)</div>
+      <div class="calc-section-lbl">Syringe Visual (Oil)</div>
       <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg> Insulin</div>
       <div class="syringe-size-row">
         <button class="syringe-size-btn" onclick="setOilSyrSize(0.3,'insulin',this)">0.3 ml</button>
@@ -886,6 +886,7 @@ tr:active td{background:var(--card2)}
       <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
       <button class="btn btn-s" onclick="kiOpenStack()" style="margin-top:10px;width:100%">+ New Protocol Stack (guided)</button>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle)">
+        <button class="btn btn-s" onclick="openRecordAudit()" style="font-size:14px;margin-bottom:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M3 6h18M3 12h18M3 18h18"/></svg> Record Audit — inspect &amp; remove duplicates</button>
         <button class="btn btn-d" onclick="masterReset()" style="font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> Master Reset — Clear All Data</button>
       </div>
     
@@ -1353,7 +1354,7 @@ const APP_VERSION = '2.2';
 const CURRENT_SCHEMA = 2;
 const APP_KEYS = ['protocol_data','pt_backup','saved_doses','saved_stacks',
   'pt_cycle_reminded','pt_missed_confirmed','pt_last_backup_remind','pt_premigration_v1',
-  'pt_migration_temp','pt_preimport_backup'];
+  'pt_migration_temp','pt_preimport_backup','pt_prep_v1'];
 
 function esc(v){
   if(v===undefined||v===null) return '';
@@ -1474,6 +1475,7 @@ function ptDialog(opts){
       (opts.title?'<div class="sh-title">'+esc(opts.title)+'</div>':'')+
       (opts.message?'<p style="font-size:14px;color:var(--text2);line-height:1.5;margin-bottom:16px;white-space:pre-line">'+esc(opts.message)+'</p>':'')+
       inputHtml+'<div class="brow">'+cancelBtn+
+      (opts.altText?'<button class="btn btn-s" id="ptd-alt">'+esc(opts.altText)+'</button>':'')+
       '<button class="btn '+okClass+'" id="ptd-ok">'+esc(opts.okText||'OK')+'</button></div></div>';
     document.body.appendChild(ov);
     let done=false;
@@ -1482,6 +1484,8 @@ function ptDialog(opts){
       const inp=ov.querySelector('#ptd-input');
       if(kind==='prompt') finish(inp?inp.value:''); else if(kind==='confirm') finish(true); else finish(true);
     });
+    const aB=ov.querySelector('#ptd-alt');
+    if(aB) aB.addEventListener('click',()=> finish('alt'));
     const cB=ov.querySelector('#ptd-cancel');
     if(cB) cB.addEventListener('click',()=> finish(kind==='prompt'?null:false));
     ov.addEventListener('click',ev=>{ if(ev.target===ov) finish(kind==='prompt'?null:(kind==='confirm'?false:true)); });
@@ -1769,6 +1773,23 @@ const dAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return localDateStr(d
 // A compound shows today if:
 // - active
 // - days array is empty (means every day) OR today's DOW is in the days array
+// One-time repair: an "ongoing" protocol must not carry an end date. Records
+// saved by the wizard before b0803.1912 could hold both, which made isDue()
+// expire them and drop them from Today. Only touches that exact contradiction.
+function normalizeDurations(){
+  let fixed=0;
+  (D.compounds||[]).forEach(c=>{
+    if(!c) return;
+    if(c.durtype==='ongoing' && (c.end || c.weeks)){ c.end=''; c.weeks=''; fixed++; }
+    // isDue() skips its start check when start is empty ("if(c.start && ...)"), so an
+    // active record with no start is due on every matching weekday, forever, with no
+    // anchor. Backfill from trackingStartDate — when tracking actually began — falling
+    // back to today. This fills an ABSENT value; it never overrides a real start date.
+    if(c.active && !c.start){ c.start = c.trackingStartDate || tod(); fixed++; }
+  });
+  if(fixed) save();
+  return fixed;
+}
 function isDue(c){
   if(!c.active||c.freq==='prn') return false;
   // Check end date - if compound has expired, don't show it
@@ -1973,7 +1994,13 @@ function rStack(){
 // Reuses the frozen scheduling logic (isDue/bucket/effectiveDose) by walking
 // viewDate day by day, then restoring it. Draw amounts mirror pinBadge exactly
 // but return data rather than markup — a static test asserts the two agree.
+//
+// PREPARED STATE IS NOT A DOSE LOG. Marking a compound prepared records only
+// that the syringes exist. Administration is still logged on Today. The two are
+// stored separately and neither writes to the other.
 let prepWeekOffset = 0;
+let prepOnlyUnprepared = false;
+const PREP_KEY = 'pt_prep_v1';
 
 function prepWeekStart(dateStr){
   const d = new Date((dateStr||tod())+'T12:00:00');
@@ -1983,17 +2010,109 @@ function prepWeekStart(dateStr){
   return localDateStr(d);
 }
 
-// Amount to draw for one dose. Returns {kind,value,text} or null when the
+// ── Prepared-status store: its own key, never merged into D or the dose log ──
+function prepReadAll(){
+  const r = safeReadJson(PREP_KEY);
+  return (r && typeof r==='object' && !Array.isArray(r)) ? r : {};
+}
+function prepWriteAll(obj){
+  // keep the last 8 weeks only — this is a scratch checklist, not history
+  const keys = Object.keys(obj).sort().reverse().slice(0,8);
+  const trimmed = {};
+  keys.forEach(k=>{ trimmed[k]=obj[k]; });
+  safeWriteJson(PREP_KEY, trimmed);
+}
+// A prepared mark stores the SIGNATURE of what was prepared (count, doses,
+// per-syringe volumes). If the protocol later changes, the stored signature no
+// longer matches and the mark is reported stale rather than silently trusted.
+function prepIsDone(week, pid){
+  const all = prepReadAll();
+  return !!(all[week] && all[week][pid]);
+}
+function prepStoredSig(week, pid){
+  const all = prepReadAll();
+  return (all[week] && all[week][pid]) || null;
+}
+// 'none' | 'prepared' | 'stale'
+function prepStatus(week, pid, sig){
+  const stored = prepStoredSig(week, pid);
+  if(!stored) return 'none';
+  if(typeof stored!=='string') return 'stale';   // legacy boolean — cannot verify
+  return stored===sig ? 'prepared' : 'stale';
+}
+function prepSetDone(week, pid, sig){
+  const all = prepReadAll();
+  if(!all[week]) all[week] = {};
+  if(sig) all[week][pid] = sig; else delete all[week][pid];
+  if(!Object.keys(all[week]).length) delete all[week];
+  prepWriteAll(all);
+}
+function prepToggle(pid){
+  const week = addDays(prepWeekStart(tod()), prepWeekOffset*7);
+  const t = prepWeekData(week).totals.find(x=>x.pid===pid);
+  const sig = t ? t.sig : null;
+  // Toggling a stale card re-prepares it against the CURRENT signature.
+  const st = prepStatus(week, pid, sig);
+  prepSetDone(week, pid, st==='prepared' ? null : sig);
+  rPrep();
+}
+function prepMarkAll(val){
+  const week = addDays(prepWeekStart(tod()), prepWeekOffset*7);
+  const data = prepWeekData(week);
+  const all = prepReadAll();
+  if(val){ all[week] = {}; data.totals.forEach(t=>{ all[week][t.pid]=t.sig; }); }
+  else delete all[week];
+  prepWriteAll(all);
+  rPrep();
+}
+function prepToggleFilter(){ prepOnlyUnprepared = !prepOnlyUnprepared; rPrep(); }
+
+// ── Unit vocabulary: what the user is physically making ──
+function prepCountNoun(t, n){
+  const one = t.group==='oil' || t.group==='iu' || t.group==='pep' ? 'syringe'
+            : t.group==='oral' ? 'capsule'
+            : t.group==='topical' ? 'application'
+            : 'dose';
+  return one + (n===1?'':'s');
+}
+function isSubQRoute(route){ return /subq|sub-q|subcutaneous/i.test(route||''); }
+function prepGroupOf(c){
+  if(isSprayRoute(c.route)) return 'nasal';
+  if(isOilBased(c)) return 'oil';
+  const r=(c.route||'').toLowerCase();
+  if(/oral|capsule|tablet|sublingual/.test(r)) return 'oral';
+  if(/topical|cream|gel/.test(r)) return 'topical';
+  if((c.unit||'')==='IU' || (c.vialUnit||'')==='IU') return 'iu';
+  return 'pep';
+}
+const PREP_GROUP_ORDER = ['pep','iu','oil','nasal','oral','topical'];
+const PREP_GROUP_LABEL = {pep:'Reconstituted peptides', iu:'IU-based injectables',
+  oil:'Oil-based injectables', nasal:'Nasal sprays', oral:'Oral', topical:'Topical'};
+
+// Amount to draw for ONE dose. Returns {kind,value,ml,text} or null when the
 // compound lacks the vial data needed to compute it.
 function prepDraw(c, date){
   const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater), dose=parseFloat(effectiveDose(c,date));
+  if(!isSprayRoute(c.route)){
+    const info=drawInfo(c, date);
+    if(!info || info.error) return null;
+    // SubQ draws into a U-100 pin, so report units; IM reports millilitres.
+    if(isSubQRoute(c.route)){
+      return {kind:'units', value:info.units, ml:info.ml, subq:true,
+              text:fmtNum(+info.units.toFixed(info.units<10?1:0))+' units'};
+    }
+    return {kind:'ml', value:info.ml, ml:info.ml, subq:false, text:info.ml.toFixed(2)+' mL'};
+  }
   if(!vs||!dose) return null;
   const doseMcg=toMcg(dose, c.unit);
   if(isSprayRoute(c.route)){
     const r=sprayCalc({peptideAmt:c.vialSize, peptideUnit:c.vialUnit||'mg', bacWater:c.bacWater,
                        saline:c.saline, volPerSpray:c.volPerSpray, doseMcg:dose, doseUnit:c.unit});
-    if(r.ok && r.spraysRounded!=null && r.spraysRounded>0)
-      return {kind:'sprays', value:r.spraysRounded, text:fmtNum(r.spraysRounded)+' spray'+(r.spraysRounded===1?'':'s')};
+    if(r.ok && r.spraysRounded!=null && r.spraysRounded>0){
+      const vps=parseFloat(c.volPerSpray)||0;
+      return {kind:'sprays', value:r.spraysRounded, ml:(vps>0?r.spraysRounded*vps:null),
+              text:fmtNum(r.spraysRounded)+' spray'+(r.spraysRounded===1?'':'s')};
+    }
     return null;
   }
   if(isOilBased(c)){
@@ -2001,14 +2120,17 @@ function prepDraw(c, date){
     if(!concMcg) return null;
     const ml=doseMcg/concMcg;
     if(!isFinite(ml)||ml<=0) return null;
-    return {kind:'ml', value:ml, text:ml.toFixed(2)+'ml'};
+    // Oils are commonly run SubQ in a U-100 insulin pin. When the route says so,
+    // surface the insulin-unit equivalent alongside mL (1 mL = 100 units).
+    return {kind:'ml', value:ml, ml:ml, subq:isSubQRoute(c.route), text:ml.toFixed(2)+' mL'};
   }
   if(!bac) return null;
   const concMcg=toMcg(vs/bac, c.vialUnit||'mg');
   if(!concMcg) return null;
   const units=(doseMcg/concMcg)*100;
   if(!isFinite(units)||units<=0) return null;
-  return {kind:'units', value:units, text:(units<10?units.toFixed(1):units.toFixed(0))+' units'};
+  return {kind:'units', value:units, ml:units/100,
+          text:(units<10?units.toFixed(1):units.toFixed(0))+' units'};
 }
 
 // Build the whole week. Pure data — no DOM. viewDate is saved and restored.
@@ -2030,38 +2152,92 @@ function prepWeekData(start){
           const draw = prepDraw(c, date);
           const label = (b==='both') ? slot.toUpperCase()
                       : (b==='pm' ? 'PM' : (b==='any' ? 'Any' : 'AM'));
-          items.push({pid:c.id, name:c.name||'Unnamed', color:c.color||'', slot:label,
+          items.push({pid:c.id, name:c.name||'Unnamed', slot:label,
                       dose:dose, unit:c.unit||'', draw:draw});
           const dv = parseFloat(dose)||0;
           const t = totals[c.id] || (totals[c.id] = {pid:c.id, name:c.name||'Unnamed',
                       color:c.color||'', unit:c.unit||'', route:c.route||'',
-                      doses:0, mass:0, vol:0, kind:null, minDose:dv, maxDose:dv});
+                      group:prepGroupOf(c), vialSize:c.vialSize, vialUnit:c.vialUnit||'mg',
+                      bacWater:c.bacWater, subq:isSubQRoute(c.route),
+                      doses:0, mass:0, vol:0, mlTotal:0, kind:null,
+                      minDose:dv, maxDose:dv, minVol:null, maxVol:null, byVol:{}});
           t.doses += 1;
           t.mass  += dv;
           if(dv < t.minDose) t.minDose = dv;
           if(dv > t.maxDose) t.maxDose = dv;
-          if(draw){ t.vol += draw.value; t.kind = draw.kind; }
+          if(draw){
+            t.vol  += draw.value;
+            t.kind  = draw.kind;
+            if(draw.ml!=null) t.mlTotal += draw.ml;
+            if(t.minVol===null || draw.value<t.minVol) t.minVol = draw.value;
+            if(t.maxVol===null || draw.value>t.maxVol) t.maxVol = draw.value;
+          }
+          // Group identical syringes so a varying week can be shown as
+          // "4 x 10 units" + "3 x 15 units" instead of a meaningless average.
+          const gk = (draw ? draw.value.toFixed(6) : 'na')+'@'+dv;
+          const g  = t.byVol[gk] || (t.byVol[gk] = {vol:draw?draw.value:null,
+                      ml:draw?draw.ml:null, dose:dv, count:0});
+          g.count += 1;
         });
       });
       days.push({date:date, items:items});
     }
   } finally { viewDate = prev; }               // always restore, even on throw
-  return {start:start, days:days, totals:Object.values(totals)};
+  const list = Object.values(totals);
+  list.forEach(t=>{
+    t.breakdown = Object.values(t.byVol).sort((a,b)=>(a.dose-b.dose)||((a.vol||0)-(b.vol||0)));
+    t.varied    = t.breakdown.length > 1;
+    // Signature covers everything a user would re-draw for: how many syringes,
+    // at what dose, at what volume. Any protocol edit that moves these
+    // invalidates a previously prepared mark.
+    t.sig = t.doses+'|'+t.kind+'|'+t.breakdown
+              .map(g=>g.count+'x'+g.dose+'@'+(g.vol==null?'na':g.vol.toFixed(4))).join(',');
+  });
+  return {start:start, days:days, totals:list};
 }
 
-// Total volume across the week, in the compound's own measure.
-function prepTotalText(t){
-  if(!t.kind || !(t.vol>0)) return '';
-  if(t.kind==='ml')     return t.vol.toFixed(2)+'ml';
-  if(t.kind==='sprays') return fmtNum(Math.round(t.vol*2)/2)+' sprays';
-  return (t.vol<10?t.vol.toFixed(1):t.vol.toFixed(0))+' units';
+function prepFmtQty(n){
+  if(!Number.isFinite(n)) return '?';
+  const r = Math.round(n*100)/100;
+  return r.toLocaleString('en-US', {maximumFractionDigits:2});
 }
-
-// Per-dose amount, shown as a range when titration moves it mid-week.
+function prepVolText(kind, v){
+  if(!Number.isFinite(v) || v<=0) return '';
+  if(kind==='ml')     return v.toFixed(2)+' mL';
+  if(kind==='sprays') return prepFmtQty(Math.round(v*2)/2)+' spray'+(v===1?'':'s');
+  return (v<10?v.toFixed(1):v.toFixed(0))+' units';
+}
+// PER DOSE — the amount that goes into one syringe. Ranges when titration moves it.
+function prepPerVolText(t){
+  if(!t.kind || t.minVol===null) return '';
+  if(t.minVol===t.maxVol) return prepVolText(t.kind, t.minVol);
+  return prepVolText(t.kind, t.minVol)+'\u2013'+prepVolText(t.kind, t.maxVol);
+}
+// WHOLE WEEK — the total drawn out of the vial.
+function prepTotalText(t){ return prepVolText(t.kind, t.vol); }
 function prepPerDoseText(t){
   if(!t.doses) return '';
-  if(t.minDose===t.maxDose) return fmtNum(t.minDose)+t.unit;
-  return fmtNum(t.minDose)+'\u2013'+fmtNum(t.maxDose)+t.unit;
+  if(t.minDose===t.maxDose) return prepFmtQty(t.minDose)+' '+t.unit;
+  return prepFmtQty(t.minDose)+'\u2013'+prepFmtQty(t.maxDose)+' '+t.unit;
+}
+function prepPerMlText(t){
+  if(t.kind==='ml' || t.minVol===null) return '';       // already expressed in mL
+  const per = t.doses ? t.mlTotal/t.doses : 0;
+  if(!(per>0)) return '';
+  return per.toFixed(2)+' mL';
+}
+
+// Oil run SubQ is drawn in a U-100 insulin pin, so show the unit equivalent.
+// Always labelled U-100 — never bare "units" — so the syringe scale is unambiguous.
+function prepU100Text(ml){
+  if(!Number.isFinite(ml) || ml<=0) return '';
+  const u = ml*100;
+  return (u<10?u.toFixed(1):u.toFixed(0))+' units (U-100)';
+}
+function prepPerU100Text(t){
+  if(t.kind!=='ml' || !t.subq || t.minVol===null) return '';
+  if(t.minVol===t.maxVol) return prepU100Text(t.minVol);
+  return prepU100Text(t.minVol)+'\u2013'+prepU100Text(t.maxVol);
 }
 
 function prepShift(n){ prepWeekOffset += n; rPrep(); }
@@ -2081,7 +2257,7 @@ function rPrep(){
                : prepWeekOffset===-1 ? 'Last week'
                : (prepWeekOffset>0 ? 'In '+prepWeekOffset+' weeks' : Math.abs(prepWeekOffset)+' weeks ago');
 
-  let h = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px">'
+  let h = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">'
     + '<button class="rec-tab" onclick="prepShift(-1)" aria-label="Previous week" style="padding:8px 12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>'
     + '<div style="text-align:center;line-height:1.3"><div style="font-size:14px;color:var(--text-primary);font-weight:600">'+esc(relLbl)+'</div>'
     + '<div style="font-size:11px;color:var(--text-secondary)">'+esc(fmtD(start))+' &ndash; '+esc(fmtD(end))+'</div></div>'
@@ -2092,45 +2268,104 @@ function rPrep(){
     h += '<div style="text-align:center;margin-bottom:12px"><button class="rec-tab" onclick="prepThisWeek()" style="font-size:12px">Back to this week</button></div>';
 
   const totals = data.totals.slice().sort((a,b)=>a.name.localeCompare(b.name));
-  const totalDoses = totals.reduce((a,t)=>a+t.doses,0);
 
-  if(!totalDoses){
+  if(!totals.length){
     h += '<div class="empty"><div class="empty-ic" style="color:var(--text-muted)"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></div>'
        + '<div class="empty-t">Nothing scheduled</div><div>No doses fall in this week</div></div>';
     el.innerHTML = h;
     return;
   }
 
-  // ── Headline: total doses to pull for the week ──
-  h += '<div style="background:var(--brand);border:1px solid var(--border-subtle);border-radius:var(--r);padding:18px 14px;margin-bottom:14px;text-align:center">'
-     + '<div style="font-size:46px;line-height:1;font-weight:700;color:var(--text-primary);letter-spacing:-1px">'+totalDoses+'</div>'
-     + '<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;text-transform:uppercase;letter-spacing:0.8px">dose'+(totalDoses===1?'':'s')+' to prepare</div>'
-     + '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">'+totals.length+' compound'+(totals.length===1?'':'s')+' &middot; full week, regardless of what\'s logged</div>'
+  // ── Progress summary ──
+  const donePids  = totals.filter(t=>prepStatus(start,t.pid,t.sig)==='prepared');
+  const stalePids = totals.filter(t=>prepStatus(start,t.pid,t.sig)==='stale');
+  const totalUnits = totals.reduce((a,t)=>a+t.doses,0);
+  const doneUnits  = donePids.reduce((a,t)=>a+t.doses,0);
+  const pct = totalUnits ? Math.round(doneUnits/totalUnits*100) : 0;
+  const mlAll = totals.reduce((a,t)=>a+(t.mlTotal||0),0);
+
+  h += '<div style="background:var(--surface-primary);border:1px solid var(--border-subtle);border-radius:var(--r);padding:14px;margin-bottom:10px">'
+     + '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">'
+     +   '<div style="font-size:26px;font-weight:700;color:var(--text-primary);line-height:1">'+doneUnits+'<span style="font-size:15px;color:var(--text-secondary);font-weight:500"> / '+totalUnits+'</span></div>'
+     +   '<div style="font-size:11px;color:var(--text-secondary)">'+donePids.length+' of '+totals.length+' compounds</div>'
+     + '</div>'
+     + '<div style="font-size:11px;color:var(--text-muted);margin-top:3px">prepared'+(mlAll>0?' &middot; '+mlAll.toFixed(2)+' mL total solution':'')+'</div>'
+     + '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">Full week, regardless of what\'s logged</div>'
+     + '<div style="height:5px;border-radius:3px;background:var(--surface-interactive);margin-top:9px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--brand);border-radius:3px"></div></div>'
+     + (stalePids.length?'<div style="font-size:11px;color:var(--warning-text);margin-top:8px">'+stalePids.length+' compound'+(stalePids.length===1?'':'s')+' changed since being prepared &mdash; re-check before use</div>':'')
      + '</div>';
 
-  // ── Per compound: count is the hero, amounts secondary ──
-  totals.forEach(t=>{
-    const tot = prepTotalText(t);
-    h += '<div style="background:var(--brand);border:1px solid var(--border-subtle);border-radius:var(--r);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:14px">'
-       + '<div style="flex-shrink:0;min-width:56px;text-align:center">'
-       +   '<div style="font-size:34px;line-height:1;font-weight:700;color:var(--text-primary);letter-spacing:-0.5px">'+t.doses+'</div>'
-       +   '<div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-top:3px">'+(t.doses===1?'dose':'doses')+'</div>'
-       + '</div>'
-       + '<div style="flex:1;min-width:0">'
-       +   '<div style="display:flex;align-items:center;gap:6px">'
-       +     (t.color?'<span style="width:8px;height:8px;border-radius:50%;background:'+esc(t.color)+';flex-shrink:0"></span>':'')
-       +     '<span style="font-size:15px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.name)+'</span>'
-       +   '</div>'
-       +   '<div style="font-size:12px;color:var(--text-secondary);margin-top:3px">'+esc(prepPerDoseText(t))+' per dose'
-       +     (tot?' &middot; '+esc(tot)+' each':'')+'</div>'
-       +   '<div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Week total: '
-       +     '<span style="color:var(--text-primary);font-weight:600">'+esc(fmtNum(t.mass))+esc(t.unit)+'</span>'
-       +     (tot?' &middot; <span style="color:var(--text-primary);font-weight:600">'+esc(prepTotalText({kind:t.kind,vol:t.vol}))+'</span>':'')
-       +   '</div>'
-       + '</div></div>';
+  // ── Controls ──
+  h += '<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">'
+     + '<button class="rec-tab" style="font-size:11px;flex:1" onclick="prepMarkAll(true)">Prepare all</button>'
+     + '<button class="rec-tab" style="font-size:11px;flex:1" onclick="prepMarkAll(false)">Reset</button>'
+     + '<button class="rec-tab'+(prepOnlyUnprepared?' on':'')+'" style="font-size:11px;flex:1" onclick="prepToggleFilter()">'+(prepOnlyUnprepared?'Show all':'Unprepared only')+'</button>'
+     + '</div>';
+
+  // ── Cards, grouped by preparation type ──
+  let shown = 0;
+  PREP_GROUP_ORDER.forEach(g=>{
+    const inGroup = totals.filter(t=>t.group===g)
+                          .filter(t=>!prepOnlyUnprepared || prepStatus(start,t.pid,t.sig)!=='prepared');
+    if(!inGroup.length) return;
+    h += '<div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin:14px 0 7px">'+esc(PREP_GROUP_LABEL[g]||g)+'</div>';
+    inGroup.forEach(t=>{
+      shown++;
+      const st     = prepStatus(start, t.pid, t.sig);
+      const done   = st==='prepared';
+      const stale  = st==='stale';
+      const noun   = prepCountNoun(t, t.doses);
+      const perVol = prepPerVolText(t);
+      const perMl  = prepPerMlText(t);
+      const totVol = prepTotalText(t);
+      const perU100= prepPerU100Text(t);
+      const hero   = perVol || prepPerDoseText(t);
+      h += '<div style="background:var(--surface-primary);border:1px solid '+(done?'var(--success)':(stale?'var(--warning)':'var(--border-subtle)'))+';border-radius:var(--r);padding:11px 12px;margin-bottom:7px'+(done?';opacity:0.55':'')+'">'
+         + '<div style="display:flex;align-items:center;gap:8px">'
+         +   (t.color?'<span style="width:8px;height:8px;border-radius:50%;background:'+esc(t.color)+';flex-shrink:0"></span>':'')
+         +   '<span style="flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.name)+'</span>'
+         +   '<span style="flex-shrink:0;font-size:11px;font-weight:600;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand-border);border-radius:10px;padding:2px 8px">'+t.doses+' '+esc(noun)+'</span>'
+         + '</div>'
+         + (stale?'<div style="font-size:11px;color:var(--warning-text);margin-top:6px;display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> Protocol changed since prepared &mdash; re-check</div>':'')
+         + (t.varied
+             // Doses vary this week: never show an averaged "each". Show every
+             // distinct syringe explicitly, so the user can count them out.
+             ? '<div style="margin-top:7px">'
+               + '<div style="font-size:10px;color:var(--warning-text);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Doses vary this week</div>'
+               + t.breakdown.map(function(g){
+                   const gv = (g.vol!=null) ? prepVolText(t.kind, g.vol) : '';
+                   const gm = (g.ml!=null && t.kind!=='ml') ? g.ml.toFixed(2)+' mL' : '';
+                   return '<div style="font-size:16px;font-weight:700;color:var(--text-primary);line-height:1.35">'
+                     + g.count+' &times; <span>'+esc(gv||prepFmtQty(g.dose)+' '+t.unit)+'</span>'
+                     + (gm?'<span style="font-size:12px;font-weight:500;color:var(--text-secondary)"> &middot; '+esc(gm)+'</span>':'')
+                     + '<span style="font-size:11px;font-weight:500;color:var(--text-muted)"> &middot; '+esc(prepFmtQty(g.dose)+' '+t.unit)+'</span></div>';
+                 }).join('')
+               + '</div>'
+             : '<div style="font-size:19px;font-weight:700;color:var(--text-primary);margin-top:6px;line-height:1.15">'+esc(hero)
+               +   (perMl?'<span style="font-size:13px;font-weight:500;color:var(--text-secondary)"> &middot; '+esc(perMl)+'</span>':'')
+               +   (perU100?'<span style="font-size:13px;font-weight:500;color:var(--text-secondary)"> &middot; '+esc(perU100)+'</span>':'')
+               +   '<span style="font-size:12px;font-weight:500;color:var(--text-muted)"> each</span></div>'
+               + '<div style="font-size:11px;color:var(--text-secondary);margin-top:3px">'+esc(prepPerDoseText(t))+' per '+esc(prepCountNoun(t,1))+'</div>')
+         + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Weekly draw: <span style="color:var(--text-primary);font-weight:600">'+esc(prepFmtQty(t.mass))+' '+esc(t.unit)+'</span>'
+         +   (totVol?' &middot; <span style="color:var(--text-primary);font-weight:600">'+esc(totVol)+'</span>':'')
+         +   (t.kind!=='ml' && t.mlTotal>0?' &middot; <span style="color:var(--text-primary);font-weight:600">'+t.mlTotal.toFixed(2)+' mL</span>':'')
+         +   (t.kind==='ml' && t.subq && t.vol>0?' &middot; <span style="color:var(--text-primary);font-weight:600">'+esc(prepU100Text(t.vol))+'</span>':'')
+         +   '</div>'
+         + '<button class="rec-tab'+(done?' on':'')+'" style="width:100%;margin-top:9px;font-size:12px;justify-content:center" onclick="prepToggle(\''+esc(t.pid)+'\')">'
+         +   (done
+              ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M20 6L9 17l-5-5"/></svg> Prepared &middot; tap to undo'
+              : (stale ? 'Re-check &amp; mark '+t.doses+' '+esc(noun)+' prepared'
+                       : 'Mark '+t.doses+' '+esc(noun)+' prepared'))
+         + '</button>'
+         + '</div>';
+    });
   });
 
-  h += '<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:8px">Draw amounts are calculated from each compound\'s vial size and BAC water, matching the Today tab. Verify against your own syringe before drawing.</div>';
+  if(!shown && prepOnlyUnprepared)
+    h += '<div class="empty"><div class="empty-t">All prepared</div><div>Every compound for this week is marked prepared</div></div>';
+
+  h += '<div style="font-size:11px;color:var(--warning-text);line-height:1.5;margin-top:12px;padding:10px;background:var(--warning-soft);border-radius:var(--r)">Prepared does not mean administered. Log each dose on Today when you take it.</div>'
+     + '<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:8px;padding-bottom:96px">Draw amounts are calculated from each compound\'s vial size and BAC water, matching the Today tab. Verify against your own syringe before drawing.</div>';
   el.innerHTML = h;
 }
 
@@ -2162,14 +2397,101 @@ function expiryBadge(d){
 
 // Oil-based compounds are pre-mixed: vialSize is mg/ml, not vial content
 function isOilBased(c){
+  // An explicit formulation, when present, is authoritative. Legacy compounds
+  // (schema <= 2, no formulation field) fall back to the old category/route
+  // inference so nothing that already worked changes behaviour.
+  const f=(c.formulation||'').toLowerCase();
+  if(f==='oil') return true;
+  if(f==='reconstituted') return false;
   const cat=(c.cat||'').toLowerCase();
   const route=(c.route||'').toLowerCase();
   return cat==='hormone' || route.indexOf('oil')>-1 || route.indexOf('im injection')>-1;
 }
 
 // Pin amount: ml for oil-based, U-100 units for reconstituted peptides
+// Unit strings reach us in mixed case ('iu' from the wizard dropdown, 'IU' from
+// the editor). The frozen calculators match exactly, so canonicalise first.
+function normUnit(u){
+  const t=String(u||'').trim().toLowerCase();
+  if(t==='iu') return 'IU';
+  if(t==='ml') return 'ml';
+  if(t==='mg') return 'mg';
+  if(t==='mcg'||t==='ug') return 'mcg';
+  return t;
+}
+// SINGLE source of truth for "what goes in the pin". Delegates to the frozen,
+// unit-family-aware calculators rather than repeating ad-hoc toMcg() maths,
+// which silently treated 3 IU as 3 mcg and an mL dose as mcg.
+// Returns {units, ml, doseText} or {error} — never a wrong number.
+function drawInfo(c, date){
+  const dose=parseFloat(effectiveDose(c, date));
+  if(!(dose>0)) return null;
+  const unit=normUnit(c.unit), vUnit=normUnit(c.vialUnit||'mg');
+  const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater);
+  // Dose already given as a volume: it IS the draw. Derive the mass it carries
+  // when the concentration is known, so the card can still show a real dose.
+  if(unit==='ml'){
+    // The mass this volume carries is only knowable from a stored concentration.
+    // Never infer one from the compound name or a default.
+    if(isPosFinite(vs) && ['mg','mcg'].includes(vUnit)){
+      const perMl = isOilBased(c) ? vs : (isPosFinite(bac) ? vs/bac : NaN);
+      if(Number.isFinite(perMl) && perMl>0){
+        return {units:dose*100, ml:dose, doseText:fmtNum(+(dose*perMl).toFixed(4))+' '+vUnit};
+      }
+    }
+    // No concentration on record: show the volume once and ask for the missing value
+    // rather than repeating the volume as though it were a dose.
+    return {units:dose*100, ml:dose, doseText:null, needsConc:true};
+  }
+  if(isOilBased(c)){
+    const r=oilCalc({conc:vs, concUnit:vUnit, dose:dose, doseUnit:unit});
+    if(!r.ok) return {error:r.error};
+    return {units:r.units, ml:r.ml, doseText:fmtNum(dose)+' '+unit};
+  }
+  const r=reconstitutionCalc({vialAmt:vs, vialUnit:vUnit, bac:bac, dose:dose, doseUnit:unit});
+  if(!r.ok) return {error:r.error};
+  return {units:r.units, ml:r.ml, doseText:fmtNum(dose)+' '+unit};
+}
+// What the card shows as the pin amount: insulin units for anything drawn into a
+// U-100 pin (SubQ), millilitres for IM. Same rule for every compound type.
+function pinAmountText(c, info){
+  if(!info || info.error) return '';
+  return isSubQRoute(c.route) ? fmtNum(+info.units.toFixed(info.units<10?1:0))+' units'
+                              : info.ml.toFixed(2)+' ml';
+}
+// The dose that pin contains.
+function doseLabel(c, date){
+  const info=drawInfo(c, date);
+  if(info && info.needsConc) return 'Set concentration to show dose';
+  if(info && info.doseText) return info.doseText;
+  return fmtNum(effectiveDose(c, date))+' '+normUnit(c.unit);
+}
+// Names are compared normalised: trimmed, case-folded, internal whitespace collapsed.
+function normName(n){ return String(n||'').trim().toLowerCase().replace(/\s+/g,' '); }
+function findByName(name, exceptId){
+  const w=normName(name);
+  return (D.compounds||[]).filter(c=>c && normName(c.name)===w && c.id!==exceptId);
+}
+// How many logs / history entries hang off a compound id.
+function logCountFor(id){ return (D.logs||[]).filter(l=>l && l.pid===id).length; }
+function histCountFor(id){ return (D.history||[]).filter(h=>h && h.cid===id).length; }
+// A dose entered in mL is already a VOLUME. It must never be pushed through the
+// mass->concentration path: toMcg() has no 'ml' case and silently returns the
+// number as if it were mcg, which produced a 0.00ml draw for a real 0.07 ml dose.
+function isVolumeDose(unit){ return /^ml$/i.test(String(unit||'').trim()); }
+const PIN_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg> ';
 function pinBadge(c){
   const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater), dose=parseFloat(effectiveDose(c));
+  // Every injectable now reports through drawInfo: pin amount + the dose it holds.
+  if(!isSprayRoute(c.route)){
+    const info=drawInfo(c);
+    if(info && info.error){
+      return '<span style="color:var(--warning-text);font-size:12px">Check vial units</span>';
+    }
+    const txt=pinAmountText(c, info);
+    if(txt) return PIN_SVG+txt;
+    return '';
+  }
   if(!vs||!dose) return '';
   const doseMcg=toMcg(dose, c.unit);
   // Nasal spray: show sprays-per-dose instead of a syringe amount.
@@ -2273,7 +2595,7 @@ function rToday(){
       <div style="flex:1;min-width:0">
         <div class="ci-name"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}${snz?'<span class="snz-badge">'+(snzTo?'Back '+fmtD(snzTo):'Snoozed')+'</span>':(expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':'')}</div>
         ${pin?`<div class="ci-draw">${pin}</div>`:''}
-        <div class="ci-sub">${effectiveDose(c)} ${c.unit} · ${esc(c.route)}</div>
+        <div class="ci-sub">${esc(doseLabel(c))} · ${esc(c.route)}</div>
       </div>
       <button class="snooze-btn ${snz?'on':''}" title="${snz?'Un-snooze':'Snooze for this day'}"
         onclick="toggleSkip('${c.id}','${slot||''}',event)">
@@ -3549,7 +3871,9 @@ async function saveForm(){
     if(!vialVal || parseFloat(vialVal)<=0) missing.push('Vial size (needed for dose calc)');
     // BAC water only applies to reconstituted (non-oil) compounds.
     const routeVal=gv('f-route');
-    const oilish = /oral|topical/i.test(routeVal);
+    // Non-reconstituted: oral/topical, plus any oil-based compound on ANY route
+    // (running oils SubQ in an insulin pin is normal and must not be nagged).
+    const oilish = /oral|topical/i.test(routeVal) || isOilBased({cat:gv('f-cat'), route:routeVal});
     if(!oilish){
       const bacVal=gv('f-bac');
       if(!bacVal || parseFloat(bacVal)<=0) missing.push('BAC water (needed for units calc)');
@@ -4296,6 +4620,80 @@ function updateQuickRef(){try{
 function updatePinLabel(){} // kept for compatibility
 
 
+// ─── RECORD AUDIT ──────────────────────────────────────────
+// Read-only inspector plus delete-by-exact-id. Deliberately shows the stable id and
+// the attached log/history counts so the user deletes the empty duplicate, not the
+// record carrying their history.
+function recordAuditRows(){
+  const groups={};
+  (D.compounds||[]).forEach(c=>{ if(!c) return; (groups[normName(c.name)]=groups[normName(c.name)]||[]).push(c); });
+  return groups;
+}
+function recordAuditFlags(c){
+  const f=[];
+  if(!c.freq) f.push('no frequency set');
+  if(c.active && !c.start) f.push('no start date');
+  if(c.durtype==='enddate') f.push("durtype 'enddate' — not offered by the editor");
+  if(c.active && c.end && c.end < tod()) f.push('active but ended '+fmtD(c.end));
+  if(normUnit(c.unit)==='IU' && normUnit(c.vialUnit||'mg')!=='IU') f.push('IU dose vs mass vial');
+  if(normUnit(c.unit)==='ml' && !(parseFloat(c.vialSize)>0)) f.push('volume dose, no concentration');
+  return f;
+}
+function openRecordAudit(){
+  const groups=recordAuditRows();
+  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let h='';
+  Object.keys(groups).sort().forEach(key=>{
+    const list=groups[key];
+    const dupe=list.length>1;
+    h+='<div style="margin-bottom:14px">';
+    h+='<div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:5px">'+
+       esc(list[0].name)+(dupe?'<span style="font-size:11px;font-weight:600;color:var(--warning-text);margin-left:7px">'+
+       list.length+' records with this name</span>':'')+'</div>';
+    list.forEach(c=>{
+      const lc=logCountFor(c.id), hc=histCountFor(c.id);
+      const flags=recordAuditFlags(c);
+      h+='<div style="background:var(--surface-primary);border:1px solid '+
+         (dupe?'var(--warning)':'var(--border-subtle)')+';border-radius:var(--r);padding:9px 10px;margin-bottom:6px">'
+       + '<div style="font-family:ui-monospace,monospace;font-size:11px;color:var(--text-secondary)">'+esc(c.id)+'</div>'
+       + '<div style="font-size:12px;color:var(--text-primary);margin-top:3px">'
+       +   (c.active?'Active':'Inactive')+' &middot; '+esc(c.time||'—')+' &middot; '+esc(c.freq||'no freq')
+       +   ' &middot; start '+esc(c.start||'—')+'</div>'
+       + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Days: '
+       +   ((c.days&&c.days.length)?c.days.map(d=>DAYS[d]||d).join(' '):'every day')+'</div>'
+       + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">'
+       +   '<b>'+lc+'</b> log'+(lc===1?'':'s')+' &middot; <b>'+hc+'</b> history entr'+(hc===1?'y':'ies')+'</div>'
+       + (flags.length?'<div style="font-size:11px;color:var(--warning-text);margin-top:4px">Needs review: '+esc(flags.join('; '))+'</div>':'')
+       + (lc===0&&hc===0&&dupe?'<div style="font-size:11px;color:var(--success);margin-top:4px">No attached data — safe to remove</div>':'')
+       + '<button type="button" class="btn btn-s btn-sm" style="width:100%;margin-top:7px;font-size:12px" onclick="recordAuditDelete(\''+esc(c.id)+'\')">Delete this record</button>'
+       + '</div>';
+    });
+    h+='</div>';
+  });
+  document.getElementById('recaudit-body').innerHTML = h || '<div style="font-size:13px;color:var(--text-secondary)">No protocols stored.</div>';
+  openOv('ov-recaudit');
+}
+async function recordAuditDelete(id){
+  const c=(D.compounds||[]).find(x=>x && x.id===id);
+  if(!c){ await ptAlert('No record with that ID.'); return; }
+  const lc=logCountFor(id), hc=histCountFor(id);
+  const warn = (lc||hc)
+    ? '\n\nWARNING: this record has '+lc+' logged dose'+(lc===1?'':'s')+' and '+hc+
+      ' history entr'+(hc===1?'y':'ies')+'. Those belong to THIS record.'
+    : '\n\nThis record has no logs and no history attached.';
+  const go = await ptConfirm('Delete "'+c.name+'"?\n\nID: '+id+warn+
+    '\n\nOnly this exact ID is removed. Other records keep their own logs and history.',
+    'Delete record', {destructive:true, okText:'Delete this record', cancelText:'Keep it'});
+  if(!go) return;
+  const before=D.compounds.length;
+  // Remove by exact id only. Logs and history keyed to OTHER ids are never touched.
+  D.compounds = D.compounds.filter(x=>!(x && x.id===id));
+  if(D.compounds.length!==before-1){ await ptAlert('Delete failed — nothing was removed.'); return; }
+  save();
+  const still=(D.compounds||[]).some(x=>x && x.id===id);
+  if(still){ await ptAlert('Delete did not persist. Please try again.'); return; }
+  openRecordAudit(); render();
+}
 async function masterReset(){
   // Step 1: First confirmation
   if(!(await ptConfirm('MASTER RESET\n\nThis will permanently delete ALL data including:\n• All compounds & protocols\n• All dose logs\n• All inventory\n• All history\n\nThis cannot be undone.\n\nAre you sure?'))) return;
@@ -4630,6 +5028,7 @@ function init(){
   // Show today tab by default
   document.getElementById('pg-today').classList.remove('hidden');
   load();
+  normalizeDurations();   // repair ongoing-protocols that carry a stale end date
   checkBackupReminder();
   document.getElementById('hdrDate').textContent=new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
   viewDate=tod();
@@ -4835,6 +5234,7 @@ function kiChooseCompound(){
   if(!id){
     // "Add your own" — clear to blank for a new compound
     ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+    kiApplyRouteForm(null);
     return;
   }
   const c=D.compounds.find(x=>x.id===id); if(!c) return;
@@ -4842,6 +5242,8 @@ function kiChooseCompound(){
   const set=(f,v)=>{const el=document.getElementById(f);if(el&&v!=null)el.value=v;};
   set('ki-name', c.name); set('ki-dose', c.dose); set('ki-unit', c.unit||'mcg');
   set('ki-freq', c.freq||'daily'); set('ki-vial', c.vialSize); set('ki-bac', c.bacWater);
+  set('ki-saline', c.saline); set('ki-volPerSpray', c.volPerSpray);
+  set('ki-vialUnit', c.vialUnit||'mg'); kiApplyRouteForm(c);
   // Normalize a possibly-contradictory stored schedule before displaying it.
   { const nc=normalizeSchedule({freq:c.freq, time:c.time}); set('ki-freq', nc.freq||'daily'); set('ki-time', (['AM','PM','Both'].includes(nc.time)?nc.time:'AM')); }
   // §3: inactive preloaded compound → start defaults to today (not a stale stored date).
@@ -4867,6 +5269,13 @@ function kiSetDurtype(t){
   const ww=document.getElementById('ki-weeks-wrap'), ew=document.getElementById('ki-end-wrap');
   if(ww) ww.style.display = (t==='weeks')?'block':'none';
   if(ew) ew.style.display = (t==='weeks')?'block':'none';
+  // Hiding is not enough: a value left in a hidden input was still collected and
+  // saved, so an "ongoing" protocol acquired an end date and isDue() expired it.
+  // Clear them, exactly as onDur() does in the full editor.
+  if(t==='ongoing'){
+    const w=document.getElementById('ki-weeks'), e=document.getElementById('ki-end');
+    if(w) w.value=''; if(e) e.value='';
+  }
 }
 function kiOpenStack(){
   _kiMode='stack'; _kiQueue=[{}]; _kiIndex=0; _kiActivateId=null;
@@ -4898,6 +5307,8 @@ function kiPopulateFrom(){
   const set=(id,val)=>{ const el=document.getElementById(id); if(el&&val!=null) el.value=val; };
   set('ki-name', sn.name); set('ki-dose', sn.dose); set('ki-unit', sn.unit);
   set('ki-freq', sn.freq); set('ki-vial', sn.vialSize); set('ki-bac', sn.bacWater);
+  set('ki-saline', sn.saline); set('ki-volPerSpray', sn.volPerSpray);
+  set('ki-vialUnit', sn.vialUnit||'mg'); kiApplyRouteForm(sn);
   if(['AM','PM','Both'].includes(sn.time)) set('ki-time', sn.time);
   if(sn.weeks) set('ki-weeks', sn.weeks);
   kiSetDaysArr(sn.days||[]);
@@ -4909,7 +5320,8 @@ function kiRenderStep(existing){
   const prog=document.getElementById('ki-progress');
   const nextBtn=document.getElementById('ki-next');
   // clear fields
-  ['ki-name','ki-dose','ki-vial','ki-bac','ki-start','ki-weeks','ki-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray','ki-start','ki-weeks','ki-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  kiApplyRouteForm(null);
   // Default start date to today (so a new protocol starts now unless changed).
   { const st=document.getElementById('ki-start'); if(st){ st.value=(typeof localDateStr==='function')?localDateStr(new Date()):new Date().toISOString().slice(0,10); } }
   document.getElementById('ki-unit').value='mcg';
@@ -4939,6 +5351,8 @@ function kiRenderStep(existing){
       const set=(id,v)=>{ const el=document.getElementById(id); if(el&&v!=null) el.value=v; };
       set('ki-name', existing.name); set('ki-dose', existing.dose); set('ki-unit', existing.unit||'mcg');
       set('ki-freq', existing.freq||'weekly'); set('ki-vial', existing.vialSize); set('ki-bac', existing.bacWater);
+      set('ki-saline', existing.saline); set('ki-volPerSpray', existing.volPerSpray);
+      set('ki-vialUnit', existing.vialUnit||'mg'); kiApplyRouteForm(existing);
       { const ne=normalizeSchedule({freq:existing.freq, time:existing.time}); set('ki-freq', ne.freq||'weekly'); set('ki-time', (['AM','PM','Both'].includes(ne.time)?ne.time:'AM')); }
       // §3.2/§3: an inactive preloaded compound should NOT carry a stale start date into a
       // new activation — default to today. An already-active compound keeps its real start.
@@ -4982,9 +5396,16 @@ function kiCollect(){
   return {
     name, dose:parseFloat(g('ki-dose'))||0, unit:g('ki-unit'),
     freq:g('ki-freq'), days:kiGetDays(), time:g('ki-time')||'AM',
-    start:start||'', weeks:weeks||'', end:end||'',
+    // Ongoing carries no duration: never emit weeks/end for it, whatever the
+    // inputs happen to hold (prefill from a chosen compound, or an earlier step).
+    start:start||'',
+    weeks:(_kiDurtype==='ongoing')?'':(weeks||''),
+    end:  (_kiDurtype==='ongoing')?'':(end||''),
     durtype: _kiDurtype,
-    vialSize:g('ki-vial')||'', bacWater:g('ki-bac')||''
+    route:g('ki-route')||'SubQ Injection',
+    formulation:_kiFormulation,
+    vialSize:g('ki-vial')||'', vialUnit:g('ki-vialUnit')||'mg', bacWater:g('ki-bac')||'',
+    saline:g('ki-saline')||'', volPerSpray:g('ki-volPerSpray')||''
   };
 }
 function kiFinishStack(){
@@ -5043,9 +5464,8 @@ async function kiNextInner(after){
   // at the first missing field with a specific message.
   {
     // Resolve the route being used (chosen/activate compound keeps its own route).
-    let route = defaultRouteFor(data.name);
-    if(_kiChosenId){ const ex=D.compounds.find(x=>x.id===_kiChosenId); if(ex&&ex.route) route=ex.route; }
-    else if(_kiMode==='activate' && _kiActivateId){ const ex=D.compounds.find(x=>x.id===_kiActivateId); if(ex&&ex.route) route=ex.route; }
+    // The user now picks the route explicitly; defaultRouteFor is only a fallback.
+    const route = data.route || defaultRouteFor(data.name);
     const draft=Object.assign({}, data, {route});
     const titrTogV=document.getElementById('ki-titr-tog');
     if(titrTogV && titrTogV.classList.contains('on')) draft.titration={enabled:true, steps:_titrDraft||[]};
@@ -5074,21 +5494,75 @@ async function kiNextInner(after){
         Object.assign(c, { dose:data.dose, unit:data.unit, freq:data.freq,
           days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')),
           start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
-          vialSize:data.vialSize, bacWater:data.bacWater, active:true });
+          route:data.route, formulation:data.formulation,
+          vialSize:data.vialSize, vialUnit:data.vialUnit, bacWater:data.bacWater,
+          saline:data.saline, volPerSpray:data.volPerSpray, active:true });
         if(titr) c.titration=titr; else delete c.titration;
       }
     }
     if(!c){
+      // A duplicate name silently creates a SECOND schedule: both records appear on
+      // Today (often in different slots), logs stay attached to the original, and the
+      // pair reads as one protocol duplicated. Block it at the point of creation.
+      const matches=findByName(data.name);
+      if(matches.length){
+        const ex=matches[0];
+        const choice = await ptDialog({kind:'confirm', title:'Duplicate protocol',
+          message:'A protocol named "'+data.name+'" already exists'+
+            (ex.active?' and is active':' (currently inactive)')+
+            '.\n\nIt holds '+logCountFor(ex.id)+' logged dose'+(logCountFor(ex.id)===1?'':'s')+
+            ' and '+histCountFor(ex.id)+' history entr'+(histCountFor(ex.id)===1?'y':'ies')+
+            '.\n\nUse the existing protocol to keep that history, or create a separate one '+
+            'if you genuinely run two schedules for this compound. A separate protocol gets '+
+            'its own Today entries, its own history and its own adherence.',
+          okText:'Use existing protocol', altText:'Create separate', cancelText:'Cancel'});
+        if(choice===false || choice===null) return;          // Cancel
+        if(choice===true){
+          // Use existing: update the STABLE record in place. No new id, no lost history.
+          Object.assign(ex, { dose:data.dose, unit:data.unit, freq:data.freq,
+            days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')),
+            start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
+            route:data.route, formulation:data.formulation,
+            vialSize:data.vialSize, vialUnit:data.vialUnit, bacWater:data.bacWater,
+            saline:data.saline, volPerSpray:data.volPerSpray, active:true });
+          if(titr) ex.titration=titr; else delete ex.titration;
+          c=ex; stampTracking(c,'reuse'); snapshotCompound(c,'edit'); save();
+          await ptAlert('Updated the existing "'+ex.name+'" protocol. Its '+
+            logCountFor(ex.id)+' logged dose'+(logCountFor(ex.id)===1?'':'s')+
+            ' and history are unchanged.', 'Using existing protocol');
+        } else {
+          // Create separate: demand a label that distinguishes the two.
+          let label='';
+          while(true){
+            const v = await ptPrompt('Give this protocol a label so you can tell it apart '+
+              'from the existing "'+data.name+'" — for example "morning", "cruise" or "low dose".',
+              {title:'Distinguishing label', placeholder:'e.g. evening'});
+            if(v===null) return;                              // Cancel
+            label=String(v||'').trim();
+            if(!label){ await ptAlert('A label is required to create a separate protocol.','Label required'); continue; }
+            const candidate=data.name+' ('+label+')';
+            if(findByName(candidate).length){
+              await ptAlert('"'+candidate+'" also already exists. Choose a different label.','Still a duplicate');
+              continue;
+            }
+            data.name=candidate; break;
+          }
+        }
+      }
       // "Add your own" (or chosen id not found): create a new compound.
+      // Skipped when "Use existing" above adopted a stable record into c.
+      if(!c){
       c={ id:uid(), name:data.name, dose:data.dose, unit:data.unit, freq:data.freq,
-        route:defaultRouteFor(data.name), days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')), start:data.start, weeks:data.weeks, end:data.end,
-        durtype:data.durtype, vialSize:data.vialSize, bacWater:data.bacWater, active:true,
+        route:data.route||defaultRouteFor(data.name), formulation:data.formulation,
+        days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')), start:data.start, weeks:data.weeks, end:data.end,
+        durtype:data.durtype, vialSize:data.vialSize, vialUnit:data.vialUnit, bacWater:data.bacWater,
+        saline:data.saline, volPerSpray:data.volPerSpray, active:true,
         color: (typeof COLORS!=='undefined' && COLORS.length) ? COLORS[D.compounds.length % COLORS.length] : '#4B96E6' };
       if(titr) c.titration=titr;
       D.compounds.push(c);
+      stampTracking(c,'create'); snapshotCompound(c,'create');
+      }
     }
-    if(c) stampTracking(c,'create');
-    if(c) snapshotCompound(c,'create');
     save();
     // §3.1/§6: verify persistence before navigating.
     const persisted = D.compounds.some(x=>x && x.id===(c&&c.id));
@@ -5127,6 +5601,47 @@ function defaultRouteFor(name){
   const n=(name||'').toLowerCase();
   if(n.includes('hcg')) return 'SubQ Injection';
   return 'SubQ Injection';
+}
+let _kiFormulation='reconstituted';
+// Point the route + formulation controls at an existing compound (or reset to
+// defaults when there isn't one), then re-sync which fields are visible.
+function kiApplyRouteForm(c){
+  const routeEl=document.getElementById('ki-route');
+  if(routeEl){
+    const want=(c&&c.route)||'SubQ Injection';
+    const match=Array.prototype.find.call(routeEl.options, o=>o.value.toLowerCase()===String(want).toLowerCase());
+    routeEl.value = match ? match.value : 'SubQ Injection';
+  }
+  kiSetFormulation(c ? (isOilBased(c)?'oil':'reconstituted') : 'reconstituted');
+}
+// Show only the fields the chosen route + formulation actually need, so a user
+// is never blocked by a field that does not apply (e.g. BAC water on oil).
+function kiSetFormulation(v){
+  _kiFormulation = (v==='oil') ? 'oil' : 'reconstituted';
+  document.querySelectorAll('#ki-form-btns .ki-form-opt').forEach(b=>{
+    b.classList.toggle('on', b.getAttribute('data-form')===_kiFormulation);
+  });
+  kiSyncFormFields();
+}
+function onKiRoute(){ kiSyncFormFields(); }
+function kiSyncFormFields(){
+  const routeEl=document.getElementById('ki-route');
+  const route=routeEl?routeEl.value:'SubQ Injection';
+  const inj=isInjectableRoute(route), spray=isSprayRoute(route);
+  const oil=inj && _kiFormulation==='oil';
+  const show=(id,on)=>{ const el=document.getElementById(id); if(el) el.style.display = on?'':'none'; };
+  show('ki-form-wrap', inj);
+  show('ki-vialrow',   inj||spray);
+  show('ki-bac-wrap',  (inj&&!oil)||spray);
+  show('ki-nasalrow',  spray);
+  const lbl=document.getElementById('ki-vial-lbl');
+  if(lbl) lbl.textContent = oil ? 'Concentration (mg/mL)' : (spray ? 'Peptide amount' : 'Vial size');
+  const vial=document.getElementById('ki-vial');
+  if(vial) vial.placeholder = oil ? 'e.g. 250' : 'e.g. 5';
+  const hint=document.getElementById('ki-form-hint');
+  if(hint) hint.textContent = oil
+    ? 'Pre-mixed in oil. No BAC water — enter the label concentration.'
+    : 'Powder reconstituted with BAC water.';
 }
 let _kiStackCount=0;
 function kiCancel(){ closeOv('ov-keyinfo'); _kiMode=null; _kiStackCount=0; }
@@ -5308,9 +5823,14 @@ function validateProtocolDraft(d, ctx){
   // Injectable routes need vial size (for draw calc). Nasal/oral/topical do not.
   const injectable=isInjectableRoute(d.route);
   if(injectable){
-    if(!(num(d.vialSize)>0)) errors.push({field:'vialSize', message:'Vial size is required for injectable protocols.'});
+    if(!(num(d.vialSize)>0)) errors.push({field:'vialSize', message: isOilBased(d)
+        ? 'Concentration (mg/mL) is required for oil-based protocols.'
+        : 'Vial size is required for injectable protocols.'});
     // BAC water required for reconstituted peptides (not oil-based)
-    if(!isOilBasedRoute(d.route) && !(num(d.bacWater)>0)) errors.push({field:'bacWater', message:'BAC water is required to calculate the dose.'});
+    // Oil-based compounds are pre-mixed and never need BAC water — including when
+    // taken SubQ in an insulin pin. Use the same oil test as the calculator and
+    // pinBadge (category/route), NOT an IM-route-only test, or oil+SubQ is blocked.
+    if(!isOilBased(d) && !(num(d.bacWater)>0)) errors.push({field:'bacWater', message:'BAC water is required to calculate the dose.'});
   }
   // Nasal route needs reconstitution fields
   if(isSprayRoute(d.route)){
@@ -5599,7 +6119,7 @@ async function scheduleCycleNext(cid, key, listIdx){
     if(!weeks) missing.push('Duration (weeks)');
     if(!vialSize || parseFloat(vialSize)<=0) missing.push('Vial size (needed for dose calc)');
     const routeVal = compound ? (compound.route||'') : '';
-    const oilish = /oral|topical/i.test(routeVal);
+    const oilish = /oral|topical/i.test(routeVal) || (compound ? isOilBased(compound) : false);
     if(!oilish && (!bacWater || parseFloat(bacWater)<=0)) missing.push('BAC water (needed for units calc)');
     if(missing.length){
       const go = await ptConfirm('This next cycle is missing info that Today, the calculator and syringe amounts rely on:\n\n• '+missing.join('\n• ')+'\n\nSchedule anyway, or go back and fill them in?', 'Missing details', {okText:'Schedule anyway', cancelText:'Go back & fill'});
@@ -5788,9 +6308,36 @@ window.PT_debug = {
         <input class="fi" id="ki-end" type="date" onchange="kiSyncDates('end')" style="margin-bottom:14px">
       </div>
 
-      <div style="display:flex;gap:8px;margin-bottom:14px">
-        <div style="flex:1"><label class="fl">Vial size</label><input class="fi" id="ki-vial" type="number" step="0.01" placeholder="e.g. 5"></div>
-        <div style="flex:1"><label class="fl">BAC water (ml)</label><input class="fi" id="ki-bac" type="number" step="0.1" placeholder="e.g. 2"></div>
+      <label class="fl">Administration</label>
+      <select class="fs" id="ki-route" onchange="onKiRoute()" style="margin-bottom:14px">
+        <option value="SubQ Injection">Subcutaneous injection (SubQ)</option>
+        <option value="IM Injection">Intramuscular injection (IM)</option>
+        <option value="Nasal Spray">Nasal spray</option>
+        <option value="Oral">Oral</option>
+        <option value="Topical">Topical</option>
+      </select>
+
+      <div id="ki-form-wrap">
+        <label class="fl">Formulation</label>
+        <div style="display:flex;gap:6px;margin-bottom:6px" id="ki-form-btns">
+          <button type="button" class="btn btn-s btn-sm ki-form-opt on" data-form="reconstituted" style="flex:1;font-size:13px;padding:8px" onclick="kiSetFormulation('reconstituted')">Reconstituted</button>
+          <button type="button" class="btn btn-s btn-sm ki-form-opt" data-form="oil" style="flex:1;font-size:13px;padding:8px" onclick="kiSetFormulation('oil')">Oil-based</button>
+        </div>
+        <div id="ki-form-hint" style="font-size:11px;color:var(--text-muted);margin-bottom:12px">Powder reconstituted with BAC water.</div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:14px" id="ki-vialrow">
+        <div style="flex:1" id="ki-vial-wrap"><label class="fl" id="ki-vial-lbl">Vial size</label>
+          <div style="display:flex;gap:6px">
+            <input class="fi" id="ki-vial" type="number" step="0.01" placeholder="e.g. 5" style="flex:1">
+            <select class="fs" id="ki-vialUnit" style="width:76px"><option>mg</option><option>mcg</option><option>IU</option></select>
+          </div>
+        </div>
+        <div style="flex:1" id="ki-bac-wrap"><label class="fl">BAC water (ml)</label><input class="fi" id="ki-bac" type="number" step="0.1" placeholder="e.g. 2"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px" id="ki-nasalrow">
+        <div style="flex:1"><label class="fl">Saline (ml)</label><input class="fi" id="ki-saline" type="number" step="0.1" placeholder="optional"></div>
+        <div style="flex:1"><label class="fl">Volume per spray (ml)</label><input class="fi" id="ki-volPerSpray" type="number" step="0.001" placeholder="e.g. 0.1"></div>
       </div>
 
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -5798,6 +6345,20 @@ window.PT_debug = {
         <button type="button" class="btn btn-s" style="flex:1;display:none" id="ki-finish" onclick="kiFinishStack()">Finish</button>
         <button type="button" class="btn btn-p" style="flex:1" id="ki-next" onclick="kiNext()">Save</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Record audit: every compound record with its stable id and attached data -->
+  <div id="ov-recaudit" class="ov hidden">
+    <div class="sh" style="max-height:86vh;overflow-y:auto">
+      <div class="sh-handle"></div>
+      <div class="sh-title">Record Audit</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">
+        Every stored protocol record. Same-name records are grouped so you never have to
+        tell them apart by eye. Deletion is by exact ID and asks for confirmation.
+      </div>
+      <div id="recaudit-body"></div>
+      <button type="button" class="btn btn-s" style="width:100%;margin-top:14px" onclick="closeOv('ov-recaudit')">Close</button>
     </div>
   </div>
 
