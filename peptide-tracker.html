@@ -666,12 +666,23 @@ html[data-theme="light"] .col{box-shadow:var(--shadow-raised)}
 html[data-theme="light"] .ci{padding:11px 14px;border-bottom:1px solid var(--border-subtle)}
 html[data-theme="light"] .ci.done{opacity:1;background:var(--success-soft)}
 html[data-theme="light"] .ci.done .ci-name{color:var(--text-secondary)}
-html[data-theme="light"] .ci.expiring{background:var(--danger-soft)}
+/* Row states can overlap: a dose can be taken on a compound whose cycle is ending.
+   Precedence for the FILL is done > snoozed > expiring, so a completed dose always
+   reads as complete. Expiry keeps a red left edge either way, so neither signal is
+   lost, and the "N days left" badge remains. */
+html[data-theme="light"] .ci.expiring{background:var(--danger-soft);
+  box-shadow:inset 3px 0 0 var(--danger)}
+html[data-theme="light"] .ci.expiring.snoozed{background:var(--warning-soft)}
+html[data-theme="light"] .ci.expiring.done{background:var(--success-soft)}
+html[data-theme="light"] .ci.expiring.done .ci-sub{color:var(--text-muted)}
 html[data-theme="light"] .ci.snoozed{opacity:1;background:var(--warning-soft)}
 html[data-theme="light"] .ci-name{font-weight:700;color:var(--text-primary)}
 html[data-theme="light"] .ci-sub{color:var(--text-muted)}
 html[data-theme="light"] .chk{border-radius:7px;border:1.5px solid var(--border-primary);
   background:var(--surface-primary)}
+/* The rule above outranks .chk.done (0,2,1 vs 0,2,0), which left the ticked box
+   white with a white tick on it. Restate the done state at equal specificity. */
+html[data-theme="light"] .chk.done{background:var(--success);border-color:var(--success)}
 html[data-theme="light"] .snooze-btn{opacity:.3;border-color:var(--border-subtle)}
 html[data-theme="light"] .tickall-row{padding:14px}
 
@@ -878,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0806.1108</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0806.1341</div>
       </div>
     </div>
   </div>
@@ -1078,7 +1089,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div class="ampm" id="ampm"></div>
       <div class="tickall hidden" id="tickall">
         <div class="tickall-row" onclick="tickAll()">
-          <div class="chk" id="tick-chk"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="chk" id="tick-chk"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="var(--c-white)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           <span class="tickall-lbl">Tick All Done</span>
           <span id="tick-cnt" style="font-size:12px;color:var(--text2);margin-left:auto;font-family:var(--mono)"></span>
         </div>
