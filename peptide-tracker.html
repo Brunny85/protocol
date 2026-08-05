@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0806.1341</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0806.2211</div>
       </div>
     </div>
   </div>
@@ -1281,17 +1281,17 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <svg fill="none" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Protocol
     </button>
-    <button class="tb" onclick="nav('inv',this)">
-      <svg fill="none" viewBox="0 0 24 24"><path d="M20 7H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1zM16 3H8l-1 4h10l-1-4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Inventory
+    <button class="tb" onclick="nav('stack',this)">
+      <svg fill="none" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Stack
     </button>
     <button class="tb" onclick="nav('calc',this)">
       <svg fill="none" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 7h8M8 12h2M12 12h2M16 12h0M8 16h2M12 16h2M16 16h0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       Calc
     </button>
-    <button class="tb" onclick="nav('stack',this)">
-      <svg fill="none" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Stack
+    <button class="tb" onclick="nav('inv',this)">
+      <svg fill="none" viewBox="0 0 24 24"><path d="M20 7H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1zM16 3H8l-1 4h10l-1-4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Inventory
     </button>
     <button class="tb" onclick="nav('records',this)">
       <svg fill="none" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -1318,14 +1318,6 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
 
     <div class="fdiv"></div>
     <div class="fsec">① Dosage</div>
-    <div class="fr fg">
-      <div><label class="fl">Amount</label><input class="fi" id="f-dose" type="number" step="0.01" placeholder="0.00"></div>
-      <div><label class="fl">Unit</label>
-        <select class="fs" id="f-unit" onchange="syncUnitFamily('f-unit','f-vialUnit','dose')">
-          <option>mg</option><option>mcg</option><option>IU</option><option>ml</option><option>units</option>
-        </select>
-      </div>
-    </div>
     <div class="fg"><label class="fl">Route of Administration</label>
       <select class="fs" id="f-route" onchange="onRouteChange()">
         <option>SubQ Injection</option><option>IM Injection</option><option>Oral</option>
@@ -1333,30 +1325,42 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       </select>
     </div>
     <div class="fr fg">
+      <div><label class="fl">Amount</label><input class="fi" id="f-dose" type="number" step="0.01" placeholder="0.00" oninput="sprayLink('dose')"></div>
+      <div><label class="fl">Unit</label>
+        <select class="fs" id="f-unit" onchange="syncUnitFamily('f-unit','f-vialUnit','dose');sprayLink('dose')">
+          <option>mg</option><option>mcg</option><option>IU</option><option>ml</option><option>units</option><option>sprays</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr fg">
       <div><label class="fl">Vial Size</label>
         <div style="display:flex;gap:6px">
-          <input class="fi" id="f-vialSize" type="number" step="0.1" placeholder="e.g. 5">
+          <input class="fi" id="f-vialSize" type="number" step="0.1" placeholder="e.g. 5" oninput="sprayLink('recon')">
           <select class="fs" id="f-vialUnit" style="width:88px;padding-left:10px;padding-right:26px;background-position:right 8px center" onchange="syncUnitFamily('f-unit','f-vialUnit','vial')">
             <option>mg</option><option>mcg</option><option>IU</option>
           </select>
         </div>
       </div>
       <div><label class="fl">BAC Water (ml)</label>
-        <input class="fi" id="f-bac" type="number" step="0.1" placeholder="e.g. 2">
+        <input class="fi" id="f-bac" type="number" step="0.1" placeholder="e.g. 2" oninput="sprayLink('recon')">
       </div>
     </div>
 
     <!-- Nasal spray reconstitution (shown when route = Nasal Spray) -->
     <div id="f-spray-block" style="display:none">
-      <div class="fdiv"></div>
       <div class="fg"><label class="fl">Saline added (ml)</label>
-        <input class="fi" id="f-saline" type="number" step="0.1" placeholder="e.g. 4.5" oninput="updateSprayCalc()">
+        <input class="fi" id="f-saline" type="number" step="0.1" placeholder="e.g. 4.5" oninput="sprayLink('recon')">
         <div class="fhint">BAC water reconstitutes; saline brings it to final spray volume.</div>
       </div>
-      <div class="fg"><label class="fl">Volume per spray (ml)</label>
-        <input class="fi" id="f-volPerSpray" type="number" step="0.01" placeholder="e.g. 0.1" oninput="updateSprayCalc()">
-        <div class="fhint">Most nasal pumps deliver 0.1 ml per spray. Change it if your device states otherwise.</div>
+      <div class="fr fg">
+        <div><label class="fl">Volume per spray (ml)</label>
+          <input class="fi" id="f-volPerSpray" type="number" step="0.01" placeholder="e.g. 0.1" oninput="sprayLink('recon')">
+        </div>
+        <div><label class="fl">Sprays per dose</label>
+          <input class="fi" id="f-sprays" type="number" step="0.5" placeholder="e.g. 2" oninput="sprayLink('sprays')">
+        </div>
       </div>
+      <div class="fhint" style="margin-top:-10px;margin-bottom:14px">Enter either the dose or the number of sprays &mdash; the other is worked out for you. Most pumps deliver 0.1 ml per spray.</div>
       <div class="fg" id="f-spray-readout" style="display:none;background:var(--surface-secondary);border:1px solid var(--border-subtle);border-radius:12px;padding:12px 14px">
         <div style="font-size:13px;color:var(--text-secondary)">Reconstitution result</div>
         <div id="f-spray-result" style="font-size:15px;font-weight:600;margin-top:4px"></div>
@@ -2486,6 +2490,9 @@ function prepWeekData(start){
       const items = [];
       (D.compounds||[]).forEach(c=>{
         if(!c || !isDue(c)) return;
+        // Only things drawn into a syringe belong here. Nasal, oral and topical
+        // need no preparation, so they would only pad the list.
+        if(!isInjectableRoute(c.route)) return;
         const b = bucket(c);
         const slots = (b==='both') ? ['am','pm'] : [''];
         slots.forEach(slot=>{
@@ -2680,10 +2687,11 @@ function rPrep(){
       const totVol = prepTotalText(t);
       const perU100= prepPerU100Text(t);
       const hero   = perVol || prepPerDoseText(t);
-      h += '<div style="background:var(--surface-primary);border:1px solid '+(done?'var(--success)':(stale?'var(--warning)':'var(--border-subtle)'))+';border-radius:var(--r);padding:11px 12px;margin-bottom:7px'+(done?';opacity:0.55':'')+'">'
+      h += '<div style="background:var(--surface-primary);border:1px solid '+(done?'var(--success)':(stale?'var(--warning)':'var(--border-subtle)'))+';border-radius:var(--r);padding:11px 12px;margin-bottom:7px'+'">'
          + '<div style="display:flex;align-items:center;gap:8px">'
          +   (t.color?'<span style="width:8px;height:8px;border-radius:50%;background:'+esc(t.color)+';flex-shrink:0"></span>':'')
          +   '<span style="flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.name)+'</span>'
+         +   (done?'<span style="flex-shrink:0;font-size:10px;font-weight:700;color:var(--success-text);background:var(--success-soft);border:1px solid var(--success);border-radius:10px;padding:2px 7px;display:inline-flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>DRAWN</span>':'')
          +   '<span style="flex-shrink:0;font-size:11px;font-weight:600;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand-border);border-radius:10px;padding:2px 8px">'+t.doses+' '+esc(noun)+'</span>'
          + '</div>'
          + (stale?'<div style="font-size:11px;color:var(--warning-text);margin-top:6px;display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> Protocol changed since prepared &mdash; re-check</div>':'')
@@ -2701,12 +2709,15 @@ function rPrep(){
                      + '<span style="font-size:11px;font-weight:500;color:var(--text-muted)"> &middot; '+esc(prepFmtQty(g.dose)+' '+t.unit)+'</span></div>';
                  }).join('')
                + '</div>'
-             : '<div style="font-size:19px;font-weight:700;color:var(--text-primary);margin-top:6px;line-height:1.15">'+esc(hero)
-               +   (perMl?'<span style="font-size:13px;font-weight:500;color:var(--text-secondary)"> &middot; '+esc(perMl)+'</span>':'')
-               +   (perU100?'<span style="font-size:13px;font-weight:500;color:var(--text-secondary)"> &middot; '+esc(perU100)+'</span>':'')
-               +   '<span style="font-size:12px;font-weight:500;color:var(--text-muted)"> each</span></div>'
-               + '<div style="font-size:11px;color:var(--text-secondary);margin-top:3px">'+esc(prepPerDoseText(t))+' per '+esc(prepCountNoun(t,1))+'</div>')
-         + '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Weekly draw: <span style="color:var(--text-primary);font-weight:600">'+esc(prepFmtQty(t.mass))+' '+esc(t.unit)+'</span>'
+             : '<div style="font-size:23px;font-weight:800;color:var(--text-primary);margin-top:7px;line-height:1.1;letter-spacing:-.4px">'
+               +   t.doses+' <span style="font-size:17px;font-weight:600;color:var(--text-secondary)">&times;</span> '+esc(hero)
+               + '</div>'
+               + '<div style="font-size:13px;color:var(--text-secondary);margin-top:3px;font-weight:500">'
+               +   esc(prepPerDoseText(t))+' per '+esc(prepCountNoun(t,1))
+               +   (perMl?' &middot; '+esc(perMl):'')
+               +   (perU100?' &middot; '+esc(perU100):'')
+               + '</div>')
+         + '<div style="font-size:11px;color:var(--text-muted);margin-top:6px">Weekly draw: <span style="color:var(--text-secondary);font-weight:600">'+esc(prepFmtQty(t.mass))+' '+esc(t.unit)+'</span>'
          +   (totVol?' &middot; <span style="color:var(--text-primary);font-weight:600">'+esc(totVol)+'</span>':'')
          +   (t.kind!=='ml' && t.mlTotal>0?' &middot; <span style="color:var(--text-primary);font-weight:600">'+t.mlTotal.toFixed(2)+' mL</span>':'')
          +   (t.kind==='ml' && t.subq && t.vol>0?' &middot; <span style="color:var(--text-primary);font-weight:600">'+esc(prepU100Text(t.vol))+'</span>':'')
@@ -2836,6 +2847,12 @@ function pinAmountText(c, info){
 }
 // The dose that pin contains.
 function doseLabel(c, date){
+  if(isSprayRoute(c.route) && isSprayDose(c.unit)){
+    const n=parseFloat(effectiveDose(c, date));
+    const per=sprayMcgPerSpray(c);
+    const lbl=fmtNum(n)+' spray'+(n===1?'':'s');
+    return (per!=null && n>0) ? lbl+' \u00b7 '+fmtNum(+(n*per).toFixed(2))+' mcg' : lbl;
+  }
   const info=drawInfo(c, date);
   if(info && info.needsConc) return 'Set concentration to show dose';
   if(info && info.doseText) return info.doseText;
@@ -2883,6 +2900,15 @@ function histCountFor(id){ return (D.history||[]).filter(h=>h && h.cid===id).len
 // mass->concentration path: toMcg() has no 'ml' case and silently returns the
 // number as if it were mcg, which produced a 0.00ml draw for a real 0.07 ml dose.
 function isVolumeDose(unit){ return /^ml$/i.test(String(unit||'').trim()); }
+// Nasal protocols are often prescribed as "two sprays" rather than a mass. When the
+// dose is stated that way it is used directly; the mass it delivers is derived from
+// the reconstitution for display only.
+function isSprayDose(unit){ return /^sprays?$/i.test(String(unit||'').trim()); }
+function sprayMcgPerSpray(c){
+  const r=sprayCalc({peptideAmt:c.vialSize, peptideUnit:c.vialUnit||'mg', bacWater:c.bacWater,
+                     saline:c.saline, volPerSpray:c.volPerSpray, doseMcg:null, doseUnit:'mcg'});
+  return (r.ok && Number.isFinite(r.mcgPerSpray)) ? r.mcgPerSpray : null;
+}
 const PIN_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg> ';
 function pinBadge(c){
   const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater), dose=parseFloat(effectiveDose(c));
@@ -2900,6 +2926,9 @@ function pinBadge(c){
   const doseMcg=toMcg(dose, c.unit);
   // Nasal spray: show sprays-per-dose instead of a syringe amount.
   if(isSprayRoute(c.route)){
+    if(isSprayDose(c.unit) && dose>0){
+      return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 11V6a3 3 0 0 1 6 0v5M7 11h10v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/></svg> '+fmtNum(dose)+' spray'+(dose===1?'':'s');
+    }
     const r=sprayCalc({peptideAmt:c.vialSize, peptideUnit:c.vialUnit||'mg', bacWater:c.bacWater, saline:c.saline, volPerSpray:c.volPerSpray, doseMcg:dose, doseUnit:c.unit});
     if(r.ok && r.spraysRounded!=null && r.spraysRounded>0){
       return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 11V6a3 3 0 0 1 6 0v5M7 11h10v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/></svg> '+fmtNum(r.spraysRounded)+' spray'+(r.spraysRounded===1?'':'s');
@@ -4258,6 +4287,13 @@ function openEdit(pid){
   document.getElementById('f-saline').value=c.saline||'';
   document.getElementById('f-volPerSpray').value=c.volPerSpray||'';
   onRouteChange();
+  if(isSprayRoute(c.route)){
+    const per=sprayMcgPerSpray(c);
+    const d=parseFloat(c.dose), u=normUnit(c.unit);
+    const mcg = u==='sprays' ? (per? d*per : null) : (u==='mg'? d*1000 : (u==='mcg'? d : null));
+    const el=document.getElementById('f-sprays');
+    if(el) el.value = (u==='sprays') ? d : ((per && mcg) ? +(mcg/per).toFixed(2) : '');
+  }
   document.getElementById('f-active').checked=c.active;
   { const at=document.getElementById('f-attached');
     if(at){ const lc=logCountFor(pid), hc=histCountFor(pid), sn=findByName(c.name, pid).length;
@@ -5620,7 +5656,7 @@ function kiChooseCompound(){
   _kiChosenId = id || null;
   if(!id){
     // "Add your own" — clear to blank for a new compound
-    ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+    ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray','ki-sprays'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
     kiApplyRouteForm(null);
     return;
   }
@@ -5630,7 +5666,7 @@ function kiChooseCompound(){
   set('ki-name', c.name); set('ki-dose', c.dose); set('ki-unit', c.unit||'mcg');
   set('ki-freq', c.freq||'daily'); set('ki-vial', c.vialSize); set('ki-bac', c.bacWater);
   set('ki-saline', c.saline); set('ki-volPerSpray', c.volPerSpray);
-  set('ki-vialUnit', c.vialUnit||'mg'); kiApplyRouteForm(c);
+  set('ki-vialUnit', c.vialUnit||'mg'); kiApplyRouteForm(c); kiSprayLink('dose');
   // Normalize a possibly-contradictory stored schedule before displaying it.
   { const nc=normalizeSchedule({freq:c.freq, time:c.time}); set('ki-freq', nc.freq||'daily'); set('ki-time', (['AM','PM','Both'].includes(nc.time)?nc.time:'AM')); }
   // §3: inactive preloaded compound → start defaults to today (not a stale stored date).
@@ -5708,7 +5744,7 @@ function kiRenderStep(existing){
   const prog=document.getElementById('ki-progress');
   const nextBtn=document.getElementById('ki-next');
   // clear fields
-  ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray','ki-start','ki-weeks','ki-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray','ki-sprays','ki-start','ki-weeks','ki-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   kiApplyRouteForm(null);
   // Default start date to today (so a new protocol starts now unless changed).
   { const st=document.getElementById('ki-start'); if(st){ st.value=(typeof localDateStr==='function')?localDateStr(new Date()):new Date().toISOString().slice(0,10); } }
@@ -6018,6 +6054,29 @@ function kiSetFormulation(v){
   kiSyncFormFields();
 }
 function onKiRoute(){ kiSyncFormFields(); }
+// Wizard mirror of sprayLink — dose and spray count kept in step.
+let _kiSprayBusy=false;
+function kiSprayLink(source){
+  if(_kiSprayBusy) return;
+  const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v;};
+  if(!isSprayRoute(g('ki-route'))) return;
+  const per=sprayMcgPerSpray({vialSize:g('ki-vial'), vialUnit:g('ki-vialUnit'),
+              bacWater:g('ki-bac'), saline:g('ki-saline'), volPerSpray:g('ki-volPerSpray')});
+  if(!per || !(per>0)) return;
+  _kiSprayBusy=true;
+  try{
+    if(source==='sprays'){
+      const n=parseFloat(g('ki-sprays'));
+      if(Number.isFinite(n) && n>0){ set('ki-dose', +(n*per).toFixed(2)); set('ki-unit','mcg'); }
+    } else {
+      const d=parseFloat(g('ki-dose')), u=normUnit(g('ki-unit'));
+      let mcg = Number.isFinite(d) ? (u==='mg'? d*1000 : (u==='mcg'? d : null)) : null;
+      if(u==='sprays' && Number.isFinite(d)){ mcg=d*per; set('ki-sprays', d); set('ki-dose', +(mcg).toFixed(2)); set('ki-unit','mcg'); }
+      else if(mcg!=null && mcg>0){ set('ki-sprays', +(mcg/per).toFixed(2)); }
+    }
+  } finally { _kiSprayBusy=false; }
+}
 function kiSyncFormFields(){
   const routeEl=document.getElementById('ki-route');
   const route=routeEl?routeEl.value:'SubQ Injection';
@@ -6028,6 +6087,7 @@ function kiSyncFormFields(){
   show('ki-vialrow',   inj||spray);
   show('ki-bac-wrap',  (inj&&!oil)||spray);
   show('ki-nasalrow',  spray);
+  show('ki-spray-hint', spray);
   // Most nasal pumps deliver 0.1 ml per actuation. Pre-fill it so the user is not
   // blocked by a number they cannot know up front; they can overwrite it.
   if(spray){
@@ -6260,8 +6320,35 @@ function onRouteChange(){
   if(isSprayRoute(route)){
     const vps=document.getElementById('f-volPerSpray');
     if(vps && !String(vps.value||'').trim()) vps.value='0.1';
-    updateSprayCalc();
+    sprayLink('recon');
   }
+}
+// Dose and spray count are two views of the same thing. Editing either updates the
+// other from the current reconstitution; editing the reconstitution refreshes both.
+let _sprayLinkBusy=false;
+function sprayLink(source){
+  if(_sprayLinkBusy) return;
+  const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v;};
+  if(!isSprayRoute(g('f-route'))){ updateSprayCalc(); return; }
+  const per=sprayMcgPerSpray({vialSize:g('f-vialSize'), vialUnit:g('f-vialUnit'),
+              bacWater:g('f-bac'), saline:g('f-saline'), volPerSpray:g('f-volPerSpray')});
+  _sprayLinkBusy=true;
+  try{
+    if(per && per>0){
+      if(source==='sprays'){
+        const n=parseFloat(g('f-sprays'));
+        if(Number.isFinite(n) && n>0){ set('f-dose', +(n*per).toFixed(2)); set('f-unit','mcg'); }
+      } else {
+        const d=parseFloat(g('f-dose'));
+        const u=normUnit(g('f-unit'));
+        let mcg = Number.isFinite(d) ? (u==='mg'? d*1000 : (u==='mcg'? d : null)) : null;
+        if(u==='sprays' && Number.isFinite(d)){ set('f-sprays', d); mcg=d*per; set('f-dose', +(mcg).toFixed(2)); set('f-unit','mcg'); }
+        else if(mcg!=null && mcg>0){ set('f-sprays', +(mcg/per).toFixed(2)); }
+      }
+    }
+  } finally { _sprayLinkBusy=false; }
+  updateSprayCalc();
 }
 function updateSprayCalc(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
@@ -6349,6 +6436,8 @@ function validateProtocolDraft(d, ctx){
   }
   // Nasal route needs reconstitution fields
   if(isSprayRoute(d.route)){
+    if(isSprayDose(d.unit) && !(num(d.dose)>0))
+      errors.push({field:'dose', message:'Enter how many sprays make up one dose.'});
     if(!(num(d.vialSize)>0)) errors.push({field:'vialSize', message:'Peptide amount is required for nasal spray.'});
     if(!(num(d.volPerSpray)>0)) errors.push({field:'volPerSpray', message:'Volume per spray is required for nasal spray.'});
   }
@@ -6810,9 +6899,9 @@ window.PT_debug = {
       <input class="fi" id="ki-name" placeholder="e.g. BPC-157" style="margin-bottom:14px">
 
       <div style="display:flex;gap:8px;margin-bottom:14px">
-        <div style="flex:1"><label class="fl">Dose</label><input class="fi" id="ki-dose" type="number" step="0.01" placeholder="e.g. 250"></div>
+        <div style="flex:1"><label class="fl">Dose</label><input class="fi" id="ki-dose" type="number" step="0.01" placeholder="e.g. 250" oninput="kiSprayLink('dose')"></div>
         <div style="width:110px"><label class="fl">Unit</label>
-          <select class="fs" id="ki-unit" onchange="syncUnitFamily('ki-unit','ki-vialUnit','dose')"><option>mcg</option><option>mg</option><option value="IU">IU</option><option>ml</option></select></div>
+          <select class="fs" id="ki-unit" onchange="syncUnitFamily('ki-unit','ki-vialUnit','dose');kiSprayLink('dose')"><option>mcg</option><option>mg</option><option value="IU">IU</option><option>ml</option><option>sprays</option></select></div>
       </div>
 
       <label class="fl">Frequency</label>
@@ -6900,17 +6989,18 @@ window.PT_debug = {
       <div style="display:flex;gap:8px;margin-bottom:14px" id="ki-vialrow">
         <div style="flex:1" id="ki-vial-wrap"><label class="fl" id="ki-vial-lbl">Vial size</label>
           <div style="display:flex;gap:6px">
-            <input class="fi" id="ki-vial" type="number" step="0.01" placeholder="e.g. 5" style="flex:1">
+            <input class="fi" id="ki-vial" type="number" step="0.01" placeholder="e.g. 5" style="flex:1" oninput="kiSprayLink('recon')">
             <select class="fs" id="ki-vialUnit" style="width:88px;padding-left:10px;padding-right:26px;background-position:right 8px center" onchange="syncUnitFamily('ki-unit','ki-vialUnit','vial')"><option>mg</option><option>mcg</option><option>IU</option></select>
           </div>
         </div>
-        <div style="flex:1" id="ki-bac-wrap"><label class="fl">BAC water (ml)</label><input class="fi" id="ki-bac" type="number" step="0.1" placeholder="e.g. 2"></div>
+        <div style="flex:1" id="ki-bac-wrap"><label class="fl">BAC water (ml)</label><input class="fi" id="ki-bac" type="number" step="0.1" placeholder="e.g. 2" oninput="kiSprayLink('recon')"></div>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:14px" id="ki-nasalrow">
-        <div style="flex:1"><label class="fl">Saline (ml)</label><input class="fi" id="ki-saline" type="number" step="0.1" placeholder="optional"></div>
-        <div style="flex:1"><label class="fl">Volume per spray (ml)</label><input class="fi" id="ki-volPerSpray" type="number" step="0.001" placeholder="e.g. 0.1">
-          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Most nasal pumps are 0.1 ml. Change it if your device states otherwise.</div></div>
+      <div style="display:flex;gap:8px;margin-bottom:8px" id="ki-nasalrow">
+        <div style="flex:1"><label class="fl">Saline (ml)</label><input class="fi" id="ki-saline" type="number" step="0.1" placeholder="optional" oninput="kiSprayLink('recon')"></div>
+        <div style="flex:1"><label class="fl">Volume per spray (ml)</label><input class="fi" id="ki-volPerSpray" type="number" step="0.001" placeholder="e.g. 0.1" oninput="kiSprayLink('recon')"></div>
+        <div style="flex:1"><label class="fl">Sprays per dose</label><input class="fi" id="ki-sprays" type="number" step="0.5" placeholder="e.g. 2" oninput="kiSprayLink('sprays')"></div>
       </div>
+      <div id="ki-spray-hint" style="display:none;font-size:11px;color:var(--text-muted);margin-bottom:14px">Enter either the dose or the number of sprays &mdash; the other is worked out for you. Most pumps deliver 0.1 ml per spray.</div>
 
       <div style="display:flex;gap:8px;margin-top:8px">
         <button type="button" class="btn btn-s" style="flex:1;display:none" id="ki-back" onclick="kiBack()">&lsaquo; Back</button>
