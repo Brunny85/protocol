@@ -722,9 +722,9 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
 /* ── WIZARD SELECTED OPTIONS ────────────────────────────────────
    .ki-dur-opt / .ki-form-opt got an 'on' class with nothing styling it,
    so the chosen duration and formulation were invisible. ── */
-.ki-dur-opt.on,.ki-form-opt.on{
+.ki-dur-opt.on,.ki-form-opt.on,.f-form-opt.on{
   background:var(--brand-soft);border-color:var(--brand);color:var(--brand);font-weight:700}
-.ki-dur-opt.on::before,.ki-form-opt.on::before{
+.ki-dur-opt.on::before,.ki-form-opt.on::before,.f-form-opt.on::before{
   content:'';display:inline-block;width:7px;height:7px;border-radius:50%;
   background:var(--brand);margin-right:7px;vertical-align:1px}
 
@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0806.2211</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0807.0356</div>
       </div>
     </div>
   </div>
@@ -1332,8 +1332,16 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
         </select>
       </div>
     </div>
+    <div id="f-form-wrap">
+      <label class="fl">Formulation</label>
+      <div style="display:flex;gap:6px;margin-bottom:6px" id="f-form-btns">
+        <button type="button" class="btn btn-s btn-sm f-form-opt on" data-form="reconstituted" style="flex:1;font-size:13px;padding:8px" onclick="fSetFormulation('reconstituted')">Reconstituted</button>
+        <button type="button" class="btn btn-s btn-sm f-form-opt" data-form="oil" style="flex:1;font-size:13px;padding:8px" onclick="fSetFormulation('oil')">Oil-based</button>
+      </div>
+      <div id="f-form-hint" class="fhint" style="margin-bottom:12px">Powder reconstituted with BAC water.</div>
+    </div>
     <div class="fr fg">
-      <div><label class="fl">Vial Size</label>
+      <div id="f-vial-wrap"><label class="fl" id="f-vial-lbl">Vial Size</label>
         <div style="display:flex;gap:6px">
           <input class="fi" id="f-vialSize" type="number" step="0.1" placeholder="e.g. 5" oninput="sprayLink('recon')">
           <select class="fs" id="f-vialUnit" style="width:88px;padding-left:10px;padding-right:26px;background-position:right 8px center" onchange="syncUnitFamily('f-unit','f-vialUnit','vial')">
@@ -1341,7 +1349,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
           </select>
         </div>
       </div>
-      <div><label class="fl">BAC Water (ml)</label>
+      <div id="f-bac-wrap"><label class="fl">BAC Water (ml)</label>
         <input class="fi" id="f-bac" type="number" step="0.1" placeholder="e.g. 2" oninput="sprayLink('recon')">
       </div>
     </div>
@@ -1627,7 +1635,7 @@ const APP_VERSION = '2.2';
 const CURRENT_SCHEMA = 2;
 const APP_KEYS = ['protocol_data','pt_backup','saved_doses','saved_stacks',
   'pt_cycle_reminded','pt_missed_confirmed','pt_last_backup_remind','pt_premigration_v1',
-  'pt_migration_temp','pt_preimport_backup','pt_prep_v1','pt_theme','pt_prep_day','pt_prep_scope'];
+  'pt_migration_temp','pt_preimport_backup','pt_prep_v1','pt_theme','pt_prep_day','pt_prep_scope','pt_week_start'];
 
 function esc(v){
   if(v===undefined||v===null) return '';
@@ -2324,12 +2332,19 @@ function rStack(){
 let prepWeekOffset = 0;
 let prepOnlyUnprepared = false;
 const PREP_KEY = 'pt_prep_v1';
+const WEEK_START_KEY = 'pt_week_start';  // 0=Sun .. 6=Sat — where the protocol week begins
 const PREP_DAY_KEY = 'pt_prep_day';      // 0=Sun .. 6=Sat — the day you sit down and draw
 const PREP_SCOPE_KEY = 'pt_prep_scope';  // 'full' | 'remaining'
-function prepStartDow(){
-  const v = parseInt(safeGet(PREP_DAY_KEY), 10);
-  return (Number.isFinite(v) && v>=0 && v<=6) ? v : 1;   // Monday by default
+function dowSetting(key, fallback){
+  const v = parseInt(safeGet(key), 10);
+  return (Number.isFinite(v) && v>=0 && v<=6) ? v : fallback;
 }
+// Where the protocol week begins.
+function prepStartDow(){ return dowSetting(WEEK_START_KEY, 1); }
+// The day the syringes are actually drawn. Defaults to the start of the week, but is
+// often the day before — you prep on Sunday for a week that runs Monday to Sunday.
+function prepDayDow(){ return dowSetting(PREP_DAY_KEY, prepStartDow()); }
+function prepSetWeekStart(d){ safeSet(WEEK_START_KEY, String(d)); rPrep(); }
 function prepScope(){ return safeGet(PREP_SCOPE_KEY)==='remaining' ? 'remaining' : 'full'; }
 function prepSetDay(d){ safeSet(PREP_DAY_KEY, String(d)); rPrep(); }
 function prepSetScope(v){ safeSet(PREP_SCOPE_KEY, v==='remaining'?'remaining':'full'); rPrep(); }
@@ -2389,7 +2404,7 @@ function prepSetDone(week, pid, sig){
   prepWriteAll(all);
 }
 function prepToggle(pid){
-  const week = addDays(prepWeekStart(tod()), prepWeekOffset*7);
+  const week = addDays(prepBaseStart(), prepWeekOffset*7);
   const t = prepWeekData(week).totals.find(x=>x.pid===pid);
   const sig = t ? t.sig : null;
   // Toggling a stale card re-prepares it against the CURRENT signature.
@@ -2398,7 +2413,7 @@ function prepToggle(pid){
   rPrep();
 }
 function prepMarkAll(val){
-  const week = addDays(prepWeekStart(tod()), prepWeekOffset*7);
+  const week = addDays(prepBaseStart(), prepWeekOffset*7);
   const data = prepWeekData(week);
   const all = prepReadAll();
   if(val){ all[week] = {}; data.totals.forEach(t=>{ all[week][t.pid]=t.sig; }); }
@@ -2440,7 +2455,7 @@ function prepDraw(c, date){
     // SubQ draws into a U-100 pin, so report units; IM reports millilitres.
     if(isSubQRoute(c.route)){
       return {kind:'units', value:info.units, ml:info.ml, subq:true,
-              text:fmtNum(+info.units.toFixed(info.units<10?1:0))+' units'};
+              text:fmtUnitText(info.units)+' units'};
     }
     return {kind:'ml', value:info.ml, ml:info.ml, subq:false, text:info.ml.toFixed(2)+' mL'};
   }
@@ -2471,7 +2486,7 @@ function prepDraw(c, date){
   const units=(doseMcg/concMcg)*100;
   if(!isFinite(units)||units<=0) return null;
   return {kind:'units', value:units, ml:units/100,
-          text:(units<10?units.toFixed(1):units.toFixed(0))+' units'};
+          text:fmtUnitText(units)+' units'};
 }
 
 // Build the whole week. Pure data — no DOM. viewDate is saved and restored.
@@ -2553,7 +2568,7 @@ function prepVolText(kind, v){
   if(!Number.isFinite(v) || v<=0) return '';
   if(kind==='ml')     return v.toFixed(2)+' mL';
   if(kind==='sprays') return prepFmtQty(Math.round(v*2)/2)+' spray'+(v===1?'':'s');
-  return (v<10?v.toFixed(1):v.toFixed(0))+' units';
+  return fmtUnitText(v)+' units';
 }
 // PER DOSE — the amount that goes into one syringe. Ranges when titration moves it.
 function prepPerVolText(t){
@@ -2580,7 +2595,7 @@ function prepPerMlText(t){
 function prepU100Text(ml){
   if(!Number.isFinite(ml) || ml<=0) return '';
   const u = ml*100;
-  return (u<10?u.toFixed(1):u.toFixed(0))+' units (U-100)';
+  return fmtUnitText(u)+' units (U-100)';
 }
 function prepPerU100Text(t){
   if(t.kind!=='ml' || !t.subq || t.minVol===null) return '';
@@ -2588,19 +2603,29 @@ function prepPerU100Text(t){
   return prepU100Text(t.minVol)+'\u2013'+prepU100Text(t.maxVol);
 }
 
+// Base week for the "this week" view. If today is the final day of the current prep
+// week, the week is over as far as preparation goes — show the one starting tomorrow.
+function prepBaseStart(){
+  const cur = prepWeekStart(tod());
+  const todayDow = new Date(tod()+'T12:00:00').getDay();
+  if(todayDow !== prepDayDow()) return cur;          // ordinary day: the current week
+  // Prep day: show the week that begins on the next week-start on or after today.
+  return (todayDow === prepStartDow()) ? cur : addDays(cur,7);
+}
 function prepShift(n){ prepWeekOffset += n; rPrep(); }
 function prepThisWeek(){ prepWeekOffset = 0; rPrep(); }
 
 function rPrep(){
   const el = document.getElementById('stack-prep');
   if(!el) return;
-  const start = addDays(prepWeekStart(tod()), prepWeekOffset*7);
+  const start = addDays(prepBaseStart(), prepWeekOffset*7);
   const end   = addDays(start,6);
   const data  = prepWeekData(start);
   const MON   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const fmtD  = s=>{ const d=new Date(s+'T12:00:00'); return d.getDate()+' '+MON[d.getMonth()]; };
 
-  const relLbl = prepWeekOffset===0 ? 'This week'
+  const rolled = (prepWeekOffset===0) && (prepBaseStart() !== prepWeekStart(tod()));
+  const relLbl = prepWeekOffset===0 ? (rolled ? 'Week ahead' : 'This week')
                : prepWeekOffset===1 ? 'Next week'
                : prepWeekOffset===-1 ? 'Last week'
                : (prepWeekOffset>0 ? 'In '+prepWeekOffset+' weeks' : Math.abs(prepWeekOffset)+' weeks ago');
@@ -2614,6 +2639,8 @@ function rPrep(){
 
   if(prepWeekOffset!==0)
     h += '<div style="text-align:center;margin-bottom:12px"><button class="rec-tab" onclick="prepThisWeek()" style="font-size:12px">Back to this week</button></div>';
+  if(rolled)
+    h += '<div style="font-size:11px;color:var(--text-secondary);background:var(--brand-soft);border:1px solid var(--brand-border);border-radius:9px;padding:8px 11px;margin-bottom:10px">Today is the last day of the current prep week, so this is the week you are preparing for.</div>';
 
   const totals = data.totals.slice().sort((a,b)=>a.name.localeCompare(b.name));
 
@@ -2647,11 +2674,15 @@ function rPrep(){
   const DOWN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const sc=prepScope();
   h += '<div style="background:var(--surface-primary);border:1px solid var(--border-subtle);border-radius:var(--r);padding:11px 12px;margin-bottom:10px">'
-     + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
-     +   '<span style="font-size:11px;color:var(--text-secondary);flex-shrink:0">Prep day</span>'
-     +   '<select class="fs" style="flex:1;padding:7px 10px;font-size:13px;margin:0" onchange="prepSetDay(this.value)">'
-     +     DOWN.map((d,i)=>'<option value="'+i+'"'+(i===prepStartDow()?' selected':'')+'>'+d+'</option>').join('')
-     +   '</select>'
+     + '<div style="display:flex;gap:8px;margin-bottom:8px">'
+     +   '<div style="flex:1"><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">Week starts</div>'
+     +     '<select class="fs" style="width:100%;padding:7px 10px;font-size:13px;margin:0" onchange="prepSetWeekStart(this.value)">'
+     +       DOWN.map((d,i)=>'<option value="'+i+'"'+(i===prepStartDow()?' selected':'')+'>'+d+'</option>').join('')
+     +     '</select></div>'
+     +   '<div style="flex:1"><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">Pins drawn</div>'
+     +     '<select class="fs" style="width:100%;padding:7px 10px;font-size:13px;margin:0" onchange="prepSetDay(this.value)">'
+     +       DOWN.map((d,i)=>'<option value="'+i+'"'+(i===prepDayDow()?' selected':'')+'>'+d+'</option>').join('')
+     +     '</select></div>'
      + '</div>'
      + '<div style="display:flex;gap:6px">'
      +   '<button class="rec-tab'+(sc==='full'?' on':'')+'" style="font-size:11px;flex:1" onclick="prepSetScope(\'full\')">Whole week</button>'
@@ -2717,6 +2748,12 @@ function rPrep(){
                +   (perMl?' &middot; '+esc(perMl):'')
                +   (perU100?' &middot; '+esc(perU100):'')
                + '</div>')
+         + (function(){
+             const cp=(D.compounds||[]).find(x=>x && x.id===t.pid);
+             if(!cp || !cp.start || cp.start<=start || cp.start>addDays(start,6)) return '';
+             return '<div style="font-size:11px;color:var(--warning-text);margin-top:5px">Starts '+esc(fmtD(cp.start))+
+               ' &mdash; '+t.doses+' of the week\u2019s doses fall after that</div>';
+           })()
          + '<div style="font-size:11px;color:var(--text-muted);margin-top:6px">Weekly draw: <span style="color:var(--text-secondary);font-weight:600">'+esc(prepFmtQty(t.mass))+' '+esc(t.unit)+'</span>'
          +   (totVol?' &middot; <span style="color:var(--text-primary);font-weight:600">'+esc(totVol)+'</span>':'')
          +   (t.kind!=='ml' && t.mlTotal>0?' &middot; <span style="color:var(--text-primary);font-weight:600">'+t.mlTotal.toFixed(2)+' mL</span>':'')
@@ -2797,6 +2834,12 @@ function isOilBased(c){
 // Pin amount: ml for oil-based, U-100 units for reconstituted peptides
 // Unit strings reach us in mixed case ('iu' from the wizard dropdown, 'IU' from
 // the editor). The frozen calculators match exactly, so canonicalise first.
+function fmtUnitText(u){
+  if(!Number.isFinite(u)) return '?';
+  if(u>=10) return u.toFixed(0);
+  const r=Math.round(u*10)/10;
+  return (r%1===0) ? r.toFixed(0) : r.toFixed(1);
+}
 function normUnit(u){
   const t=String(u||'').trim().toLowerCase();
   if(t==='iu') return 'IU';
@@ -2842,7 +2885,7 @@ function drawInfo(c, date){
 // U-100 pin (SubQ), millilitres for IM. Same rule for every compound type.
 function pinAmountText(c, info){
   if(!info || info.error) return '';
-  return isSubQRoute(c.route) ? fmtNum(+info.units.toFixed(info.units<10?1:0))+' units'
+  return isSubQRoute(c.route) ? fmtUnitText(info.units)+' units'
                               : info.ml.toFixed(2)+' ml';
 }
 // The dose that pin contains.
@@ -2947,7 +2990,7 @@ function pinBadge(c){
   if(!concMcg) return '';
   const units=(doseMcg/concMcg)*100;
   if(!isFinite(units)||units<=0) return '';
-  return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg> '+(units<10?units.toFixed(1):units.toFixed(0))+' units';
+  return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg> '+fmtUnitText(units)+' units';
 }
 
 // Tapping the pin badge opens Calc with that compound already loaded
@@ -3874,7 +3917,7 @@ function updateDateNav(){
   else{banner.classList.add('hidden');}
 }
 let currentRecTab='stats';
-let currentStackTab='stack';
+let currentStackTab='prep';   // Weekly Prep is the day-to-day view
 
 function setRecTab(tab){
   currentRecTab=tab;
@@ -4244,6 +4287,7 @@ function openAdd(){
   document.getElementById('f-time').value='AM';
   document.getElementById('f-durtype').value='weeks';
   document.getElementById('f-cat').value='Peptide';
+  fSetFormulation('reconstituted');
   document.getElementById('f-active').checked=true;
   buildColors(COLORS[Math.floor(Math.random()*COLORS.length)]);
   selectAllDays();
@@ -4286,6 +4330,7 @@ function openEdit(pid){
   document.getElementById('f-bac').value=c.bacWater||'';
   document.getElementById('f-saline').value=c.saline||'';
   document.getElementById('f-volPerSpray').value=c.volPerSpray||'';
+  fSetFormulation(isOilBased(c) ? 'oil' : 'reconstituted');
   onRouteChange();
   if(isSprayRoute(c.route)){
     const per=sprayMcgPerSpray(c);
@@ -4381,6 +4426,7 @@ async function saveForm(){
       notes:document.getElementById('f-notes').value,
       vialSize:document.getElementById('f-vialSize').value,
       vialUnit:document.getElementById('f-vialUnit').value,
+      formulation:_fFormulation,
       bacWater:document.getElementById('f-bac').value,
       saline:document.getElementById('f-saline').value,
       volPerSpray:document.getElementById('f-volPerSpray').value,
@@ -4410,6 +4456,7 @@ async function saveForm(){
       notes:document.getElementById('f-notes').value,
       vialSize:document.getElementById('f-vialSize').value,
       vialUnit:document.getElementById('f-vialUnit').value,
+      formulation:_fFormulation,
       bacWater:document.getElementById('f-bac').value,
       saline:document.getElementById('f-saline').value,
       volPerSpray:document.getElementById('f-volPerSpray').value,
@@ -6313,10 +6360,35 @@ function renderTitrSummary(){
 
 
 // ─── SPRAY-MODE FORM WIRING ──────────────────────────
+let _fFormulation='reconstituted';
+function fSetFormulation(v){
+  _fFormulation = (v==='oil') ? 'oil' : 'reconstituted';
+  document.querySelectorAll('#f-form-btns .f-form-opt').forEach(b=>{
+    b.classList.toggle('on', b.getAttribute('data-form')===_fFormulation);
+  });
+  fSyncFormFields();
+}
+// Show only the fields the chosen route and formulation need — same rule as the wizard.
+function fSyncFormFields(){
+  const re=document.getElementById('f-route');
+  const route=re?re.value:'SubQ Injection';
+  const inj=isInjectableRoute(route), spray=isSprayRoute(route);
+  const oil=inj && _fFormulation==='oil';
+  const show=(id,on)=>{ const el=document.getElementById(id); if(el) el.style.display = on?'':'none'; };
+  show('f-form-wrap', inj);
+  show('f-bac-wrap',  (inj&&!oil)||spray);
+  const lbl=document.getElementById('f-vial-lbl');
+  if(lbl) lbl.textContent = oil ? 'Concentration (mg/mL)' : (spray ? 'Peptide amount' : 'Vial Size');
+  const hint=document.getElementById('f-form-hint');
+  if(hint) hint.textContent = oil
+    ? 'Pre-mixed in oil. No BAC water — enter the label concentration.'
+    : 'Powder reconstituted with BAC water.';
+}
 function onRouteChange(){
   const route=document.getElementById('f-route').value;
   const block=document.getElementById('f-spray-block');
   if(block) block.style.display = isSprayRoute(route) ? 'block' : 'none';
+  fSyncFormFields();
   if(isSprayRoute(route)){
     const vps=document.getElementById('f-volPerSpray');
     if(vps && !String(vps.value||'').trim()) vps.value='0.1';
