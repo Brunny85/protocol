@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0807.2213</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0808.0126</div>
       </div>
     </div>
   </div>
@@ -6939,6 +6939,79 @@ let _cycleSessionDismissed = {};
 function advanceCycleQueue(){
   setTimeout(()=>{ try{ checkCycleEndReminders(); }catch(e){} }, 250);
 }
+// With several cycles ended at once, a chain of separate popups is jarring. Show one
+// sheet listing them all: act on each in place, or handle the lot in one tap. The
+// detailed scheduling form is still available per protocol.
+function renderEndedOverview(list){
+  const body=document.getElementById('cycend-body');
+  if(!body) return;
+  body.innerHTML=list.map(function(item){
+    const c=item.c, lc=logCountFor(c.id);
+    return '<div style="background:var(--surface-primary);border:1px solid var(--border-subtle);'
+      +'border-radius:var(--r);padding:11px 12px;margin-bottom:8px" id="cycend-row-'+esc(c.id)+'">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +  '<span style="width:9px;height:9px;border-radius:50%;background:'+esc(c.color||'var(--text-muted)')+';flex-shrink:0"></span>'
+      +  '<span style="flex:1;font-size:15px;font-weight:700;color:var(--text-primary)">'+esc(c.name)+'</span>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--text-muted);margin-top:3px">Ended '+esc(fmtD(item.endDate))
+      +  ' &middot; '+lc+' dose'+(lc===1?'':'s')+' logged</div>'
+      +'<div style="display:flex;gap:6px;margin-top:9px">'
+      +  '<button type="button" class="btn btn-p btn-sm" style="flex:2;font-size:12px" onclick="cycendSchedule(\''+esc(c.id)+'\')">Next cycle</button>'
+      +  '<button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="cycendFinish(\''+esc(c.id)+'\')">Finish</button>'
+      +  '<button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="cycendSnooze(\''+esc(c.id)+'\')">Later</button>'
+      +'</div></div>';
+  }).join('');
+  const n=list.length;
+  const cnt=document.getElementById('cycend-count');
+  if(cnt) cnt.textContent = n+' protocol'+(n===1?'':'s')+' finished';
+  const bulk=document.getElementById('cycend-bulk');
+  if(bulk) bulk.style.display = n>1 ? '' : 'none';
+}
+// Remove one row and close the sheet once the list empties.
+function cycendResolve(cid){
+  _cycEnded=(_cycEnded||[]).filter(x=>x.c.id!==cid);
+  if(!_cycEnded.length){ closeOv('ov-cycend'); render(); return; }
+  renderEndedOverview(_cycEnded);
+  render();
+}
+function cycendItem(cid){ return (_cycEnded||[]).find(x=>x.c.id===cid); }
+function cycendSnooze(cid){
+  const it=cycendItem(cid); if(!it) return;
+  cycleSetState(it.key, {state:'snoozed', snoozedUntil: addDays(tod(),1), at: tod()});
+  cycendResolve(cid);
+}
+async function cycendFinish(cid){
+  const it=cycendItem(cid); if(!it) return;
+  const c=D.compounds.find(x=>x && x.id===cid);
+  if(c){ snapshotCompound(c,'cycle-finished'); c.active=false; save(); }
+  cycleSetState(it.key, {state:'finished', at: tod()});
+  cycendResolve(cid);
+}
+// Open the existing detailed form for one protocol, then return to the list.
+function cycendSchedule(cid){
+  const it=cycendItem(cid); if(!it) return;
+  closeOv('ov-cycend');
+  showCycleReminder([it], 0, cycleStoreRead());
+}
+async function cycendAll(what){
+  const list=(_cycEnded||[]).slice();
+  if(!list.length) return;
+  if(what==='finish'){
+    if(!(await ptConfirm('Finish all '+list.length+' protocols?\n\nThey stop appearing on Today. '+
+        'Logs, history and end dates are kept.','Finish all',{okText:'Finish all',cancelText:'Cancel'}))) return;
+    list.forEach(it=>{
+      const c=D.compounds.find(x=>x && x.id===it.c.id);
+      if(c){ snapshotCompound(c,'cycle-finished'); c.active=false; }
+      cycleSetState(it.key, {state:'finished', at: tod()});
+    });
+    save();
+  } else {
+    list.forEach(it=>cycleSetState(it.key, {state:'snoozed', snoozedUntil: addDays(tod(),1), at: tod()}));
+  }
+  _cycEnded=[];
+  closeOv('ov-cycend'); render();
+}
+let _cycEnded=[];
 function checkCycleEndReminders(){
   const today = tod();
   const expired = [];
@@ -6958,7 +7031,10 @@ function checkCycleEndReminders(){
   });
 
   if(!expired.length) return;
-  showCycleReminder(expired, 0, cycleStoreRead());
+  if(expired.length===1){ showCycleReminder(expired, 0, cycleStoreRead()); return; }
+  _cycEnded=expired;
+  renderEndedOverview(_cycEnded);
+  openOv('ov-cycend');
 }
 
 function addDays(dateStr, n){
@@ -7489,6 +7565,27 @@ window.PT_debug = {
         <button type="button" class="btn btn-s" style="flex:1;display:none" id="ki-finish" onclick="kiFinishStack()">Finish</button>
         <button type="button" class="btn btn-p" style="flex:1" id="ki-next" onclick="kiNext()">Save</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Several cycles ended: one sheet instead of a chain of popups -->
+  <div id="ov-cycend" class="ov hidden" style="z-index:280">
+    <div class="sh" style="max-height:88vh;overflow-y:auto">
+      <div class="sh-handle"></div>
+      <div class="sh-title">Cycles complete</div>
+      <div id="cycend-count" style="font-size:12px;color:var(--text-secondary);margin-bottom:4px"></div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
+        Choose what happens to each. <b>Next cycle</b> opens the scheduling form,
+        <b>Finish</b> stops it appearing on Today, <b>Later</b> asks again tomorrow.
+      </div>
+      <div id="cycend-body"></div>
+      <div id="cycend-bulk" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle)">
+        <div style="display:flex;gap:6px">
+          <button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="cycendAll('finish')">Finish all</button>
+          <button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="cycendAll('later')">Remind me tomorrow</button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-s" style="width:100%;margin-top:10px" onclick="closeOv('ov-cycend')">Close</button>
     </div>
   </div>
 
