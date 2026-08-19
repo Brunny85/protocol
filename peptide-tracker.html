@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0807.0356</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0807.2213</div>
       </div>
     </div>
   </div>
@@ -1153,6 +1153,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       </div>
       <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
       <button class="btn btn-s" onclick="kiOpenStack()" style="margin-top:10px;width:100%">+ New Protocol Stack (guided)</button>
+      <button class="btn btn-s" onclick="openTemplates()" style="margin-top:10px;width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Saved protocol sets</button>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle)">
         <button class="btn btn-d" onclick="masterReset()" style="font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> Master Reset — Clear All Data</button>
       </div>
@@ -1393,7 +1394,14 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
         <optgroup label="Per day (on selected days)">
           <option value="daily" selected>Once daily</option>
           <option value="bid">Twice daily (BID)</option>
-          
+          <option value="eod">Every other day</option>
+          <option value="e3d">Every 3 days</option>
+        </optgroup>
+        <optgroup label="Times per week (choose the days)">
+          <option value="2xweek">2 x per week</option>
+          <option value="3xweek">3 x per week</option>
+          <option value="4xweek">4 x per week</option>
+          <option value="5xweek">5 x per week</option>
         </optgroup>
         <optgroup label="Longer intervals">
           <option value="weekly">Weekly</option>
@@ -1635,7 +1643,7 @@ const APP_VERSION = '2.2';
 const CURRENT_SCHEMA = 2;
 const APP_KEYS = ['protocol_data','pt_backup','saved_doses','saved_stacks',
   'pt_cycle_reminded','pt_missed_confirmed','pt_last_backup_remind','pt_premigration_v1',
-  'pt_migration_temp','pt_preimport_backup','pt_prep_v1','pt_theme','pt_prep_day','pt_prep_scope','pt_week_start'];
+  'pt_migration_temp','pt_preimport_backup','pt_prep_v1','pt_theme','pt_prep_day','pt_prep_scope','pt_week_start','pt_templates_v1'];
 
 function esc(v){
   if(v===undefined||v===null) return '';
@@ -2093,6 +2101,319 @@ const fmtD=s=>new Date(s+'T12:00:00').toLocaleDateString([],{month:'short',day:'
 const fmtDY=s=>s?new Date(s+'T12:00:00').toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}):'';
 const dAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return localDateStr(d)};
 
+// ─── SAVED PROTOCOL TEMPLATES ────────────────────────────────
+// A named group of compound settings — "Recovery", "Cruise" — that can be applied
+// later. Stores SETTINGS ONLY: no ids, no logs, no history, no dates. Applying a
+// template never touches dose history; it goes through the normal mutation path.
+const TEMPLATE_KEY = 'pt_templates_v1';
+const TEMPLATE_FIELDS = ['name','dose','unit','route','formulation','freq','days','time',
+  'cat','vialSize','vialUnit','bacWater','saline','volPerSpray','titration','doseNotes','timingNotes'];
+function templatesRead(){
+  const r=safeReadJson(TEMPLATE_KEY, []);
+  return Array.isArray(r) ? r : [];
+}
+function templatesWrite(a){ return safeWriteJson(TEMPLATE_KEY, a, true); }
+function templateFromCompound(c){
+  const o={};
+  TEMPLATE_FIELDS.forEach(f=>{ if(c[f]!==undefined && c[f]!=='') o[f]=JSON.parse(JSON.stringify(c[f])); });
+  return o;
+}
+let _tplPick={};
+function tplTogglePick(id){
+  _tplPick[id]=!_tplPick[id];
+  const b=document.getElementById('tplpick-'+id);
+  if(b) b.classList.toggle('on', !!_tplPick[id]);
+  const n=Object.keys(_tplPick).filter(k=>_tplPick[k]).length;
+  const lbl=document.getElementById('tplpick-count');
+  if(lbl) lbl.textContent = n ? (n+' selected') : 'Select at least one';
+  const go=document.getElementById('tplpick-save');
+  if(go) go.disabled = !n;
+}
+function tplPickAll(v){
+  (D.compounds||[]).forEach(c=>{ if(c) _tplPick[c.id]=!!v; });
+  renderTemplatePicker();
+}
+function renderTemplatePicker(){
+  const el=document.getElementById('tplpick-body');
+  if(!el) return;
+  const list=(D.compounds||[]).slice().sort((a,b)=>
+    (!!b.active - !!a.active) || String(a.name||'').localeCompare(String(b.name||'')));
+  el.innerHTML=list.map(c=>
+    '<button type="button" id="tplpick-'+esc(c.id)+'" class="rec-tab'+(_tplPick[c.id]?' on':'')+'" '
+    +'style="width:100%;justify-content:flex-start;text-align:left;margin-bottom:6px;padding:10px 12px;font-size:13px" '
+    +'onclick="tplTogglePick(\''+esc(c.id)+'\')">'
+    +'<span style="width:8px;height:8px;border-radius:50%;background:'+esc(c.color||'var(--text-muted)')+';flex-shrink:0;margin-right:8px;display:inline-block"></span>'
+    +'<span style="flex:1">'+esc(c.name)+'<span style="color:var(--text-muted);font-weight:400"> &middot; '
+    +   esc(fmtNum(parseFloat(c.dose))+' '+normUnit(c.unit))+(c.active?'':' &middot; inactive')+'</span></span>'
+    +'</button>').join('') || '<div style="font-size:13px;color:var(--text-secondary)">No protocols stored yet.</div>';
+  const n=Object.keys(_tplPick).filter(k=>_tplPick[k]).length;
+  const lbl=document.getElementById('tplpick-count');
+  if(lbl) lbl.textContent = n ? (n+' selected') : 'Select at least one';
+  const go=document.getElementById('tplpick-save');
+  if(go) go.disabled = !n;
+}
+// Open the picker, pre-ticking whatever is currently active.
+function openTemplatePicker(){
+  _tplPick={};
+  (D.compounds||[]).forEach(c=>{ if(c && c.active) _tplPick[c.id]=true; });
+  renderTemplatePicker();
+  openOv('ov-tplpick');
+}
+// Save the SELECTED protocols as a named set. One compound is a valid set.
+async function saveTemplate(){
+  const act=(D.compounds||[]).filter(c=>c && _tplPick[c.id]);
+  if(!act.length){ await ptAlert('Select at least one protocol first.','Nothing selected'); return; }
+  const name=await ptPrompt('Name this set — a single protocol or a stack.\n\nFor example "Recovery stack" or "Reta cut".',
+    {title:'Save protocol set', placeholder:'e.g. Recovery stack'});
+  if(name===null) return;
+  const nm=String(name||'').trim();
+  if(!nm){ await ptAlert('A name is required.','Name required'); return; }
+  const all=templatesRead();
+  const at=all.findIndex(x=>x && normName(x.name)===normName(nm));
+  const rec={id:uid(), name:nm, savedAt:utcStamp(),
+             compounds:act.map(templateFromCompound)};
+  if(at>-1){
+    if(!(await ptConfirm('A set called "'+nm+'" already exists. Replace it?','Replace set',
+        {okText:'Replace', cancelText:'Keep both'}))){ rec.name=nm+' ('+fmtD(tod())+')'; all.push(rec); }
+    else { rec.id=all[at].id; all[at]=rec; }
+  } else all.push(rec);
+  if(!templatesWrite(all).ok){ await ptAlert('Could not save the set.','Save failed'); return; }
+  closeOv('ov-tplpick');
+  await ptAlert('"'+rec.name+'" saved with '+rec.compounds.length+' compound'+(rec.compounds.length===1?'':'s')+'.','Set saved');
+  renderTemplates();
+}
+// Apply a template: update matching compounds by name, add the rest, and offer to
+// deactivate anything active that the set does not include.
+async function applyTemplate(tid){
+  const tpl=templatesRead().find(x=>x && x.id===tid);
+  if(!tpl) return;
+  const names=tpl.compounds.map(x=>normName(x.name));
+  const strays=(D.compounds||[]).filter(c=>c && c.active && names.indexOf(normName(c.name))===-1);
+  const go=await ptDialog({kind:'confirm', title:'Apply "'+tpl.name+'"?',
+    message:tpl.compounds.length+' compound'+(tpl.compounds.length===1?'':'s')+' will be set to the saved doses and schedules.'+
+      (strays.length? '\n\n'+strays.length+' other active protocol'+(strays.length===1?'':'s')+
+        ' can be left running, or switched off.' : '')+
+      '\n\nYour dose history and logs are never changed.',
+    okText:'Apply set', altText:(strays.length?'Apply and switch others off':''), cancelText:'Cancel'});
+  if(go===false || go===null) return;
+  const alsoOff = (go==='alt');
+  let added=0, updated=0;
+  tpl.compounds.forEach(tc=>{
+    const ex=(D.compounds||[]).find(c=>c && normName(c.name)===normName(tc.name));
+    if(ex){
+      const ch=Object.assign({}, tc, {active:true});
+      delete ch.name;                                  // never rename an existing record
+      const r=applyProtocolMutation(ex.id, ch, 'template');
+      if(r.ok) updated++;
+    } else {
+      const nc=Object.assign({id:uid(), active:true, start:tod(), durtype:'ongoing',
+        color:(typeof COLORS!=='undefined'&&COLORS.length)?COLORS[D.compounds.length%COLORS.length]:'#4B96E6'}, tc);
+      D.compounds.push(nc); stampTracking(nc,'create'); snapshotCompound(nc,'template'); added++;
+    }
+  });
+  if(alsoOff) strays.forEach(c=>{ applyProtocolMutation(c.id, {active:false}, 'template-off'); });
+  save(); render(); closeOv('ov-templates');
+  await ptAlert('"'+tpl.name+'" applied. '+updated+' updated, '+added+' added'+
+    (alsoOff&&strays.length?', '+strays.length+' switched off':'')+'.','Set applied');
+}
+async function deleteTemplate(tid){
+  const all=templatesRead(); const tpl=all.find(x=>x && x.id===tid);
+  if(!tpl) return;
+  if(!(await ptConfirm('Delete the saved set "'+tpl.name+'"?\n\nYour protocols and history are not affected.',
+      'Delete set', {destructive:true, okText:'Delete', cancelText:'Keep it'}))) return;
+  templatesWrite(all.filter(x=>x && x.id!==tid));
+  renderTemplates();
+}
+function renderTemplates(){
+  const el=document.getElementById('templates-body');
+  if(!el) return;
+  const all=templatesRead().slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+  if(!all.length){
+    el.innerHTML='<div style="font-size:13px;color:var(--text-secondary);line-height:1.5">No saved sets yet.'+
+      '<br><br>Set up the protocols you want, then tap <b>Save current set</b> to keep them as a named group '+
+      'you can switch back to later.</div>';
+    return;
+  }
+  el.innerHTML=all.map(tpl=>
+    '<div style="background:var(--surface-primary);border:1px solid var(--border-subtle);border-radius:var(--r);padding:11px 12px;margin-bottom:8px">'
+    +'<div style="font-size:15px;font-weight:700;color:var(--text-primary)">'+esc(tpl.name)+'</div>'
+    +'<div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+tpl.compounds.length+' compound'+(tpl.compounds.length===1?'':'s')
+    +' &middot; saved '+esc(fmtD(String(tpl.savedAt||'').slice(0,10)))+'</div>'
+    +'<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.5">'
+    +   tpl.compounds.map(c=>esc(c.name)+' <span style="color:var(--text-muted)">'+esc(fmtNum(parseFloat(c.dose))+' '+normUnit(c.unit))+'</span>').join(' &middot; ')
+    +'</div>'
+    +'<div style="display:flex;gap:6px;margin-top:9px">'
+    +'<button type="button" class="btn btn-p btn-sm" style="flex:2;font-size:12px" onclick="applyTemplate(\''+esc(tpl.id)+'\')">Apply</button>'
+    +'<button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="deleteTemplate(\''+esc(tpl.id)+'\')">Delete</button>'
+    +'</div></div>').join('');
+}
+function openTemplates(){ renderTemplates(); openOv('ov-templates'); }
+
+// ─── CANONICAL PROTOCOL EXPOSURE IDENTITY ────────────────────
+// History answers "what configuration was effective during this period?". Two
+// configurations belong to the same period when they deliver the same weekly
+// exposure. A titration PLAN is one identity — progressing through its phases is
+// not a protocol change. Uses the canonical scheduler, not a private frequency map.
+function scheduledPerWeek(c, fromDate){
+  const base = fromDate || c.start || tod();
+  let n=0;
+  for(let i=0;i<7;i++) n += scheduledDoseInstances(c, addDays(base,i)).length;
+  return n;
+}
+// ─── CANONICAL PROTOCOL MUTATION ─────────────────────────────
+// INVARIANT: for any date, history must be able to answer which configuration was
+// effective. That needs BOTH the state that ended and the state that began — so a
+// mutation that changes exposure records the OLD state and then records the NEW state
+// as current. Records must never have to infer the current period from the live
+// compound, and must never need a later Manual Save to show it.
+//
+// Transactional: compound and history are mutated on a CLONE, the clone is written and
+// read back, and only then does it replace live D. A failed write leaves both unchanged.
+function applyProtocolMutation(id, changes, reason){
+  const idx=(D.compounds||[]).findIndex(x=>x && x.id===id);
+  if(idx<0) return {ok:false, error:'not found'};
+  const before=JSON.parse(JSON.stringify(D.compounds[idx]));
+  const cand=JSON.parse(JSON.stringify(D));
+  const after=Object.assign({}, cand.compounds[idx], changes||{});
+  cand.compounds[idx]=after;
+  if(!Array.isArray(cand.history)) cand.history=[];
+  const changed = protocolExposureId(before) !== protocolExposureId(after);
+  // Distinct timestamps: the closing state must sort strictly before the opening one,
+  // or retention's newest-first ordering leaves the pair ambiguous.
+  const push=(snap,rsn,at)=>{ cand.history.push({id:uid(), cid:id, name:snap.name,
+      savedAt:at||utcStamp(), reason:rsn, snap:JSON.parse(JSON.stringify(snap))}); };
+  if(changed){
+    // Close the outgoing period, then open the incoming one so Records has both.
+    push(before, (reason||'edit')+'-previous', new Date(Date.now()-1000).toISOString());
+    push(after,  (reason||'edit'));
+  } else {
+    // Same exposure: refresh the current details in place rather than splitting.
+    let latest=null;
+    for(const h of cand.history){ if(h.cid===id && (!latest || h.savedAt>=latest.savedAt)) latest=h; }
+    if(latest) { latest.snap=JSON.parse(JSON.stringify(after)); latest.name=after.name; }
+    else push(after, reason||'edit');
+  }
+  cand.history=applyHistoryRetention(cand.history);
+  const wr=safeWriteJson('protocol_data', cand, true);
+  if(!wr.ok) return {ok:false, error:wr.reason||'write', exposureChanged:changed};
+  D.compounds=cand.compounds; D.history=cand.history;
+  return {ok:true, exposureChanged:changed, before:before, after:after};
+}
+function protocolExposureId(c){
+  if(!c) return '';
+  const t=c.titration;
+  if(t && t.enabled && Array.isArray(t.steps) && t.steps.length){
+    return 'TITR:'+normUnit(c.unit)+':'+t.steps.map(x=>x.dose+'@'+x.weeks).join(',');
+  }
+  const d=parseFloat(c.dose);
+  if(!Number.isFinite(d)) return normUnit(c.unit)+':?'+JSON.stringify(c.dose);
+  const perWeek=scheduledPerWeek(c);
+  return normUnit(c.unit)+':'+(d*perWeek).toFixed(4);
+}
+// ─── CANONICAL SCHEDULER ─────────────────────────────────────
+// scheduledDoseInstances(c, dateStr) is the ONE place that decides whether a
+// protocol is administered on a given calendar day, and how many times.
+// Pure: no DOM, no viewDate, no storage, no logs, no mutation of c.
+//
+// Slot values are 'am' | 'pm' | '' and describe the ADMINISTRATION, not the log key.
+// Use logSlotFor() for log keys — single-administration protocols have always been
+// logged with slot '', and changing that would strand every existing log.
+function sdDaysBetween(a, b){
+  const d1=new Date(a+'T12:00:00'), d2=new Date(b+'T12:00:00');
+  if(isNaN(d1)||isNaN(d2)) return NaN;
+  return Math.round((d2-d1)/86400000);
+}
+function sdDow(dateStr){
+  const d=new Date(dateStr+'T12:00:00');
+  return isNaN(d)?-1:d.getDay();
+}
+// Fixed-weeks end. Preserves the existing rule: start + weeks*7, inclusive.
+function sdWeeksEnd(c){
+  if(c.durtype!=='weeks' || !c.weeks || !c.start) return null;
+  const n=parseInt(c.weeks,10);
+  if(!Number.isFinite(n)) return null;
+  return addDays(c.start, n*7 - 1);   // N weeks counted inclusive of the start date
+}
+// Monthly anchors to the start day-of-month, clamping to the last day of short
+// months (31 Jan -> 28/29 Feb -> 31 Mar). No cumulative drift.
+function sdMonthlyDue(c, dateStr){
+  if(!c.start) return false;
+  const s=new Date(c.start+'T12:00:00'), d=new Date(dateStr+'T12:00:00');
+  if(isNaN(s)||isNaN(d)) return false;
+  const anchor=s.getDate();
+  const lastOfMonth=new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  return d.getDate() === Math.min(anchor, lastOfMonth);
+}
+// Seven consecutive days beginning on the monthly anniversary of the start date.
+// The anchor is clamped to the last day of a short month, and the clamp never
+// carries forward (31 Jan -> 28 Feb -> 31 Mar).
+function sdBlockStartFor(anchorDay, year, monthIdx){
+  const last=new Date(year, monthIdx+1, 0).getDate();
+  return new Date(year, monthIdx, Math.min(anchorDay, last), 12, 0, 0);   // noon, to match date parsing
+}
+function sdOneWeekBlockDue(c, dateStr){
+  if(!c.start) return false;
+  const s=new Date(c.start+'T12:00:00'), d=new Date(dateStr+'T12:00:00');
+  if(isNaN(s)||isNaN(d)) return false;
+  const anchor=s.getDate();
+  // The block for this month, or one that began late in the previous month.
+  for(let back=0; back<=1; back++){
+    const ref=new Date(d.getFullYear(), d.getMonth()-back, 1);
+    const bs=sdBlockStartFor(anchor, ref.getFullYear(), ref.getMonth());
+    const diff=Math.round((d - bs)/86400000);
+    if(diff>=0 && diff<=6) return true;
+  }
+  return false;
+}
+function sdOnSelectedDay(c, dateStr){
+  if(!c.days || !c.days.length) return true;          // empty = every day
+  return c.days.indexOf(sdDow(dateStr)) > -1;
+}
+function scheduledDoseInstances(c, dateStr){
+  if(!c || !dateStr) return [];
+  if(!c.active) return [];
+  const f=c.freq;
+  if(f==='prn') return [];
+  if(c.start && dateStr < c.start) return [];
+  if(c.end && dateStr > c.end) return [];
+  const wEnd=sdWeeksEnd(c);
+  if(wEnd && dateStr > wEnd) return [];
+
+  let due=false;
+  const since = c.start ? sdDaysBetween(c.start, dateStr) : NaN;
+  switch(f){
+    case 'eod':  due = Number.isFinite(since) && since>=0 && since%2===0; break;
+    case 'e3d':  due = Number.isFinite(since) && since>=0 && since%3===0; break;
+    case 'biweekly': due = Number.isFinite(since) && since>=0 && since%14===0; break;
+    case 'monthly':  due = sdMonthlyDue(c, dateStr); break;
+    case 'weekly':
+      // One selected weekday wins; with none, run every 7 days from the start date.
+      if(c.days && c.days.length===1) due = sdOnSelectedDay(c, dateStr);
+      else due = Number.isFinite(since) && since>=0 && since%7===0;
+      break;
+    case '2xweek': case '3xweek': case '4xweek': case '5xweek':
+      // Selected weekdays are authoritative. Never invent them.
+      due = !!(c.days && c.days.length) && sdOnSelectedDay(c, dateStr);
+      break;
+    case 'oneweekpermonth':
+      // Seven consecutive days per calendar month. Weekday selection is ignored.
+      due = sdOneWeekBlockDue(c, dateStr); break;
+    default:
+      // daily, bid, tid and anything unrecognised keep the pre-existing weekday rule.
+      due = sdOnSelectedDay(c, dateStr);
+  }
+  if(!due) return [];
+  if(f==='bid' || c.time==='Both') return [{slot:'am'},{slot:'pm'}];
+  if(c.time==='AM') return [{slot:'am'}];
+  if(c.time==='PM' || c.time==='BedTime') return [{slot:'pm'}];
+  return [{slot:''}];
+}
+// Log key for an instance. Single-administration protocols have always logged with
+// slot '' — preserved so existing logs keep matching.
+function logSlotFor(c, inst){
+  const multi = (c.freq==='bid' || c.time==='Both');
+  return multi ? (inst && inst.slot ? inst.slot : '') : '';
+}
 // A compound shows today if:
 // - active
 // - days array is empty (means every day) OR today's DOW is in the days array
@@ -2122,22 +2443,7 @@ function normalizeDurations(){
   return fixed;
 }
 function isDue(c){
-  if(!c.active||c.freq==='prn') return false;
-  // Check end date - if compound has expired, don't show it
-  if(c.end && viewDate > c.end) return false;
-  // Check start date - if not started yet, don't show it
-  if(c.start && viewDate < c.start) return false;
-  // Check weeks-based duration
-  if(c.durtype==='weeks' && c.weeks && c.start){
-    const startD = new Date(c.start+'T12:00:00');
-    const endD = new Date(startD);
-    endD.setDate(endD.getDate() + parseInt(c.weeks)*7);
-    const endStr = localDateStr(endD);
-    if(viewDate > endStr) return false;
-  }
-  if(!c.days||c.days.length===0) return true;
-  // Use viewDate's day of week, not today's
-  return c.days.includes(new Date(viewDate+'T12:00:00').getDay());
+  return scheduledDoseInstances(c, viewDate).length > 0;
 }
 function doneOnDate(c,slot,date){
   if(slot){
@@ -2504,17 +2810,18 @@ function prepWeekData(start){
       viewDate = date;                         // frozen isDue reads the global
       const items = [];
       (D.compounds||[]).forEach(c=>{
-        if(!c || !isDue(c)) return;
+        if(!c) return;
         // Only things drawn into a syringe belong here. Nasal, oral and topical
         // need no preparation, so they would only pad the list.
         if(!isInjectableRoute(c.route)) return;
         const b = bucket(c);
-        const slots = (b==='both') ? ['am','pm'] : [''];
-        slots.forEach(slot=>{
+        const insts = scheduledDoseInstances(c, date);
+        insts.forEach(inst=>{
+          const slot = logSlotFor(c, inst);
           const dose = effectiveDose(c, date);
           const draw = prepDraw(c, date);
-          const label = (b==='both') ? slot.toUpperCase()
-                      : (b==='pm' ? 'PM' : (b==='any' ? 'Any' : 'AM'));
+          const label = inst.slot ? inst.slot.toUpperCase()
+                      : (b==='any' ? 'Any' : 'AM');
           items.push({pid:c.id, name:c.name||'Unnamed', slot:label,
                       dose:dose, unit:c.unit||'', draw:draw});
           const dv = parseFloat(dose)||0;
@@ -3014,19 +3321,18 @@ function rToday(){
   const due=active.filter(c=>isDue(c));
 
   // For stats: 'Both' compounds count as 2 doses
+  // One row per scheduled administration, straight from the canonical scheduler.
+  const rows=[];
+  active.forEach(c=>{
+    scheduledDoseInstances(c, viewDate).forEach(inst=>{
+      rows.push({c:c, inst:inst, slot:logSlotFor(c, inst)});
+    });
+  });
   let totalDoses=0, doneDoses=0, snoozed=0;
-  due.forEach(c=>{
-    if(c.time==='Both'){
-      ['am','pm'].forEach(sl=>{
-        if(isSkipped(c,sl,viewDate)){ snoozed++; return; }
-        totalDoses++;
-        if(doneToday(c,sl)) doneDoses++;
-      });
-    } else {
-      if(isSkipped(c,'',viewDate)){ snoozed++; return; }
-      totalDoses++;
-      if(allDoneToday(c)) doneDoses++;
-    }
+  rows.forEach(r=>{
+    if(isSkipped(r.c, r.slot, viewDate)){ snoozed++; return; }
+    totalDoses++;
+    if(r.slot ? doneToday(r.c, r.slot) : allDoneToday(r.c)) doneDoses++;
   });
   // Item 1: Next Protocol Change — nearest future milestone (cycle ends + upcoming starts).
   (function renderMilestone(){
@@ -3054,8 +3360,13 @@ function rToday(){
     el.innerHTML='<span class="'+soon.trim()+'">'+cands[0].txt+'</span>';
   })();
 
-  const amItems=due.filter(c=>['am','any'].includes(bucket(c))||bucket(c)==='both');
-  const pmItems=due.filter(c=>bucket(c)==='pm'||bucket(c)==='both');
+  // Column placement: an instance with an explicit slot goes there; a flexible
+  // single administration keeps its existing visual bucket.
+  const colOf=r=> r.inst.slot==='am' ? 'am'
+               : r.inst.slot==='pm' ? 'pm'
+               : (bucket(r.c)==='pm' ? 'pm' : 'am');
+  const amItems=rows.filter(r=>colOf(r)==='am');
+  const pmItems=rows.filter(r=>colOf(r)==='pm');
 
   function chkRow(c, slot){
     // slot is 'am', 'pm', or null (single dose)
@@ -3084,9 +3395,9 @@ function rToday(){
     const ttl=slot==='am'?'AM':'PM';
     const cls=slot==='am'?'am':'pm';
     // Count done for this column
-    const dc=items.filter(c=>c.time==='Both'?doneToday(c,slot):allDoneToday(c)).length;
+    const dc=items.filter(r=>r.slot?doneToday(r.c,r.slot):allDoneToday(r.c)).length;
     const rows=items.length
-      ? items.map(c=>chkRow(c, c.time==='Both'?slot:null)).join('')
+      ? items.map(r=>chkRow(r.c, r.slot||null)).join('')
       : `<div class="col-empty">Nothing scheduled</div>`;
     return`<div class="col">
       <div class="col-hdr"><span class="col-ttl ${cls}">${ttl}</span><span class="col-cnt">${dc}/${items.length}</span></div>
@@ -3096,7 +3407,7 @@ function rToday(){
 
   document.getElementById('ampm').innerHTML=colHTML(amItems,'am')+colHTML(pmItems,'pm');
 
-  const anyExpiring=due.some(c=>{
+  const anyExpiring=rows.some(r=>{ const c=r.c;
     const d=daysUntilCycleEnd(c);
     return d!==null && d>=0 && d<=7;
   });
@@ -3119,6 +3430,17 @@ function rToday(){
   window._todayComplete = allDone;
 }
 
+// Every scheduled administration records the dose that was actually effective on the
+// date it was administered — not c.dose, which is the CURRENT phase of a titration.
+// Backdated ticks therefore store the historical phase dose, matching what Today showed.
+function scheduledLogPayload(c, dateStr, slot, extra){
+  const ts = (dateStr===tod()) ? localDateTimeStr(new Date()) : (dateStr+'T12:00');
+  const p = {id:uid(), pid:c.id, slot:slot||'',
+             dose:effectiveDose(c, dateStr), unit:normUnit(c.unit),
+             site:'', t:ts, notes:(dateStr!==tod() ? 'Backdated' : '')};
+  if(extra) Object.keys(extra).forEach(k=>{ p[k]=extra[k]; });
+  return p;
+}
 function quickCheck(pid,slot){
   const c=D.compounds.find(x=>x.id===pid);if(!c)return;
   const t=viewDate;
@@ -3137,13 +3459,13 @@ function quickCheck(pid,slot){
     if(doneToday(c,slot)){
       D.logs=D.logs.filter(l=>!(l.pid===pid&&l.slot===slot&&l.t.startsWith(t)));
     } else {
-      D.logs.push({id:uid(),pid,slot,dose:c.dose,unit:c.unit,site:'',t:ts,notes:'Backdated'});
+      D.logs.push(scheduledLogPayload(c, viewDate, slot));
     }
   } else {
     if(allDoneToday(c)){
       D.logs=D.logs.filter(l=>!(l.pid===pid&&l.t.startsWith(t)));
     } else {
-      D.logs.push({id:uid(),pid,slot:'',dose:c.dose,unit:c.unit,site:'',t:ts,notes:viewDate!==tod()?'Backdated':''});
+      D.logs.push(scheduledLogPayload(c, viewDate, ''));
     }
   }
   save();render();
@@ -3165,10 +3487,10 @@ function tickAll(){
     else{ts=viewDate+'T12:00';}
     active.forEach(c=>{
       if(c.time==='Both'){
-        if(!doneToday(c,'am')&&!isSkipped(c,'am',t)) D.logs.push({id:uid(),pid:c.id,slot:'am',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
-        if(!doneToday(c,'pm')&&!isSkipped(c,'pm',t)) D.logs.push({id:uid(),pid:c.id,slot:'pm',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
+        if(!doneToday(c,'am')&&!isSkipped(c,'am',t)) D.logs.push(scheduledLogPayload(c, t, 'am'));
+        if(!doneToday(c,'pm')&&!isSkipped(c,'pm',t)) D.logs.push(scheduledLogPayload(c, t, 'pm'));
       } else if(!allDoneToday(c)){
-        D.logs.push({id:uid(),pid:c.id,slot:'',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
+        D.logs.push(scheduledLogPayload(c, t, ''));
       }
     });
   }
@@ -3279,7 +3601,7 @@ function startFreshCycle(c){
   if(c.durtype==='ongoing') return;
   c.durtype = 'weeks';
   c.weeks   = c.weeks || '12';
-  c.end     = addDays(c.start, parseInt(c.weeks)*7);
+  c.end     = addDays(c.start, parseInt(c.weeks)*7 - 1);
 }
 function togDay(pid,day,e){
   e.stopPropagation();
@@ -3797,14 +4119,7 @@ function rHist(){
     const iv=INTERVAL[sn.freq]!==undefined?INTERVAL[sn.freq]:1;
     return d*iv;
   };
-  const sig=sn=>{
-    // A titrated compound is ONE protocol: identity = its titration plan, not the
-    // momentary dose (which changes within the ramp by design).
-    if(sn.titration && sn.titration.enabled && Array.isArray(sn.titration.steps) && sn.titration.steps.length){
-      return 'TITR:'+(sn.unit||'').trim()+':'+sn.titration.steps.map(x=>x.dose+'@'+x.weeks).join(',');
-    }
-    const w=weeklyDose(sn); return (sn.unit||'').trim()+':'+(w==null?'?'+JSON.stringify(sn.dose):w.toFixed(4));
-  };
+  const sig=sn=>protocolExposureId(sn);   // one canonical identity, shared everywhere
   const periods=[];
   snaps.forEach(h=>{
     const last=periods[periods.length-1];
@@ -4139,7 +4454,7 @@ function calcEndFromWeeks(start,weeks){
   if(!start||!weeks) return '';
   const d=new Date(start+'T12:00:00');
   if(isNaN(d)) return '';
-  d.setDate(d.getDate()+parseInt(weeks)*7);
+  d.setDate(d.getDate()+parseInt(weeks)*7 - 1);
   return localDateStr(d);
 }
 function updateEndPreview(){
@@ -4405,9 +4720,7 @@ async function saveForm(){
 
   if(id){
     const idx=D.compounds.findIndex(x=>x.id===id);if(idx===-1)return;
-    // Snapshot current protocol before overwriting (canonical deep snapshot).
-    snapshotCompound(D.compounds[idx], 'edit');
-    D.compounds[idx]={...D.compounds[idx],
+    const _changes={
       dose:(function(){const r=parseNum(document.getElementById('f-dose').value,'pos');return r.ok?r.value:D.compounds[idx].dose;})(),
       unit:document.getElementById('f-unit').value,
       route:document.getElementById('f-route').value,
@@ -4433,6 +4746,8 @@ async function saveForm(){
       color:fColor,
       active:document.getElementById('f-active').checked,
     };
+    const _res=applyProtocolMutation(id, _changes, 'edit');
+    if(!_res.ok){ await ptAlert('Could not save this change. Your protocol and history are unchanged.','Save failed'); return; }
   } else {
     const name=document.getElementById('f-name').value.trim();
     if(!name){ptAlert('Please enter a name.');return;}
@@ -5339,7 +5654,7 @@ function applyHistoryRetention(history){
   return kept.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
 }
 
-async function latestSnapFor(cid){
+function latestSnapFor(cid){
   let best=null;
   (D.history||[]).forEach(h=>{ if(h.cid===cid && (!best || h.savedAt>best.savedAt)) best=h; });
   return best;
@@ -5353,7 +5668,7 @@ function sameProtocolConfig(a,b){
   const wk=sn=>{ const d=parseFloat(sn.dose); if(!Number.isFinite(d)) return 'x'+JSON.stringify(sn.dose);
     let dpw; if(TPD[sn.freq]!==undefined){ const dw=(sn.days&&sn.days.length)?sn.days.length:7; dpw=TPD[sn.freq]*dw; } else { dpw=INTERVAL[sn.freq]!==undefined?INTERVAL[sn.freq]:1; }
     return (sn.unit||'')+':'+(d*dpw).toFixed(4); };
-  if(wk(a)!==wk(b)) return false;
+  if(protocolExposureId(a)!==protocolExposureId(b)) return false;
   const keys=['name','route','vialSize','vialUnit','bacWater','active','color','doseNotes','timingNotes'];
   const norm=v=>(v===undefined||v===null?'':String(v).trim());
   return keys.every(k=>norm(a[k])===norm(b[k]));
@@ -5571,7 +5886,10 @@ function resolveMissed(idx, outcome){
   if(outcome==='logged'){
     // record a retroactive log at noon of that date so adherence shows green
     if(!D.logs) D.logs=[];
-    D.logs.push({id:uid(), pid:m.cid, dose:'', unit:'', site:'', t:m.date+'T12:00:00', notes:'Confirmed via missed-dose check'});
+    const mc=(D.compounds||[]).find(x=>x && x.id===m.cid);
+    // Slot is not yet identified by the candidate model — see the reported limitation.
+    D.logs.push(mc ? scheduledLogPayload(mc, m.date, '', {notes:'Confirmed via missed-dose check'})
+                   : {id:uid(), pid:m.cid, slot:'', dose:'', unit:'', site:'', t:m.date+'T12:00:00', notes:'Confirmed via missed-dose check'});
     save();
   }
   // grey out the row
@@ -6254,7 +6572,7 @@ function recallPeriodsFor(cid){
   const snaps=[...(D.history||[])].filter(h=>h.cid===cid).sort((a,b)=>new Date(a.savedAt)-new Date(b.savedAt));
   const DPW_TPD={daily:1,bid:2,tid:3}; const IV={weekly:1,biweekly:0.5,monthly:12/52,oneweekpermonth:7/4.345,prn:0,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,eod:3.5,e3d:7/3};
   const wd=sn=>{ const d=parseFloat(sn.dose); if(!Number.isFinite(d))return null; if(DPW_TPD[sn.freq]!==undefined){const dw=(sn.days&&sn.days.length)?sn.days.length:7;return d*DPW_TPD[sn.freq]*dw;} return d*(IV[sn.freq]!==undefined?IV[sn.freq]:1); };
-  const sig=sn=>{ if(sn.titration&&sn.titration.enabled&&sn.titration.steps&&sn.titration.steps.length) return 'T'+sn.titration.steps.map(x=>x.dose+'@'+x.weeks).join(','); const w=wd(sn); return (sn.unit||'')+':'+(w==null?'?'+sn.dose:w.toFixed(4)); };
+  const sig=sn=>protocolExposureId(sn);   // shared canonical identity
   const periods=[];
   snaps.forEach(h=>{ const l=periods[periods.length-1]; if(l&&sig(l.snap)===sig(h.snap)){ l.snap=h.snap; l.to=h.savedAt.slice(0,10); } else periods.push({snap:h.snap, from:h.savedAt.slice(0,10), to:h.savedAt.slice(0,10)}); });
   periods.reverse();
@@ -6582,7 +6900,7 @@ function getCompoundEndDate(c){
   if(c.durtype==='weeks' && c.weeks && c.start){
     const startD = new Date(c.start+'T12:00:00');
     const endD = new Date(startD);
-    endD.setDate(endD.getDate() + parseInt(c.weeks)*7);
+    endD.setDate(endD.getDate() + parseInt(c.weeks)*7 - 1);
     return localDateStr(endD);
   }
   return null;
@@ -6615,6 +6933,12 @@ function cycleSetState(key, rec){
 // never silently mean "snoozed" or "never again".
 let _cycleSessionDismissed = {};
 
+// Resolving one reminder can change what else qualifies, and the queue previously
+// advanced through a list captured at startup — so only the first was ever shown and
+// the rest waited for the next launch. Recompute instead, after any modal has closed.
+function advanceCycleQueue(){
+  setTimeout(()=>{ try{ checkCycleEndReminders(); }catch(e){} }, 250);
+}
 function checkCycleEndReminders(){
   const today = tod();
   const expired = [];
@@ -6682,6 +7006,13 @@ function showCycleReminder(list, idx, reminded){
         <div style="text-align:center;font-size:17px;font-weight:700;color:var(--text-primary);margin-bottom:4px">Cycle Complete</div>
         <div style="text-align:center;font-size:13px;color:var(--text-secondary);margin-bottom:16px">
           <strong>${esc(c.name)}</strong> ended ${endFmt}
+          ${list.length>1?`<div style="font-size:12px;color:var(--text-muted);margin-top:4px">${idx+1} of ${list.length} protocols have finished</div>`:''}
+        </div>
+
+        <div style="background:var(--surface-secondary);border-radius:12px;padding:12px 14px;margin-bottom:4px">
+          <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Next cycle draw</div>
+          <div id="cycle-draw-readout" style="font-size:15px;font-weight:700;color:var(--text-primary)">&mdash;</div>
+          <div id="cycle-draw-syringe" style="margin-top:8px"></div>
         </div>
 
         <div style="background:var(--surface-secondary);border-radius:12px;padding:14px;margin-bottom:4px">
@@ -6739,6 +7070,77 @@ function showCycleReminder(list, idx, reminded){
         </button>
       </div>
     </div>`;
+
+  // The calculator's syringe, rendered read-only from a fixed unit value. Same
+// geometry, same graduation rules, same three-tier ticks — no size buttons, and the
+// barrel size is chosen automatically to suit the dose.
+function renderReadOnlySyringe(el, units, maxMl){
+  if(!el) return;
+  const maxUnits=maxMl*100;
+  const barrelBot=426, barrelH=376;
+  const u=Math.min(Math.max(units||0,0),maxUnits);
+  const fillH=Math.round((maxUnits>0?u/maxUnits:0)*barrelH);
+  const fillY=barrelBot-fillH;
+  const majorU = maxMl<=0.5 ? 10 : 20;
+  const minorU = maxMl<=0.5 ? 2 : 5;
+  const mediumU= majorU/2;
+  let ticks='';
+  for(let tu=0; tu<=maxUnits+0.001; tu+=minorU){
+    const ty=barrelBot-Math.round((tu/maxUnits)*barrelH);
+    const isMajor=Math.abs(tu%majorU)<0.001;
+    const isMedium=!isMajor && (majorU/minorU>=4) && Math.abs(tu%mediumU)<0.001;
+    const tw=isMajor?18:isMedium?13:7, sw=isMajor?1.5:isMedium?1.2:1;
+    ticks+='<line x1="198" y1="'+ty+'" x2="'+(198+tw)+'" y2="'+ty+'" stroke="var(--text-muted)" stroke-width="'+sw+'"/>';
+    if(isMajor) ticks+='<text x="222" y="'+(ty+4)+'" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-secondary)">'+Math.round(tu)+'</text>';
+    ticks+='<line x1="122" y1="'+ty+'" x2="'+(122-tw/2)+'" y2="'+ty+'" stroke="var(--border-primary)" stroke-width="1"/>';
+  }
+  if(u>0){
+    ticks+='<line x1="115" y1="'+fillY+'" x2="216" y2="'+fillY+'" stroke="var(--brand)" stroke-width="1.5" stroke-dasharray="4,3"/>';
+    ticks+='<circle cx="216" cy="'+fillY+'" r="2.5" fill="var(--brand)"/>';
+  }
+  el.innerHTML='<svg viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block;max-height:300px">'
+    +'<rect x="130" y="10" width="60" height="16" rx="4" fill="var(--text-primary)"/>'
+    +'<rect x="148" y="26" width="24" height="12" rx="2" fill="var(--text-secondary)"/>'
+    +'<rect x="152" y="38" width="16" height="'+Math.max(0,fillY-50)+'" rx="2" fill="var(--text-muted)"/>'
+    +'<rect x="122" y="48" width="76" height="380" rx="8" fill="var(--border-subtle)" stroke="var(--text-muted)" stroke-width="2"/>'
+    +'<clipPath id="ro-barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>'
+    +'<rect x="124" y="'+fillY+'" width="72" height="'+fillH+'" rx="'+(fillH>6?4:0)+'" fill="var(--brand)" clip-path="url(#ro-barrel-clip)"/>'
+    +'<rect x="124" y="'+(fillY-12)+'" width="72" height="12" rx="3" fill="var(--text-primary)"/>'
+    + ticks
+    +'<rect x="138" y="428" width="44" height="18" rx="4" fill="var(--text-secondary)"/>'
+    +'<rect x="155" y="446" width="10" height="60" rx="2" fill="var(--text-primary)"/>'
+    +'<polygon points="155,506 165,506 160,520" fill="var(--text-primary)"/>'
+    +'<text x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="var(--text-secondary)" text-anchor="middle">'+(u>0?fmtUnitText(u)+' units':'\u2014 units')+'</text>'
+    +'<text x="280" y="458" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-muted)" text-anchor="middle">'+(u>0?(u*0.01).toFixed(3)+' ml':'\u2014 ml')+'</text>'
+    +'</svg>'
+    +'<div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:2px">'+maxMl.toFixed(1)+' ml syringe ('+Math.round(maxUnits)+' units)</div>';
+}
+// Live draw preview, using the same drawInfo path as Today so the figures agree.
+  const cycleDrawPreview=()=>{
+    const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+    const probe=Object.assign({}, c, {dose:g('cycle-next-dose'), unit:g('cycle-next-unit'),
+      vialSize:g('cycle-next-vial'), bacWater:g('cycle-next-bac')});
+    const out=document.getElementById('cycle-draw-readout');
+    const svg=document.getElementById('cycle-draw-syringe');
+    if(!out) return;
+    const info=drawInfo(probe, tod());
+    if(!info || info.error){
+      out.innerHTML='<span style="color:var(--text-muted);font-size:13px;font-weight:500">'+
+        esc(info&&info.error ? info.error : 'Enter dose, vial and BAC water')+'</span>';
+      if(svg) svg.innerHTML=''; return;
+    }
+    const pin=isSubQRoute(probe.route) ? fmtUnitText(info.units)+' units' : info.ml.toFixed(2)+' ml';
+    out.innerHTML=esc(pin)+'<span style="font-size:12px;font-weight:500;color:var(--text-secondary)"> &middot; '+
+      esc(info.ml.toFixed(2))+' mL &middot; '+esc(doseLabel(probe, tod()))+'</span>';
+    // Smallest standard barrel that holds the dose, as a user would pick.
+    const maxMl = info.units<=30 ? 0.3 : (info.units<=50 ? 0.5 : 1.0);
+    renderReadOnlySyringe(svg, info.units, maxMl);
+  };
+  ['cycle-next-dose','cycle-next-unit','cycle-next-vial','cycle-next-bac'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.addEventListener('input', cycleDrawPreview); el.addEventListener('change', cycleDrawPreview); }
+  });
+  cycleDrawPreview();
 
   overlay._cycleIdx = idx;
   overlay._cycleKey = key;
@@ -6848,13 +7250,13 @@ async function scheduleCycleNext(cid, key, listIdx){
     if(dose)     D.compounds[idx].dose     = dose;
     if(unit)     D.compounds[idx].unit     = unit;
     if(freq)     D.compounds[idx].freq     = freq;
-    if(time)     D.compounds[idx].time     = (time==='Both'?'Both':time.toLowerCase());
+    if(time)     D.compounds[idx].time     = time;   // canonical casing: AM / PM / Both / Any
     if(vialSize) D.compounds[idx].vialSize = vialSize;
     if(bacWater) D.compounds[idx].bacWater = bacWater;
     if(weeks){
       D.compounds[idx].durtype = 'weeks';
       D.compounds[idx].weeks   = weeks;
-      D.compounds[idx].end     = addDays(startDate, parseInt(weeks)*7);
+      D.compounds[idx].end     = addDays(startDate, parseInt(weeks)*7 - 1);
     } else {
       D.compounds[idx].end = '';
     }
@@ -6868,10 +7270,10 @@ async function scheduleCycleNext(cid, key, listIdx){
   document.getElementById('cycle-reminder-overlay')?.remove();
 
   const nextFmt = new Date(startDate+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long'});
-  ptAlert('Next cycle scheduled from '+nextFmt+'!');
-
-  // Show next reminder in queue
-  setTimeout(()=>showCycleReminder(list, listIdx+1, reminded), 300);
+  // Await the confirmation: it sits at a higher z-index than the reminder sheet, so
+  // showing the next one underneath it made that one unreachable.
+  await ptAlert('Next cycle scheduled from '+nextFmt+'!');
+  advanceCycleQueue();
 }
 
 // Remind me tomorrow — genuinely temporary, local-date based.
@@ -6879,7 +7281,7 @@ function snoozeCycleReminder(key, listIdx){
   const list = _cycleReminderList;
   cycleSetState(key, {state:'snoozed', snoozedUntil: addDays(tod(),1), at: tod()});
   document.getElementById('cycle-reminder-overlay')?.remove();
-  setTimeout(()=>showCycleReminder(list, listIdx+1, cycleStoreRead()), 300);
+  advanceCycleQueue();
 }
 // Finish this protocol — deactivate, keep everything, never ask again for THIS cycle.
 async function finishProtocolCycle(cid, key, listIdx){
@@ -6893,14 +7295,14 @@ async function finishProtocolCycle(cid, key, listIdx){
   cycleSetState(key, {state:'finished', at: tod()});
   document.getElementById('cycle-reminder-overlay')?.remove();
   render();
-  setTimeout(()=>showCycleReminder(list, listIdx+1, cycleStoreRead()), 300);
+  advanceCycleQueue();
 }
 // Backdrop tap / swipe down — this session only, nothing persisted.
 function sessionDismissCycleReminder(key, listIdx){
   const list = _cycleReminderList;
   _cycleSessionDismissed[key] = true;
   document.getElementById('cycle-reminder-overlay')?.remove();
-  setTimeout(()=>showCycleReminder(list, listIdx+1, cycleStoreRead()), 300);
+  advanceCycleQueue();
 }
 
 init();
@@ -6981,7 +7383,14 @@ window.PT_debug = {
         <optgroup label="Per day (on selected days)">
           <option value="daily" selected>Once daily</option>
           <option value="bid">Twice daily (BID)</option>
-          
+          <option value="eod">Every other day</option>
+          <option value="e3d">Every 3 days</option>
+        </optgroup>
+        <optgroup label="Times per week (choose the days)">
+          <option value="2xweek">2 x per week</option>
+          <option value="3xweek">3 x per week</option>
+          <option value="4xweek">4 x per week</option>
+          <option value="5xweek">5 x per week</option>
         </optgroup>
         <optgroup label="Longer intervals">
           <option value="weekly">Weekly</option>
@@ -7080,6 +7489,42 @@ window.PT_debug = {
         <button type="button" class="btn btn-s" style="flex:1;display:none" id="ki-finish" onclick="kiFinishStack()">Finish</button>
         <button type="button" class="btn btn-p" style="flex:1" id="ki-next" onclick="kiNext()">Save</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Saved protocol sets -->
+  <div id="ov-templates" class="ov hidden">
+    <div class="sh" style="max-height:86vh;overflow-y:auto">
+      <div class="sh-handle"></div>
+      <div class="sh-title">Saved protocol sets</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">
+        Keep a named group of protocols &mdash; a recovery block, a cruise &mdash; and switch
+        back to it whenever you need. Sets store doses and schedules only; your logs and
+        history are never changed.
+      </div>
+      <div id="templates-body"></div>
+      <button type="button" class="btn btn-p" style="width:100%;margin-top:12px" onclick="openTemplatePicker()">Save a new set</button>
+      <button type="button" class="btn btn-s" style="width:100%;margin-top:8px" onclick="closeOv('ov-templates')">Close</button>
+    </div>
+  </div>
+
+  <!-- Choose which protocols go into a set -->
+  <div id="ov-tplpick" class="ov hidden" style="z-index:260">
+    <div class="sh" style="max-height:86vh;overflow-y:auto">
+      <div class="sh-handle"></div>
+      <div class="sh-title">Choose protocols</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">
+        Pick one protocol or several. Active ones are ticked to start with, but you can
+        save any protocol &mdash; including inactive ones &mdash; without changing what is running now.
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="tplPickAll(true)">Select all</button>
+        <button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="tplPickAll(false)">Clear</button>
+        <span id="tplpick-count" style="flex:1;font-size:12px;color:var(--text-muted);align-self:center;text-align:right"></span>
+      </div>
+      <div id="tplpick-body"></div>
+      <button type="button" class="btn btn-p" id="tplpick-save" style="width:100%;margin-top:12px" onclick="saveTemplate()">Name and save</button>
+      <button type="button" class="btn btn-s" style="width:100%;margin-top:8px" onclick="closeOv('ov-tplpick')">Cancel</button>
     </div>
   </div>
 
