@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.0118</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.0247</div>
       </div>
     </div>
   </div>
@@ -6367,8 +6367,8 @@ function kiChooseCompound(){
 
 // Offer a guided protocol setup (used after Master Reset and on first run).
 async function offerProtocolSetup(){
-  const go = await ptConfirm('Would you like to set up your protocol now? You can pick from the pre-loaded compounds or add your own, one at a time.', 'Set up your protocol', {okText:'Start setup', cancelText:"I'll do it later"});
-  if(go) kiOpenStack();
+  const go = await ptConfirm('Would you like to set up your protocol now?\n\nYou can add a single compound, or a blend of several drawn into one syringe.', 'Set up your protocol', {okText:'Start setup', cancelText:"I'll do it later"});
+  if(go) openAddKind();
 }
 
 let _kiDurtype='ongoing';
