@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.0247</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.0421</div>
       </div>
     </div>
   </div>
@@ -6476,9 +6476,11 @@ function kiRenderStep(existing){
   kiSetDurtype('ongoing');
   kiPopulateChooser();
   kiResetTitration();
+  _kiSyringeMl=null;
   { const pg=document.getElementById('ki-pinGroup');
     if(pg && _kiBlendName) pg.value=_kiBlendName; }
   kiUpdateBack();
+  if(typeof kiDrawPreview==='function') setTimeout(kiDrawPreview,0);
   { const sh=(document.getElementById('ov-keyinfo')||{}).querySelector
       ? document.getElementById('ov-keyinfo').querySelector('.sh') : null;
     if(sh){ sh.scrollTop=0; setTimeout(()=>{ try{ sh.scrollTop=0; }catch(e){} }, 0); } }
@@ -6773,6 +6775,7 @@ function kiApplyRouteForm(c){
     routeEl.value = match ? match.value : 'SubQ Injection';
   }
   kiSetFormulation(c ? (isOilBased(c)?'oil':'reconstituted') : 'reconstituted');
+  if(typeof kiDrawPreview==='function') setTimeout(kiDrawPreview,0);
 }
 // Show only the fields the chosen route + formulation actually need, so a user
 // is never blocked by a field that does not apply (e.g. BAC water on oil).
@@ -6783,7 +6786,67 @@ function kiSetFormulation(v){
   });
   kiSyncFormFields();
 }
-function onKiRoute(){ kiSyncFormFields(); }
+let _kiSyringeMl=null;
+function kiSetSyringe(ml){ _kiSyringeMl=ml; kiDrawPreview(); }
+// Same preview the editor uses, driven by the wizard's own fields.
+function kiDrawPreview(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const wrap=document.getElementById('ki-draw-wrap');
+  const out=document.getElementById('ki-draw-readout');
+  const svg=document.getElementById('ki-draw-syringe');
+  if(!wrap||!out) return;
+  const route=g('ki-route');
+  if(!isInjectableRoute(route)){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  const probe={id:'kipreview', name:g('ki-name')||'', route:route, unit:g('ki-unit'),
+    dose:g('ki-dose'), vialSize:g('ki-vial'), vialUnit:g('ki-vialUnit'),
+    bacWater:g('ki-bac'), formulation:_kiFormulation};
+  const info=drawInfo(probe, tod());
+  if(!info || info.error){
+    out.innerHTML='<span style="color:var(--text-muted);font-size:13px;font-weight:500">'+
+      esc(info&&info.error ? info.error : 'Enter dose, vial size and BAC water')+'</span>';
+    if(svg) svg.innerHTML=''; return;
+  }
+  // In a blend, show the whole pin: the members already saved plus this one.
+  const grp=(g('ki-pinGroup')||'').trim();
+  if(grp){
+    const others=(D.compounds||[]).filter(c=>c && pinGroupOf(c)===grp && c.id!==_kiChosenId);
+    if(others.length){
+      const layers=[{name:g('ki-name')||'This compound', color:'var(--brand)', units:info.units, ml:info.ml}];
+      let tot=info.ml; const cannot=[];
+      others.forEach(c=>{ const i2=drawInfo(c, tod());
+        if(i2 && !i2.error){ layers.push({name:c.name, color:c.color||'', units:i2.units, ml:i2.ml}); tot+=i2.ml; }
+        else cannot.push(c.name); });
+      if(cannot.length){
+        out.innerHTML='<span style="color:var(--danger-text)">Combined draw incomplete</span>'
+          +'<div style="font-size:11px;color:var(--text-secondary);margin-top:4px">'
+          + layers.map(L=>esc(L.name)+' &mdash; '+esc(fmtUnitText(L.units)+' units')).join('<br>')
+          +'<br><span style="color:var(--danger-text)">'+cannot.map(n=>esc(n)+' &mdash; cannot calculate').join('<br>')+'</span>'
+          +'<br><span style="color:var(--text-muted)">Known so far: '+esc(fmtUnitText(tot*100)+' units')+' &mdash; not the full pin</span></div>';
+        if(svg) svg.innerHTML='';
+        return;
+      }
+      const mlG=_kiSyringeMl || barrelFor(tot*100);
+      const row=document.getElementById('ki-syr-sizes');
+      if(row) row.querySelectorAll('.syringe-size-btn').forEach(b=>{
+        b.classList.toggle('on', Math.abs(parseFloat(b.getAttribute('data-ml'))-mlG)<0.001); });
+      out.innerHTML='<span>'+esc(fmtUnitText(tot*100)+' units')+'</span>'
+        +'<span style="font-size:12px;font-weight:500;color:var(--text-secondary)"> &middot; '+esc(tot.toFixed(2))
+        +' mL combined &middot; '+layers.length+' compounds</span>';
+      renderReadOnlySyringe(svg, layers, mlG);
+      return;
+    }
+  }
+  const pin=isSubQRoute(route) ? fmtUnitText(info.units)+' units' : info.ml.toFixed(2)+' ml';
+  out.innerHTML=esc(pin)+'<span style="font-size:12px;font-weight:500;color:var(--text-secondary)"> &middot; '+
+    esc(info.ml.toFixed(2))+' mL</span>';
+  const ml1=_kiSyringeMl || barrelFor(info.units);
+  const row=document.getElementById('ki-syr-sizes');
+  if(row) row.querySelectorAll('.syringe-size-btn').forEach(b=>{
+    b.classList.toggle('on', Math.abs(parseFloat(b.getAttribute('data-ml'))-ml1)<0.001); });
+  renderReadOnlySyringe(svg, info.units, ml1);
+}
+function onKiRoute(){ kiSyncFormFields(); kiDrawPreview(); }
 // Wizard mirror of sprayLink — dose and spray count kept in step.
 let _kiSprayBusy=false;
 function kiSprayLink(source){
@@ -7979,9 +8042,9 @@ window.PT_debug = {
       <input class="fi" id="ki-name" placeholder="e.g. BPC-157" style="margin-bottom:14px">
 
       <div style="display:flex;gap:8px;margin-bottom:14px">
-        <div style="flex:1"><label class="fl">Dose</label><input class="fi" id="ki-dose" type="number" step="0.01" placeholder="e.g. 250" oninput="kiSprayLink('dose')"></div>
+        <div style="flex:1"><label class="fl">Dose</label><input class="fi" id="ki-dose" oninput="kiDrawPreview()" type="number" step="0.01" placeholder="e.g. 250" oninput="kiSprayLink('dose')"></div>
         <div style="width:110px"><label class="fl">Unit</label>
-          <select class="fs" id="ki-unit" onchange="syncUnitFamily('ki-unit','ki-vialUnit','dose');kiSprayLink('dose')"><option>mcg</option><option>mg</option><option value="IU">IU</option><option>ml</option><option>sprays</option></select></div>
+          <select class="fs" id="ki-unit" onchange="syncUnitFamily('ki-unit','ki-vialUnit','dose');kiSprayLink('dose');kiDrawPreview()"><option>mcg</option><option>mg</option><option value="IU">IU</option><option>ml</option><option>sprays</option></select></div>
       </div>
 
       <label class="fl">Frequency</label>
@@ -8082,11 +8145,11 @@ window.PT_debug = {
       <div style="display:flex;gap:8px;margin-bottom:14px" id="ki-vialrow">
         <div style="flex:1" id="ki-vial-wrap"><label class="fl" id="ki-vial-lbl">Vial size</label>
           <div style="display:flex;gap:6px">
-            <input class="fi" id="ki-vial" type="number" step="0.01" placeholder="e.g. 5" style="flex:1" oninput="kiSprayLink('recon')">
-            <select class="fs" id="ki-vialUnit" style="width:88px;padding-left:10px;padding-right:26px;background-position:right 8px center" onchange="syncUnitFamily('ki-unit','ki-vialUnit','vial')"><option>mg</option><option>mcg</option><option>IU</option></select>
+            <input class="fi" id="ki-vial" oninput="kiDrawPreview()" type="number" step="0.01" placeholder="e.g. 5" style="flex:1" oninput="kiSprayLink('recon')">
+            <select class="fs" id="ki-vialUnit" style="width:88px;padding-left:10px;padding-right:26px;background-position:right 8px center" onchange="syncUnitFamily('ki-unit','ki-vialUnit','vial');kiDrawPreview()"><option>mg</option><option>mcg</option><option>IU</option></select>
           </div>
         </div>
-        <div style="flex:1" id="ki-bac-wrap"><label class="fl">BAC water (ml)</label><input class="fi" id="ki-bac" type="number" step="0.1" placeholder="e.g. 2" oninput="kiSprayLink('recon')"></div>
+        <div style="flex:1" id="ki-bac-wrap"><label class="fl">BAC water (ml)</label><input class="fi" id="ki-bac" oninput="kiDrawPreview()" type="number" step="0.1" placeholder="e.g. 2" oninput="kiSprayLink('recon')"></div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:8px" id="ki-nasalrow">
         <div style="flex:1"><label class="fl">Saline (ml)</label><input class="fi" id="ki-saline" type="number" step="0.1" placeholder="optional" oninput="kiSprayLink('recon')"></div>
@@ -8094,6 +8157,19 @@ window.PT_debug = {
         <div style="flex:1"><label class="fl">Sprays per dose</label><input class="fi" id="ki-sprays" type="number" step="0.5" placeholder="e.g. 2" oninput="kiSprayLink('sprays')"></div>
       </div>
       <div id="ki-spray-hint" style="display:none;font-size:11px;color:var(--text-muted);margin-bottom:14px">Enter either the dose or the number of sprays &mdash; the other is worked out for you. Most pumps deliver 0.1 ml per spray.</div>
+
+      <div class="fg" id="ki-draw-wrap" style="display:none">
+        <label class="fl">Draw for this dose</label>
+        <div style="background:var(--surface-secondary);border-radius:12px;padding:12px 14px">
+          <div id="ki-draw-readout" style="font-size:15px;font-weight:700;color:var(--text-primary)">&mdash;</div>
+          <div class="syringe-size-row" id="ki-syr-sizes" style="margin-top:10px;margin-bottom:0">
+            <button type="button" class="syringe-size-btn" data-ml="0.3" onclick="kiSetSyringe(0.3)">0.3 ml<br><span style="font-size:10px;font-weight:400">30 units</span></button>
+            <button type="button" class="syringe-size-btn" data-ml="0.5" onclick="kiSetSyringe(0.5)">0.5 ml<br><span style="font-size:10px;font-weight:400">50 units</span></button>
+            <button type="button" class="syringe-size-btn" data-ml="1" onclick="kiSetSyringe(1)">1.0 ml<br><span style="font-size:10px;font-weight:400">100 units</span></button>
+          </div>
+          <div id="ki-draw-syringe" style="margin-top:8px"></div>
+        </div>
+      </div>
 
       <div style="display:flex;gap:8px;margin-top:8px">
         <button type="button" class="btn btn-s" style="flex:1;display:none" id="ki-back" onclick="kiBack()">&lsaquo; Back</button>
