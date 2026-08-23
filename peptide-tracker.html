@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0808.1435</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0808.2337</div>
       </div>
     </div>
   </div>
@@ -974,6 +974,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
     <!-- Syringe visual -->
     <div class="syringe-wrap">
       <div class="calc-section-lbl">Syringe Visual</div>
+      <div id="calc-overfill" style="display:none;background:var(--danger-soft);border:1px solid var(--danger);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--danger-text);line-height:1.5"></div>
       <div class="syringe-size-row">
         <button class="syringe-size-btn on" onclick="setSyringeSize(0.3,'insulin',this)">0.3 ml<br><span style="font-size:10px;font-weight:400">30 units</span></button>
         <button class="syringe-size-btn" onclick="setSyringeSize(0.5,'insulin',this)">0.5 ml<br><span style="font-size:10px;font-weight:400">50 units</span></button>
@@ -1152,7 +1153,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
         </table>
       </div>
       <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
-      <button class="btn btn-s" onclick="kiOpenStack()" style="margin-top:10px;width:100%">+ New Protocol Stack (guided)</button>
+      <button class="btn btn-s" onclick="openAddKind()" style="margin-top:10px;width:100%">+ Add protocols (guided)</button>
       <button class="btn btn-s" onclick="openTemplates()" style="margin-top:10px;width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Saved protocol sets</button>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle)">
         <button class="btn btn-d" onclick="masterReset()" style="font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> Master Reset — Clear All Data</button>
@@ -1395,6 +1396,11 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <label class="fl">Draw for this dose</label>
       <div style="background:var(--surface-secondary);border-radius:12px;padding:12px 14px">
         <div id="f-draw-readout" style="font-size:15px;font-weight:700;color:var(--text-primary)">&mdash;</div>
+        <div class="syringe-size-row" id="f-syr-sizes" style="margin-top:10px;margin-bottom:0">
+          <button type="button" class="syringe-size-btn" data-ml="0.3" onclick="fSetSyringe(0.3)">0.3 ml<br><span style="font-size:10px;font-weight:400">30 units</span></button>
+          <button type="button" class="syringe-size-btn" data-ml="0.5" onclick="fSetSyringe(0.5)">0.5 ml<br><span style="font-size:10px;font-weight:400">50 units</span></button>
+          <button type="button" class="syringe-size-btn" data-ml="1" onclick="fSetSyringe(1)">1.0 ml<br><span style="font-size:10px;font-weight:400">100 units</span></button>
+        </div>
         <div id="f-draw-syringe" style="margin-top:8px"></div>
       </div>
     </div>
@@ -2172,7 +2178,10 @@ function combinedPinDraw(group, dateStr, slot){
           incomplete: incomplete, error:bad};
 }
 // Smallest standard barrel that holds a volume.
+// Smallest standard barrel that holds the volume. Above 100 units nothing fits, and
+// callers render the over-volume warning rather than a full 1 mL pin.
 function barrelFor(units){ return units<=30 ? 0.3 : (units<=50 ? 0.5 : 1.0); }
+function fitsBarrel(units, maxMl){ return Number.isFinite(units) && units <= maxMl*100 + 0.001; }
 
 // ─── SCHEDULED FUTURE PROTOCOL CHANGES ───────────────────────
 // A compound can carry ONE pending change: {from, changes, savedAt}. The current
@@ -4479,11 +4488,86 @@ function fabAction(){
 }
 function fabPick(what){
   closeOv('ov-fabpick');
-  if(what==='protocol') kiOpenStack();
+  if(what==='protocol') openAddKind();
   else if(what==='log') openLog(null);
 }
 function closeOv(id){document.getElementById(id).classList.add('hidden')}
-function openOv(id){document.getElementById(id).classList.remove('hidden')}
+// ─── SWIPE TO DISMISS ────────────────────────────────────────
+// Every sheet closes with a downward swipe from its top. Dismissing this way is
+// always a CANCEL: nothing is saved, exactly as tapping Cancel would behave.
+// Engages only when the sheet is scrolled to the top, so it never fights scrolling.
+const SWIPE_CANCEL = {
+  'ov-form':      ()=>{},                       // editor: unsaved fields simply discarded
+  'ov-keyinfo':   ()=>{ if(typeof kiCancel==='function') kiCancel(); },
+  'ov-tplpick':   ()=>{},
+  'ov-templates': ()=>{},
+  'ov-titration': ()=>{},
+  'ov-recall':    ()=>{},
+  'ov-log':       ()=>{},
+  'ov-inv':       ()=>{},
+  'ov-snooze':    ()=>{},
+  'ov-fabpick':   ()=>{},
+  'ov-cycend':    ()=>{},
+  'ov-addkind':   ()=>{}
+};
+function attachSwipeDismiss(ovId){
+  const ov=document.getElementById(ovId);
+  if(!ov || ov._swipeBound) return;
+  const sheet=ov.querySelector('.sh');
+  if(!sheet) return;
+  ov._swipeBound=true;
+  let y0=0, cur=0, dragging=false;
+  sheet.addEventListener('touchstart', function(ev){
+    if(sheet.scrollTop>0 || ev.touches.length!==1){ dragging=false; return; }
+    y0=ev.touches[0].clientY; cur=y0; dragging=true;
+    sheet.style.transition='none';
+  }, {passive:true});
+  sheet.addEventListener('touchmove', function(ev){
+    if(!dragging) return;
+    cur=ev.touches[0].clientY;
+    const dy=cur-y0;
+    if(dy>0){ sheet.style.transform='translateY('+dy+'px)'; ov.style.opacity=String(Math.max(0.35,1-dy/420)); }
+  }, {passive:true});
+  const settle=function(){
+    if(!dragging) return;
+    dragging=false;
+    const dy=cur-y0;
+    sheet.style.transition='transform .22s ease';
+    if(dy>110){
+      sheet.style.transform='translateY(100%)';
+      ov.style.transition='opacity .2s ease'; ov.style.opacity='0';
+      setTimeout(function(){
+        sheet.style.transition=''; sheet.style.transform='';
+        ov.style.transition=''; ov.style.opacity='';
+        // Cancel semantics: close without saving, then run any per-sheet cleanup.
+        closeOv(ovId);
+        const fn=SWIPE_CANCEL[ovId];
+        if(typeof fn==='function'){ try{ fn(); }catch(e){} }
+        _ptDialogClosedAt = Date.now();   // guard against tap-through on release
+      }, 200);
+    } else {
+      sheet.style.transform=''; ov.style.opacity='';
+    }
+  };
+  sheet.addEventListener('touchend', settle, {passive:true});
+  sheet.addEventListener('touchcancel', settle, {passive:true});
+}
+function attachAllSwipeDismiss(){ Object.keys(SWIPE_CANCEL).forEach(attachSwipeDismiss); }
+function openOv(id){
+  const ov=document.getElementById(id);
+  if(!ov) return;
+  ov.classList.remove('hidden');
+  attachSwipeDismiss(id);
+  // A sheet keeps its scroll position while hidden, so reopening could land the user
+  // halfway down a form they have not seen the top of. Always start at the top.
+  const sheet=ov.querySelector('.sh');
+  if(sheet){
+    sheet.scrollTop=0;
+    // Reassert after layout: iOS restores the previous offset on the next frame.
+    setTimeout(()=>{ try{ sheet.scrollTop=0; }catch(e){} }, 0);
+    setTimeout(()=>{ try{ sheet.scrollTop=0; }catch(e){} }, 60);
+  }
+}
 
 // ─── COMPOUND FORM ───────────────────────────────────────────
 function buildColors(sel){
@@ -4814,6 +4898,7 @@ function openAdd(){
   document.getElementById('f-cat').value='Peptide';
   fSetFormulation('reconstituted');
   document.getElementById('f-active').checked=true;
+  _fSyringeMl=null;
   { const w=document.getElementById('f-when-wrap'); if(w) w.style.display='none'; }
   _fWhen='now';
   buildColors(COLORS[Math.floor(Math.random()*COLORS.length)]);
@@ -4875,6 +4960,7 @@ function openEdit(pid){
       at.textContent = lc+' logged dose'+(lc===1?'':'s')+' \u00b7 '+hc+' history entr'+(hc===1?'y':'ies')
         + (sn? ' \u00b7 '+sn+' other protocol'+(sn===1?'':'s')+' share this name' : ''); } }
   buildColors(c.color);
+  _fSyringeMl=null;
   { const w=document.getElementById('f-when-wrap'); if(w) w.style.display=''; }
   fSetWhen('now');
   { const p=pendingOf(c); const el=document.getElementById('f-pending-note');
@@ -5459,6 +5545,9 @@ function currentUnits(){
 
 function drawSyringe(units){
   const maxUnits=syringeMaxMl*100;
+  // A dose larger than the barrel was clamped, so it rendered as a full syringe —
+  // indistinguishable from a dose that exactly fills it. Say so instead.
+  showOverfillWarning('calc-overfill', units, maxUnits, syringeMaxMl);
   const barrelTop=50,barrelH=376,barrelBot=426;
   const u=Math.min(Math.max(units||0,0),maxUnits);
   const pct=maxUnits>0?u/maxUnits:0;
@@ -6049,6 +6138,7 @@ function init(){
   }catch(e){}
   // Check for cycle end reminders
   initTodaySwipe();
+  attachAllSwipeDismiss();
   if(_firstRun){ _firstRun=false; setTimeout(offerProtocolSetup, 600); }
   setTimeout(checkCycleEndReminders, 800);
   setTimeout(checkMissedDoses, 1200);
@@ -6300,8 +6390,26 @@ function kiSetDurtype(t){
     if(w) w.value=''; if(e) e.value='';
   }
 }
+// Entry point for adding protocols: ask what is being added, then route.
+let _kiBlendName='';
+function openAddKind(){ openOv('ov-addkind'); }
+async function startAdd(kind){
+  closeOv('ov-addkind');
+  if(kind==='blend'){
+    const nm=await ptPrompt('Name this blend — the compounds you add next will be drawn into one syringe.\n\nFor example "AM blend" or "Recovery pin".',
+      {title:'New blend', placeholder:'e.g. AM blend'});
+    if(nm===null) return;
+    const name=String(nm||'').trim();
+    if(!name){ await ptAlert('A name is required for a blend.','Name required'); return; }
+    _kiBlendName=name;
+  } else {
+    _kiBlendName='';
+  }
+  kiOpenStack();
+}
 function kiOpenStack(){
   _kiMode='stack'; _kiQueue=[{}]; _kiIndex=0; _kiActivateId=null; _kiCreated=[]; _kiStackCount=0;
+  if(_kiMode!=='stack') _kiBlendName='';
   kiSnapshotForRollback();
   kiRenderStep();
   openOv('ov-keyinfo');
@@ -6357,12 +6465,21 @@ function kiRenderStep(existing){
   kiSetDurtype('ongoing');
   kiPopulateChooser();
   kiResetTitration();
+  { const pg=document.getElementById('ki-pinGroup');
+    if(pg && _kiBlendName) pg.value=_kiBlendName; }
   kiUpdateBack();
+  { const sh=(document.getElementById('ov-keyinfo')||{}).querySelector
+      ? document.getElementById('ov-keyinfo').querySelector('.sh') : null;
+    if(sh){ sh.scrollTop=0; setTimeout(()=>{ try{ sh.scrollTop=0; }catch(e){} }, 0); } }
   setTimeout(kiFreqChanged,0);
   const finishBtn=document.getElementById('ki-finish');
   if(_kiMode==='stack'){
     title.textContent='New protocol '+(_kiIndex+1);
-    prog.textContent = _kiStackCount>0 ? (_kiStackCount+' added so far — add another below') : 'First compound of your new stack';
+    prog.textContent = _kiBlendName
+      ? (_kiStackCount>0
+          ? _kiStackCount+' in "'+_kiBlendName+'" so far — add the next one below'
+          : 'First compound of "'+_kiBlendName+'" — everything you add here shares one pin')
+      : (_kiStackCount>0 ? (_kiStackCount+' added so far — add another below') : 'First compound of your new stack');
     nextBtn.textContent='Save & add next';
     // Finish is available from the first entry (§ wizard requirement): a user adding one
     // compound can save+exit directly without needing "Save & add next" then a blank step.
@@ -6774,7 +6891,9 @@ function kiUpdateBack(){
 }
 async function kiCancel(){
   if(ptTapThrough()) return;
+  _kiBlendName='';
   const n=_kiStackCount||0;
+  _kiBlendName='';
   if(_kiMode==='stack' && n>0){
     const choice = await ptDialog({kind:'confirm', title:'Cancel setup?',
       message:'You have added '+n+' protocol'+(n===1?'':'s')+' in this session.\n\n'+
@@ -6945,6 +7064,30 @@ function fSyncFormFields(){
 // The calculator's syringe, rendered read-only from a fixed unit value. Same
 // geometry, same graduation rules, same three-tier ticks — no size buttons, and the
 // barrel size is chosen automatically to suit the dose.
+// Warn when the dose will not fit the selected barrel, and suggest one that will.
+function smallestBarrelFor(units){
+  if(!Number.isFinite(units) || units<=0) return null;
+  if(units<=30) return 0.3;
+  if(units<=50) return 0.5;
+  if(units<=100) return 1.0;
+  return null;                       // beyond a 1 mL pin: needs splitting
+}
+function showOverfillWarning(elId, units, maxUnits, maxMl){
+  const el=document.getElementById(elId);
+  if(!el) return false;
+  const over = Number.isFinite(units) && units > maxUnits + 0.001;
+  if(!over){ el.style.display='none'; el.innerHTML=''; return false; }
+  const need=smallestBarrelFor(units);
+  el.style.display='';
+  el.innerHTML='<div style="display:flex;gap:7px;align-items:flex-start">'
+    +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg>'
+    +'<div><b>Too big for this syringe.</b> '+esc(fmtUnitText(units))+' units will not fit a '
+    + esc(maxMl.toFixed(1))+' ml barrel ('+Math.round(maxUnits)+' units).<br>'
+    + (need ? 'Use a '+need.toFixed(1)+' ml syringe.'
+            : 'This dose exceeds a 1.0 ml syringe &mdash; it needs to be split across more than one.')
+    +'</div></div>';
+  return true;
+}
 // `units` may be a number, or an array of {units,color,name} drawn as stacked layers.
 function renderReadOnlySyringe(el, units, maxMl){
   if(!el) return;
@@ -6955,6 +7098,18 @@ function renderReadOnlySyringe(el, units, maxMl){
   }
   const maxUnits=maxMl*100;
   const barrelBot=426, barrelH=376;
+  if(Number.isFinite(units) && units > maxUnits + 0.001){
+    // Drawing this clamped would show a full barrel, which is a different — and
+    // wrong — amount. Show the problem instead of a plausible-looking syringe.
+    const need=smallestBarrelFor(units);
+    el.innerHTML='<div style="background:var(--danger-soft);border:1px solid var(--danger);'
+      +'border-radius:10px;padding:10px 12px;font-size:12px;color:var(--danger-text);line-height:1.5">'
+      +'<b>Too big for a '+maxMl.toFixed(1)+' ml syringe.</b><br>'
+      +esc(fmtUnitText(units))+' units needed &middot; barrel holds '+Math.round(maxUnits)+'.<br>'
+      +(need ? 'Use a '+need.toFixed(1)+' ml syringe.' : 'Exceeds a 1.0 ml syringe &mdash; split the dose.')
+      +'</div>';
+    return;
+  }
   const u=Math.min(Math.max(units||0,0),maxUnits);
   const fillH=Math.round((maxUnits>0?u/maxUnits:0)*barrelH);
   const fillY=barrelBot-fillH;
@@ -7009,6 +7164,16 @@ function renderReadOnlySyringe(el, units, maxMl){
           +'<span style="flex:1;color:var(--text-primary)">'+esc(L.name||'')+'</span>'
           +'<span style="color:var(--text-secondary);font-family:var(--mono)">'+fmtUnitText(L.units||0)+'u</span></div>';
       }).join('')+'</div>' : '');
+}
+// null = follow the dose (smallest barrel that fits); a number = the user's choice.
+let _fSyringeMl=null;
+function fSetSyringe(ml){ _fSyringeMl=ml; fDrawPreview(); }
+function fMarkSyringe(ml){
+  const row=document.getElementById('f-syr-sizes');
+  if(!row) return;
+  row.querySelectorAll('.syringe-size-btn').forEach(b=>{
+    b.classList.toggle('on', Math.abs(parseFloat(b.getAttribute('data-ml'))-ml)<0.001);
+  });
 }
 let _fWhen='now';
 function fSetWhen(v){
@@ -7068,13 +7233,17 @@ function fDrawPreview(){
     out.innerHTML='<span>'+esc(fmtUnitText(tot*100)+' units')+'</span>'
       +'<span style="font-size:12px;font-weight:500;color:var(--text-secondary)"> &middot; '+esc(tot.toFixed(2))+' mL combined &middot; '
       +layers.length+' compounds</span>';
-    renderReadOnlySyringe(svg, layers, barrelFor(tot*100));
+    const mlG = _fSyringeMl || barrelFor(tot*100);
+    fMarkSyringe(mlG);
+    renderReadOnlySyringe(svg, layers, mlG);
     return;
   }
   const pin=isSubQRoute(route) ? fmtUnitText(info.units)+' units' : info.ml.toFixed(2)+' ml';
   out.innerHTML=esc(pin)+'<span style="font-size:12px;font-weight:500;color:var(--text-secondary)"> &middot; '+
     esc(info.ml.toFixed(2))+' mL</span>';
-  renderReadOnlySyringe(svg, info.units, barrelFor(info.units));
+  const ml1 = _fSyringeMl || barrelFor(info.units);
+  fMarkSyringe(ml1);
+  renderReadOnlySyringe(svg, info.units, ml1);
 }
 function onRouteChange(){
   const route=document.getElementById('f-route').value;
@@ -7307,6 +7476,12 @@ function cycleSetState(key, rec){
 // Passive dismissal (backdrop tap / swipe) is deliberately session-only: it must
 // never silently mean "snoozed" or "never again".
 let _cycleSessionDismissed = {};
+let _cycSyringeMl=null;
+function cycSetSyringe(ml){
+  _cycSyringeMl=ml;
+  const ov=document.getElementById('cycle-reminder-overlay');
+  if(ov && ov._cycleDrawPreview) ov._cycleDrawPreview();
+}
 
 // Resolving one reminder can change what else qualifies, and the queue previously
 // advanced through a list captured at startup — so only the first was ever shown and
@@ -7463,6 +7638,11 @@ function showCycleReminder(list, idx, reminded){
         <div style="background:var(--surface-secondary);border-radius:12px;padding:12px 14px;margin-bottom:4px">
           <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Next cycle draw</div>
           <div id="cycle-draw-readout" style="font-size:15px;font-weight:700;color:var(--text-primary)">&mdash;</div>
+          <div class="syringe-size-row" id="cycle-syr-sizes" style="margin-top:10px;margin-bottom:0">
+            <button type="button" class="syringe-size-btn" data-ml="0.3" onclick="cycSetSyringe(0.3)">0.3 ml</button>
+            <button type="button" class="syringe-size-btn" data-ml="0.5" onclick="cycSetSyringe(0.5)">0.5 ml</button>
+            <button type="button" class="syringe-size-btn" data-ml="1" onclick="cycSetSyringe(1)">1.0 ml</button>
+          </div>
           <div id="cycle-draw-syringe" style="margin-top:8px"></div>
         </div>
 
@@ -7524,6 +7704,7 @@ function showCycleReminder(list, idx, reminded){
 
   
 // Live draw preview, using the same drawInfo path as Today so the figures agree.
+  _cycSyringeMl=null;
   const cycleDrawPreview=()=>{
     const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
     const probe=Object.assign({}, c, {dose:g('cycle-next-dose'), unit:g('cycle-next-unit'),
@@ -7540,8 +7721,10 @@ function showCycleReminder(list, idx, reminded){
     const pin=isSubQRoute(probe.route) ? fmtUnitText(info.units)+' units' : info.ml.toFixed(2)+' ml';
     out.innerHTML=esc(pin)+'<span style="font-size:12px;font-weight:500;color:var(--text-secondary)"> &middot; '+
       esc(info.ml.toFixed(2))+' mL &middot; '+esc(doseLabel(probe, tod()))+'</span>';
-    // Smallest standard barrel that holds the dose, as a user would pick.
-    const maxMl = info.units<=30 ? 0.3 : (info.units<=50 ? 0.5 : 1.0);
+    const maxMl = _cycSyringeMl || barrelFor(info.units);
+    const row=document.getElementById('cycle-syr-sizes');
+    if(row) row.querySelectorAll('.syringe-size-btn').forEach(b=>{
+      b.classList.toggle('on', Math.abs(parseFloat(b.getAttribute('data-ml'))-maxMl)<0.001); });
     renderReadOnlySyringe(svg, info.units, maxMl);
   };
   overlay._cycleDrawPreview = cycleDrawPreview;   // wired after the overlay is mounted
@@ -7550,6 +7733,8 @@ function showCycleReminder(list, idx, reminded){
   overlay._cycleCid = c.id;
   overlay.id = 'cycle-reminder-overlay';
   document.body.appendChild(overlay);
+  { const sh=overlay.querySelector('#cycle-sheet') || overlay.querySelector('.sh');
+    if(sh){ sh.scrollTop=0; setTimeout(()=>{ try{ sh.scrollTop=0; }catch(e){} }, 0); } }
   // Now the fields exist in the document, so bind and draw.
   ['cycle-next-dose','cycle-next-unit','cycle-next-vial','cycle-next-bac'].forEach(id=>{
     const el=document.getElementById(id);
@@ -7941,6 +8126,32 @@ window.PT_debug = {
       <div id="templates-body"></div>
       <button type="button" class="btn btn-p" style="width:100%;margin-top:12px" onclick="openTemplatePicker()">Save a new set</button>
       <button type="button" class="btn btn-s" style="width:100%;margin-top:8px" onclick="closeOv('ov-templates')">Close</button>
+    </div>
+  </div>
+
+  <!-- What are you adding? Single compound, or a blend sharing one pin -->
+  <div id="ov-addkind" class="ov hidden" style="z-index:250">
+    <div class="sh">
+      <div class="sh-handle"></div>
+      <div class="sh-title">What are you adding?</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">
+        This only changes how they are drawn. Every compound is still dosed, logged and tracked on its own.
+      </div>
+      <button type="button" class="fabpick-opt" onclick="startAdd('single')">
+        <div class="fabpick-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg></div>
+        <div class="fabpick-body">
+          <div class="fabpick-t">Single</div>
+          <div class="fabpick-s">One compound in its own syringe</div>
+        </div>
+      </button>
+      <button type="button" class="fabpick-opt" onclick="startAdd('blend')">
+        <div class="fabpick-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="8" cy="7" r="1.4"/><circle cx="14" cy="12" r="1.4"/><circle cx="10" cy="17" r="1.4"/></svg></div>
+        <div class="fabpick-body">
+          <div class="fabpick-t">Blend</div>
+          <div class="fabpick-s">Several compounds drawn into one syringe</div>
+        </div>
+      </button>
+      <button type="button" class="btn btn-s" style="width:100%;margin-top:8px" onclick="closeOv('ov-addkind')">Cancel</button>
     </div>
   </div>
 
