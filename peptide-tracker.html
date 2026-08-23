@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.2014</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.2231</div>
       </div>
     </div>
   </div>
@@ -2315,7 +2315,8 @@ function blendSharedSchedule(group){
   return {route:first.route, freq:first.freq, days:(first.days||[]).slice(),
           time:first.time, start:first.start, durtype:first.durtype,
           weeks:first.weeks, end:first.end,
-          consistent: ['route','freq','days','time','start','durtype','weeks','end'].every(same)};
+          consistent: ['route','freq','days','time','start','durtype','weeks','end'].every(same),
+          timingConsistent: ['route','time'].every(same)};
 }
 // Reuse the blend setup sheet to edit an existing blend, applying to every member.
 let _bsEditGroup='';
@@ -2333,8 +2334,10 @@ function editBlendSchedule(group){
   if(btn) btn.textContent='Apply to all '+blendMembers(group).length+' compounds';
   const warn=document.getElementById('bs-mixed');
   if(warn){
-    warn.style.display = sh.consistent ? 'none' : '';
-    warn.textContent = 'These compounds do not currently share the same schedule. Applying will bring them into line so they can be drawn together.';
+    // Only a timing or route mismatch actually prevents sharing a pin. Different days
+    // are legitimate — the blend simply varies across the week.
+    warn.style.display = sh.timingConsistent ? 'none' : '';
+    warn.textContent = 'These compounds are not given at the same time, so they cannot share a syringe. Applying will bring them into line.';
   }
   bsSetDur(_bsDur); bsFreqChanged();
   openOv('ov-blendsetup');
@@ -3732,12 +3735,17 @@ function rToday(){
         <div class="ci-name">
           <span style="display:inline-flex;gap:2px;margin-right:5px">${entry.members.map(m=>`<span class="dot" style="background:${m.c.color};width:7px;height:7px"></span>`).join('')}</span>
           ${esc(entry.group)}
-          <span style="font-size:10px;font-weight:600;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand-border);border-radius:8px;padding:1px 6px;margin-left:6px">1 pin</span>
+          <span style="font-size:10px;font-weight:600;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand-border);border-radius:8px;padding:1px 6px;margin-left:6px">'+entry.members.length+' in 1 pin</span>
           ${some?'<span class="snz-badge">Part done</span>':''}
         </div>
         ${total?`<div class="ci-draw">${PIN_SVG}${esc(total)}</div>`:''}
         ${bad?`<div class="ci-draw" style="color:var(--danger-text)">Combined draw incomplete</div>`:''}
-        <div class="ci-sub">${names}</div>
+        ${(cb && !bad) ? '<div style="margin-top:4px">'+cb.parts.map(pp=>
+            '<div style="font-size:11px;color:var(--text-secondary);display:flex;gap:6px">'
+            +'<span style="flex:1">'+esc(pp.name)+'</span>'
+            +'<span style="font-family:var(--mono);color:var(--text-muted)">'+esc(fmtNum(pp.dose)+' '+pp.unit)+'</span>'
+            +'<span style="font-family:var(--mono)">'+esc(fmtUnitText(pp.units))+'u</span></div>').join('')+'</div>'
+          : '<div class="ci-sub">'+names+'</div>'}
         ${breakdown}
       </div>
     </div>`;
@@ -6634,13 +6642,17 @@ async function bsContinue(){
     time:(freq==='bid'?'Both':g('bs-time')), start:start, durtype:_bsDur,
     weeks:(_bsDur==='weeks'?String(wk):''),
     end:(_bsDur==='weeks'?calcEndFromWeeks(start,wk):'') };
+  // Editing changes only what members must share; frequency and days are left alone
+  // so a blend that varies across the week is not flattened.
+  const sharedOnly={ route:shared.route, time:shared.time, start:shared.start,
+    durtype:shared.durtype, weeks:shared.weeks, end:shared.end };
   if(_bsEditGroup){
     // Editing: apply to every member through the normal mutation path, so any dose
     // exposure change is recorded in history exactly as a manual edit would be.
     const grp=_bsEditGroup; _bsEditGroup='';
     const members=blendMembers(grp);
     let failed=0;
-    members.forEach(c=>{ const r=applyProtocolMutation(c.id, shared, 'blend-schedule'); if(!r.ok) failed++; });
+    members.forEach(c=>{ const r=applyProtocolMutation(c.id, sharedOnly, 'blend-schedule'); if(!r.ok) failed++; });
     save(); closeOv('ov-blendsetup'); renderBlends(); render(); setTimeout(renderBlendSyringes,0);
     await ptAlert(failed
       ? failed+' of '+members.length+' compounds could not be updated. The others were changed.'
@@ -7582,7 +7594,10 @@ function fMarkSyringe(ml){
 // compound would silently stop it coinciding with the others and break the shared pin.
 // So in the editor those fields are locked for a blend member, with a route to the
 // blend's own Schedule control. Dose, vial and BAC stay editable per compound.
-const SCHEDULE_FIELD_IDS=['f-freq','f-days','f-time','f-start','f-weeks','f-end','f-durtype','f-route'];
+// Route and timing must match for compounds to share a syringe. Frequency and days
+// must NOT be forced: members may run on different days, and the pin holds whoever
+// is due that day. Locking days made two overlapping blends impossible.
+const SCHEDULE_FIELD_IDS=['f-time','f-route'];
 function fgOf(id){
   const el=document.getElementById(id);
   if(!el) return null;
@@ -7606,8 +7621,9 @@ function applyBlendLock(c){
   if(note){
     note.style.display = locked ? '' : 'none';
     if(locked) note.innerHTML='<b>In blend "'+esc(grp)+'"</b><br>'
-      +'Days, timing, dates and route are set for the whole blend, so every member stays in one pin. '
-      +'Change them under <b>Protocol &rarr; Blends &rarr; Schedule</b>.<br>'
+      +'Timing and route are shared so members can be drawn together &mdash; change those under '
+      +'<b>Protocol &rarr; Blends &rarr; Schedule</b>.<br>'
+      +'Dose, frequency and days stay its own: on days when only some members are due, the pin holds just those.<br>'
       +'<button type="button" class="btn btn-s btn-sm" style="width:auto;margin-top:7px;font-size:12px" '
       +'onclick="closeOv(\'ov-form\');openBlends()">Open Blends</button>';
   }
