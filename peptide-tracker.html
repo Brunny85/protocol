@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.1508</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.2014</div>
       </div>
     </div>
   </div>
@@ -1376,9 +1376,10 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
         <div id="f-spray-result" style="font-size:15px;font-weight:600;margin-top:4px"></div>
       </div>
     </div>
+    <div id="f-blend-lock" style="display:none;background:var(--brand-soft);border:1px solid var(--brand-border);border-radius:11px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text-secondary);line-height:1.5"></div>
     <div class="fg" id="f-pingroup-wrap">
       <label class="fl">Combine in one pin with</label>
-      <input class="fi" id="f-pinGroup" list="f-pingroup-list" placeholder="e.g. Morning blend — leave blank for its own pin" oninput="fDrawPreview()">
+      <input class="fi" id="f-pinGroup" list="f-pingroup-list" placeholder="e.g. Morning blend — leave blank for its own pin" oninput="fDrawPreview();applyBlendLock({pinGroup:this.value})">
       <datalist id="f-pingroup-list"></datalist>
       <div class="fhint">Compounds sharing this label, scheduled at the same time, are drawn into one syringe. Each is still logged separately.</div>
     </div>
@@ -2283,14 +2284,62 @@ function renderBlends(){
       + b.missing.map(mm=>'<div style="font-size:12px;color:var(--danger-text);padding:6px 0;border-top:1px solid var(--border-subtle);margin-top:6px">'
           +esc(mm.c.name)+' &mdash; cannot calculate: '+esc(mm.reason)
           +' <button type="button" class="btn btn-s btn-sm" style="font-size:11px;padding:4px 8px;width:auto;margin-left:6px" onclick="openEdit(\''+esc(mm.c.id)+'\')">Fix</button></div>').join('')
+      +'<div id="blend-syr-'+esc(g).replace(/[^A-Za-z0-9]/g,'_')+'" style="margin-top:10px"></div>'
       +'<div style="display:flex;gap:6px;margin-top:10px">'
       +'<button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="addToBlend(\''+esc(g)+'\')">Add compound</button>'
+      +'<button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="editBlendSchedule(\''+esc(g)+'\')">Schedule</button>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;margin-top:6px">'
       +'<button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="renameBlend(\''+esc(g)+'\')">Rename</button>'
       +'<button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="dissolveBlend(\''+esc(g)+'\')">Break up</button>'
       +'</div></div>';
   }).join('');
 }
-function openBlends(){ renderBlends(); openOv('ov-blends'); }
+// Draw each blend's real pin after the cards are in the DOM.
+function renderBlendSyringes(){
+  pinGroupNames().forEach(g=>{
+    const b=blendSummary(g);
+    const el=document.getElementById('blend-syr-'+g.replace(/[^A-Za-z0-9]/g,'_'));
+    if(!el) return;
+    if(b.incomplete || !b.parts.length){ el.innerHTML=''; return; }
+    const layers=b.parts.map(pp=>({name:pp.c.name, color:pp.c.color||'', units:pp.units, ml:pp.ml}));
+    renderReadOnlySyringe(el, layers, barrelFor(b.totalUnits));
+  });
+}
+// The schedule every member shares, read back from the compounds themselves.
+function blendSharedSchedule(group){
+  const m=blendMembers(group);
+  if(!m.length) return null;
+  const first=m[0];
+  const same=f=>m.every(c=>JSON.stringify(c[f]||'')===JSON.stringify(first[f]||''));
+  return {route:first.route, freq:first.freq, days:(first.days||[]).slice(),
+          time:first.time, start:first.start, durtype:first.durtype,
+          weeks:first.weeks, end:first.end,
+          consistent: ['route','freq','days','time','start','durtype','weeks','end'].every(same)};
+}
+// Reuse the blend setup sheet to edit an existing blend, applying to every member.
+let _bsEditGroup='';
+function editBlendSchedule(group){
+  const sh=blendSharedSchedule(group);
+  if(!sh) return;
+  _bsEditGroup=group; _kiBlendShared=null;
+  _bsDays=(sh.days||[]).slice(); _bsDur=(sh.durtype==='weeks')?'weeks':'ongoing';
+  const set=(id,v)=>{const e=document.getElementById(id); if(e) e.value=v||'';};
+  set('bs-route', sh.route||'SubQ Injection'); set('bs-freq', sh.freq||'daily');
+  set('bs-time', sh.time||'AM'); set('bs-start', sh.start||tod()); set('bs-weeks', sh.weeks||'');
+  const ttl=document.getElementById('bs-title');
+  if(ttl) ttl.textContent='Schedule: '+group;
+  const btn=document.getElementById('bs-continue');
+  if(btn) btn.textContent='Apply to all '+blendMembers(group).length+' compounds';
+  const warn=document.getElementById('bs-mixed');
+  if(warn){
+    warn.style.display = sh.consistent ? 'none' : '';
+    warn.textContent = 'These compounds do not currently share the same schedule. Applying will bring them into line so they can be drawn together.';
+  }
+  bsSetDur(_bsDur); bsFreqChanged();
+  openOv('ov-blendsetup');
+}
+function openBlends(){ renderBlends(); openOv('ov-blends'); setTimeout(renderBlendSyringes,0); }
 
 // ─── SCHEDULED FUTURE PROTOCOL CHANGES ───────────────────────
 // A compound can carry ONE pending change: {from, changes, savedAt}. The current
@@ -4997,6 +5046,7 @@ function openAdd(){
   document.getElementById('f-end').value='';
   document.getElementById('f-clock').value='';
   document.getElementById('f-vialSize').value='';
+  applyBlendLock({pinGroup:''});
   { const pg=document.getElementById('f-pinGroup'); if(pg) pg.value='';
     const dl=document.getElementById('f-pingroup-list');
     if(dl) dl.innerHTML=pinGroupNames().map(n=>'<option value="'+esc(n)+'"></option>').join(''); }
@@ -5051,6 +5101,7 @@ function openEdit(pid){
   document.getElementById('f-notes').value=c.notes||'';
   document.getElementById('f-vialSize').value=c.vialSize||'';
   document.getElementById('f-vialUnit').value=normUnit(c.vialUnit||'mg');
+  applyBlendLock(c);
   { const pg=document.getElementById('f-pinGroup'); if(pg) pg.value=pinGroupOf(c);
     const dl=document.getElementById('f-pingroup-list');
     if(dl) dl.innerHTML=pinGroupNames().map(n=>'<option value="'+esc(n)+'"></option>').join(''); }
@@ -6555,7 +6606,9 @@ function bsFreqChanged(){
   if(t && f==='bid') t.value='Both';
 }
 function openBlendSetup(){
-  _kiBlendShared=null; _bsDays=[]; _bsDur='ongoing';
+  _bsEditGroup=''; _kiBlendShared=null;
+  { const b=document.getElementById('bs-continue'); if(b) b.textContent='Continue to compounds';
+    const w=document.getElementById('bs-mixed'); if(w) w.style.display='none'; } _bsDays=[]; _bsDur='ongoing';
   const set=(id,v)=>{const e=document.getElementById(id); if(e) e.value=v;};
   set('bs-route','SubQ Injection'); set('bs-freq','daily'); set('bs-time','AM');
   set('bs-start',tod()); set('bs-weeks','');
@@ -6577,10 +6630,25 @@ async function bsContinue(){
   if(_bsDur==='weeks' && !(Number.isFinite(wk)&&wk>0)){
     await ptAlert('Enter how many weeks the blend runs for.','Length needed'); return;
   }
-  _kiBlendShared={ route:g('bs-route'), freq:freq, days:_bsDays.slice(),
+  const shared={ route:g('bs-route'), freq:freq, days:_bsDays.slice(),
     time:(freq==='bid'?'Both':g('bs-time')), start:start, durtype:_bsDur,
     weeks:(_bsDur==='weeks'?String(wk):''),
     end:(_bsDur==='weeks'?calcEndFromWeeks(start,wk):'') };
+  if(_bsEditGroup){
+    // Editing: apply to every member through the normal mutation path, so any dose
+    // exposure change is recorded in history exactly as a manual edit would be.
+    const grp=_bsEditGroup; _bsEditGroup='';
+    const members=blendMembers(grp);
+    let failed=0;
+    members.forEach(c=>{ const r=applyProtocolMutation(c.id, shared, 'blend-schedule'); if(!r.ok) failed++; });
+    save(); closeOv('ov-blendsetup'); renderBlends(); render(); setTimeout(renderBlendSyringes,0);
+    await ptAlert(failed
+      ? failed+' of '+members.length+' compounds could not be updated. The others were changed.'
+      : 'Schedule applied to all '+members.length+' compounds in "'+grp+'".',
+      failed?'Partly applied':'Schedule updated');
+    return;
+  }
+  _kiBlendShared=shared;
   closeOv('ov-blendsetup');
   kiOpenStack();
 }
@@ -7059,7 +7127,9 @@ function kiDrawPreview(){
     if(svg) svg.innerHTML=''; return;
   }
   // In a blend, show the whole pin: the members already saved plus this one.
-  const grp=(g('ki-pinGroup')||'').trim();
+  // In a blend run the field is hidden and the label lives in _kiBlendName, so read
+  // the run first — otherwise the preview shows only the compound being added.
+  const grp=(_kiBlendName || g('ki-pinGroup') || '').trim();
   if(grp){
     const others=(D.compounds||[]).filter(c=>c && pinGroupOf(c)===grp && c.id!==_kiChosenId);
     if(others.length){
@@ -7507,6 +7577,40 @@ function fMarkSyringe(ml){
   row.querySelectorAll('.syringe-size-btn').forEach(b=>{
     b.classList.toggle('on', Math.abs(parseFloat(b.getAttribute('data-ml'))-ml)<0.001);
   });
+}
+// A blend's schedule belongs to the blend, not to one member — editing it on a single
+// compound would silently stop it coinciding with the others and break the shared pin.
+// So in the editor those fields are locked for a blend member, with a route to the
+// blend's own Schedule control. Dose, vial and BAC stay editable per compound.
+const SCHEDULE_FIELD_IDS=['f-freq','f-days','f-time','f-start','f-weeks','f-end','f-durtype','f-route'];
+function fgOf(id){
+  const el=document.getElementById(id);
+  if(!el) return null;
+  let n=el;
+  for(let i=0;i<5 && n;i++){
+    if(n.classList && n.classList.contains && n.classList.contains('fg')) return n;
+    n=n.parentElement;
+  }
+  return el.parentElement||el;
+}
+function applyBlendLock(c){
+  const grp=pinGroupOf(c);
+  const locked=!!grp;
+  SCHEDULE_FIELD_IDS.forEach(id=>{
+    const box=fgOf(id);
+    if(box) box.style.display = locked ? 'none' : '';
+  });
+  const dur=document.getElementById('f-dur-btns') || document.getElementById('f-durtype-btns');
+  if(dur){ const b=fgOf(dur.id); if(b) b.style.display = locked ? 'none' : ''; }
+  const note=document.getElementById('f-blend-lock');
+  if(note){
+    note.style.display = locked ? '' : 'none';
+    if(locked) note.innerHTML='<b>In blend "'+esc(grp)+'"</b><br>'
+      +'Days, timing, dates and route are set for the whole blend, so every member stays in one pin. '
+      +'Change them under <b>Protocol &rarr; Blends &rarr; Schedule</b>.<br>'
+      +'<button type="button" class="btn btn-s btn-sm" style="width:auto;margin-top:7px;font-size:12px" '
+      +'onclick="closeOv(\'ov-form\');openBlends()">Open Blends</button>';
+  }
 }
 let _fWhen='now';
 function fSetWhen(v){
@@ -8536,7 +8640,8 @@ window.PT_debug = {
         <input class="fi" id="bs-weeks" type="number" step="1" placeholder="Number of weeks" oninput="bsWeeksChanged()">
         <div class="fhint" id="bs-end-hint"></div>
       </div>
-      <button type="button" class="btn btn-p" style="width:100%;margin-top:6px" onclick="bsContinue()">Continue to compounds</button>
+      <div id="bs-mixed" style="display:none;background:var(--warning-soft);border:1px solid var(--warning);border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:12px;color:var(--warning-text);line-height:1.5"></div>
+      <button type="button" class="btn btn-p" id="bs-continue" style="width:100%;margin-top:6px" onclick="bsContinue()">Continue to compounds</button>
       <button type="button" class="btn btn-s" style="width:100%;margin-top:8px" onclick="closeOv('ov-blendsetup')">Cancel</button>
     </div>
   </div>
