@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.0421</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.0603</div>
       </div>
     </div>
   </div>
@@ -6328,12 +6328,12 @@ function kiPopulateChooser(){
     sel.innerHTML='<option value="">\u2014 Add your own \u2014</option>'+
       (avail.length?'<optgroup label="Not yet in your protocol">'+
         avail.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')+'</optgroup>':'')+
-      (added.length?'<optgroup label="Already in your protocol">'+
-        added.map(c=>`<option value="${c.id}" disabled>${esc(c.name)} \u2014 already added</option>`).join('')+'</optgroup>':'');
+      (added.length?'<optgroup label="Already running — pick one to change it">'+
+        added.map(c=>`<option value="${c.id}">${esc(c.name)} \u2014 running now</option>`).join('')+'</optgroup>':'');
     sel.value='';
     const note=document.getElementById('ki-choose-note');
     if(note) note.textContent = added.length
-      ? added.length+' compound'+(added.length===1?' is':'s are')+' already in your protocol. Edit those from the Protocol tab.'
+      ? 'Compounds already running can be picked too — give a future start date and the change waits until then.'
       : '';
   } else {
     wrap.style.display='none';
@@ -6646,6 +6646,36 @@ async function kiNextInner(after){
     const titr = (titrTog && titrTog.classList.contains('on') && Array.isArray(_titrDraft) && _titrDraft.length)
       ? { enabled:true, steps:_titrDraft.map(st=>({dose:parseFloat(st.dose)||0, weeks:parseFloat(st.weeks)||0})).filter(st=>st.dose>0&&st.weeks>0) }
       : null;
+    // A compound that is already running, given a future start date, is SCHEDULED
+    // rather than changed now — the current protocol keeps going until that date.
+    if(_kiChosenId){
+      const live=D.compounds.find(x=>x && x.id===_kiChosenId);
+      if(live && live.active && data.start && data.start > tod()){
+        const changes={dose:data.dose, unit:data.unit, freq:data.freq, days:data.days||[],
+          time:(data.freq==='bid'?'Both':(data.time||'AM')),
+          start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
+          route:data.route, formulation:data.formulation, pinGroup:data.pinGroup,
+          vialSize:data.vialSize, vialUnit:data.vialUnit, bacWater:data.bacWater,
+          saline:data.saline, volPerSpray:data.volPerSpray, active:true};
+        if(titr) changes.titration=titr;
+        const had=pendingOf(live);
+        if(had && !(await ptConfirm('"'+live.name+'" already has a change scheduled for '+
+            fmtD(had.from)+'.\n\nReplace it with this one?','Replace scheduled change',
+            {okText:'Replace', cancelText:'Keep the existing one'}))) return;
+        setPendingChange(_kiChosenId, data.start, changes);
+        save();
+        _kiStackCount=(_kiStackCount||0)+1;
+        if(_kiCreated.indexOf(_kiChosenId)===-1) _kiCreated.push(_kiChosenId);
+        await ptAlert('"'+live.name+'" keeps its current protocol until '+fmtD(data.start)+
+          ', then changes'+(data.pinGroup?' and joins "'+data.pinGroup+'"':'')+'.','Change scheduled');
+        if(after==='finish'){
+          _kiRollback=null; closeOv('ov-keyinfo'); _kiMode=null; render();
+          _kiStackCount=0; _kiCreated=[]; _kiBlendName='';
+          return;
+        }
+        _kiIndex++; kiRenderStep(); return;
+      }
+    }
     let c;
     if(_kiChosenId){
       // A pre-loaded compound was chosen: activate + update the EXISTING one (no duplicate).
