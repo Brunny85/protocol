@@ -722,9 +722,9 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
 /* ── WIZARD SELECTED OPTIONS ────────────────────────────────────
    .ki-dur-opt / .ki-form-opt got an 'on' class with nothing styling it,
    so the chosen duration and formulation were invisible. ── */
-.ki-dur-opt.on,.ki-form-opt.on,.f-form-opt.on{
+.ki-dur-opt.on,.ki-form-opt.on,.f-form-opt.on,.f-when-opt.on{
   background:var(--brand-soft);border-color:var(--brand);color:var(--brand);font-weight:700}
-.ki-dur-opt.on::before,.ki-form-opt.on::before,.f-form-opt.on::before{
+.ki-dur-opt.on::before,.ki-form-opt.on::before,.f-form-opt.on::before,.f-when-opt.on::before{
   content:'';display:inline-block;width:7px;height:7px;border-radius:50%;
   background:var(--brand);margin-right:7px;vertical-align:1px}
 
@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0808.0126</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0808.1435</div>
       </div>
     </div>
   </div>
@@ -1326,9 +1326,9 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       </select>
     </div>
     <div class="fr fg">
-      <div><label class="fl">Amount</label><input class="fi" id="f-dose" type="number" step="0.01" placeholder="0.00" oninput="sprayLink('dose')"></div>
+      <div><label class="fl">Amount</label><input class="fi" id="f-dose" oninput="fDrawPreview()" type="number" step="0.01" placeholder="0.00" oninput="sprayLink('dose')"></div>
       <div><label class="fl">Unit</label>
-        <select class="fs" id="f-unit" onchange="syncUnitFamily('f-unit','f-vialUnit','dose');sprayLink('dose')">
+        <select class="fs" id="f-unit" onchange="syncUnitFamily('f-unit','f-vialUnit','dose');sprayLink('dose');fDrawPreview()">
           <option>mg</option><option>mcg</option><option>IU</option><option>ml</option><option>units</option><option>sprays</option>
         </select>
       </div>
@@ -1344,14 +1344,14 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
     <div class="fr fg">
       <div id="f-vial-wrap"><label class="fl" id="f-vial-lbl">Vial Size</label>
         <div style="display:flex;gap:6px">
-          <input class="fi" id="f-vialSize" type="number" step="0.1" placeholder="e.g. 5" oninput="sprayLink('recon')">
-          <select class="fs" id="f-vialUnit" style="width:88px;padding-left:10px;padding-right:26px;background-position:right 8px center" onchange="syncUnitFamily('f-unit','f-vialUnit','vial')">
+          <input class="fi" id="f-vialSize" oninput="fDrawPreview()" type="number" step="0.1" placeholder="e.g. 5" oninput="sprayLink('recon')">
+          <select class="fs" id="f-vialUnit" style="width:88px;padding-left:10px;padding-right:26px;background-position:right 8px center" onchange="syncUnitFamily('f-unit','f-vialUnit','vial');fDrawPreview()">
             <option>mg</option><option>mcg</option><option>IU</option>
           </select>
         </div>
       </div>
       <div id="f-bac-wrap"><label class="fl">BAC Water (ml)</label>
-        <input class="fi" id="f-bac" type="number" step="0.1" placeholder="e.g. 2" oninput="sprayLink('recon')">
+        <input class="fi" id="f-bac" oninput="fDrawPreview()" type="number" step="0.1" placeholder="e.g. 2" oninput="sprayLink('recon')">
       </div>
     </div>
 
@@ -1373,6 +1373,29 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div class="fg" id="f-spray-readout" style="display:none;background:var(--surface-secondary);border:1px solid var(--border-subtle);border-radius:12px;padding:12px 14px">
         <div style="font-size:13px;color:var(--text-secondary)">Reconstitution result</div>
         <div id="f-spray-result" style="font-size:15px;font-weight:600;margin-top:4px"></div>
+      </div>
+    </div>
+    <div class="fg" id="f-pingroup-wrap">
+      <label class="fl">Combine in one pin with</label>
+      <input class="fi" id="f-pinGroup" list="f-pingroup-list" placeholder="e.g. Morning blend — leave blank for its own pin" oninput="fDrawPreview()">
+      <datalist id="f-pingroup-list"></datalist>
+      <div class="fhint">Compounds sharing this label, scheduled at the same time, are drawn into one syringe. Each is still logged separately.</div>
+    </div>
+    <div class="fg" id="f-when-wrap" style="display:none">
+      <label class="fl">When do these changes take effect?</label>
+      <div style="display:flex;gap:6px;margin-bottom:6px" id="f-when-btns">
+        <button type="button" class="btn btn-s btn-sm f-when-opt on" data-when="now" style="flex:1;font-size:13px;padding:8px" onclick="fSetWhen('now')">Now</button>
+        <button type="button" class="btn btn-s btn-sm f-when-opt" data-when="later" style="flex:1;font-size:13px;padding:8px" onclick="fSetWhen('later')">From a date</button>
+      </div>
+      <input class="fi" id="f-when-date" type="date" style="display:none">
+      <div class="fhint" id="f-when-hint">Applied straight away.</div>
+      <div id="f-pending-note" style="display:none;font-size:12px;color:var(--warning-text);background:var(--warning-soft);border-radius:9px;padding:8px 10px;margin-top:8px"></div>
+    </div>
+    <div class="fg" id="f-draw-wrap" style="display:none">
+      <label class="fl">Draw for this dose</label>
+      <div style="background:var(--surface-secondary);border-radius:12px;padding:12px 14px">
+        <div id="f-draw-readout" style="font-size:15px;font-weight:700;color:var(--text-primary)">&mdash;</div>
+        <div id="f-draw-syringe" style="margin-top:8px"></div>
       </div>
     </div>
     <div class="fg"><label class="fl">Dosing Notes</label>
@@ -2100,6 +2123,105 @@ const fmtT=iso=>new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-di
 const fmtD=s=>new Date(s+'T12:00:00').toLocaleDateString([],{month:'short',day:'numeric'});
 const fmtDY=s=>s?new Date(s+'T12:00:00').toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}):'';
 const dAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return localDateStr(d)};
+
+// ─── COMBINED PINS (several compounds in one syringe) ────────
+// A compound may carry pinGroup:'Morning blend'. Compounds sharing a group that are
+// scheduled on the SAME date and slot are drawn into one syringe. Each keeps its own
+// dose, log and adherence — grouping changes how it is DRAWN, never what is recorded.
+function pinGroupOf(c){ return (c && typeof c.pinGroup==='string') ? c.pinGroup.trim() : ''; }
+function pinGroupNames(){
+  const set={};
+  (D.compounds||[]).forEach(c=>{ const g=pinGroupOf(c); if(g) set[g]=1; });
+  return Object.keys(set).sort();
+}
+// Everything in this group scheduled on that date+slot, with each draw volume and the
+// combined total. Returns null when the group has nothing scheduled then.
+function combinedPinDraw(group, dateStr, slot){
+  if(!group) return null;
+  const parts=[], missing=[]; let totalMl=0, bad=null;
+  (D.compounds||[]).forEach(c=>{
+    if(pinGroupOf(c)!==group) return;
+    const insts=scheduledDoseInstances(c, dateStr);
+    if(!insts.length) return;
+    // Compare the SCHEDULED slot, not the log slot: a single-administration PM
+    // compound logs with slot '' but is administered in the evening, and must not
+    // be drawn into a morning pin.
+    const match=insts.filter(i=>(i.slot||'')===(slot||''));
+    if(!match.length) return;
+    const info=drawInfo(c, dateStr);
+    if(!info || info.error){
+      const why=(info&&info.error)||'missing or invalid vial data';
+      missing.push({pid:c.id, name:c.name, reason:why});
+      bad=bad||{name:c.name, error:why};
+      return;
+    }
+    match.forEach(()=>{
+      parts.push({pid:c.id, name:c.name, color:c.color||'', ml:info.ml, units:info.units,
+                  dose:effectiveDose(c,dateStr), unit:normUnit(c.unit)});
+      totalMl+=info.ml;
+    });
+  });
+  if(!parts.length && !bad) return null;
+  // If ANY scheduled member cannot produce a draw, the combined total is unknown.
+  // Report the subtotal only as explicitly incomplete; never as the total.
+  const incomplete = !!bad;
+  return {group:group, parts:parts, missing:missing,
+          totalMl: incomplete ? null : totalMl,
+          totalUnits: incomplete ? null : totalMl*100,
+          subtotalMl: totalMl, subtotalUnits: totalMl*100,
+          incomplete: incomplete, error:bad};
+}
+// Smallest standard barrel that holds a volume.
+function barrelFor(units){ return units<=30 ? 0.3 : (units<=50 ? 0.5 : 1.0); }
+
+// ─── SCHEDULED FUTURE PROTOCOL CHANGES ───────────────────────
+// A compound can carry ONE pending change: {from, changes, savedAt}. The current
+// protocol keeps running untouched until that date, then the change is applied
+// through the normal mutation path — so history gets a proper period boundary and
+// adherence, logs and the compound id are all preserved. One record, one timeline.
+function pendingOf(c){
+  const p=c && c.pending;
+  return (p && p.from && p.changes && typeof p.changes==='object') ? p : null;
+}
+function setPendingChange(id, fromDate, changes){
+  const c=(D.compounds||[]).find(x=>x && x.id===id);
+  if(!c) return {ok:false};
+  c.pending={from:fromDate, changes:JSON.parse(JSON.stringify(changes||{})), savedAt:utcStamp()};
+  save();
+  return {ok:true};
+}
+function clearPendingChange(id){
+  const c=(D.compounds||[]).find(x=>x && x.id===id);
+  if(!c) return;
+  delete c.pending; save();
+}
+// Run at startup. Anything whose date has arrived is applied and cleared.
+function applyDuePendingChanges(){
+  const today=tod(); let applied=0;
+  (D.compounds||[]).slice().forEach(c=>{
+    const p=pendingOf(c);
+    if(!p || today < p.from) return;
+    const ch=Object.assign({}, p.changes);
+    delete ch.pending;
+    const r=applyProtocolMutation(c.id, ch, 'scheduled-change');
+    if(r.ok){
+      const live=(D.compounds||[]).find(x=>x && x.id===c.id);
+      if(live) delete live.pending;
+      applied++;
+    }
+  });
+  if(applied) save();
+  return applied;
+}
+function pendingSummary(c){
+  const p=pendingOf(c);
+  if(!p) return '';
+  const bits=[];
+  if(p.changes.dose!==undefined) bits.push(fmtNum(parseFloat(p.changes.dose))+' '+normUnit(p.changes.unit||c.unit));
+  if(p.changes.freq!==undefined && p.changes.freq!==c.freq) bits.push(freqLabel(p.changes.freq));
+  if(p.changes.active===false) bits.push('stops');
+  return (bits.length?bits.join(' \u00b7 '):'Changes')+' from '+fmtD(p.from);
+}
 
 // ─── SAVED PROTOCOL TEMPLATES ────────────────────────────────
 // A named group of compound settings — "Recovery", "Cruise" — that can be applied
@@ -2853,6 +2975,23 @@ function prepWeekData(start){
       days.push({date:date, items:items});
     }
   } finally { viewDate = prev; }               // always restore, even on throw
+  // Physical syringes: compounds sharing a pin group on the same date+slot are one
+  // draw. Counted with the same grouping model Today uses, so the two cannot disagree.
+  let physicalPins = 0;
+  const pinSeen = {};
+  for(let i=0;i<7;i++){
+    const date = addDays(start,i);
+    (D.compounds||[]).forEach(c=>{
+      if(!c || !isInjectableRoute(c.route)) return;
+      scheduledDoseInstances(c, date).forEach(inst=>{
+        const g = pinGroupOf(c);
+        const key = g ? ('G|'+g+'|'+date+'|'+(inst.slot||'')) : ('C|'+c.id+'|'+date+'|'+(inst.slot||''));
+        if(pinSeen[key]) return;
+        pinSeen[key] = 1;
+        physicalPins++;
+      });
+    });
+  }
   const list = Object.values(totals);
   list.forEach(t=>{
     t.breakdown = Object.values(t.byVol).sort((a,b)=>(a.dose-b.dose)||((a.vol||0)-(b.vol||0)));
@@ -2863,7 +3002,7 @@ function prepWeekData(start){
     t.sig = prepScope()+'|'+t.doses+'|'+t.kind+'|'+t.breakdown
               .map(g=>g.count+'x'+g.dose+'@'+(g.vol==null?'na':g.vol.toFixed(4))).join(',');
   });
-  return {start:start, days:days, totals:list};
+  return {start:start, days:days, totals:list, physicalPins:physicalPins};
 }
 
 function prepFmtQty(n){
@@ -2972,6 +3111,9 @@ function rPrep(){
      +   '<div style="font-size:11px;color:var(--text-secondary)">'+donePids.length+' of '+totals.length+' compounds</div>'
      + '</div>'
      + '<div style="font-size:11px;color:var(--text-muted);margin-top:3px">prepared'+(mlAll>0?' &middot; '+mlAll.toFixed(2)+' mL total solution':'')+'</div>'
+     + (data.physicalPins && data.physicalPins!==totalUnits
+        ? '<div style="font-size:11px;color:var(--brand);margin-top:3px">'+data.physicalPins+
+          ' actual syringe'+(data.physicalPins===1?'':'s')+' to draw &mdash; some doses share a pin</div>' : '')
      + '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">Full week, regardless of what\'s logged</div>'
      + '<div style="height:5px;border-radius:3px;background:var(--surface-interactive);margin-top:9px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--brand);border-radius:3px"></div></div>'
      + (stalePids.length?'<div style="font-size:11px;color:var(--warning-text);margin-top:8px">'+stalePids.length+' compound'+(stalePids.length===1?'':'s')+' changed since being prepared &mdash; re-check before use</div>':'')
@@ -3365,8 +3507,18 @@ function rToday(){
   const colOf=r=> r.inst.slot==='am' ? 'am'
                : r.inst.slot==='pm' ? 'pm'
                : (bucket(r.c)==='pm' ? 'pm' : 'am');
-  const amItems=rows.filter(r=>colOf(r)==='am');
-  const pmItems=rows.filter(r=>colOf(r)==='pm');
+  // Compounds sharing a pin group and slot become ONE row: one syringe to draw.
+  const merged=[]; const seen={};
+  rows.forEach(r=>{
+    const g=pinGroupOf(r.c);
+    if(!g){ merged.push(r); return; }
+    const key=g+'|'+(r.inst.slot||'')+'|'+colOf(r);
+    if(seen[key]){ seen[key].members.push(r); return; }
+    const entry={group:g, slot:r.inst.slot||'', col:colOf(r), members:[r], c:r.c, inst:r.inst, isGroup:true};
+    seen[key]=entry; merged.push(entry);
+  });
+  const amItems=merged.filter(r=>(r.isGroup?r.col:colOf(r))==='am');
+  const pmItems=merged.filter(r=>(r.isGroup?r.col:colOf(r))==='pm');
 
   function chkRow(c, slot){
     // slot is 'am', 'pm', or null (single dose)
@@ -3391,13 +3543,47 @@ function rToday(){
     </div>`;
   }
 
+  function groupRow(entry){
+    const cb=combinedPinDraw(entry.group, viewDate, entry.slot);
+    const done=entry.members.every(m=>doneOnDate(m.c, m.slot, viewDate));
+    const some=!done && entry.members.some(m=>doneOnDate(m.c, m.slot, viewDate));
+    const bad = cb && cb.incomplete;
+    const total = (cb && !bad) ? fmtUnitText(cb.totalUnits)+' units \u00b7 '+cb.totalMl.toFixed(2)+' mL' : '';
+    const names=entry.members.map(m=>esc(m.c.name)).join(' + ');
+    // Incomplete blend: itemise, never total. A filled figure here could be drawn.
+    const breakdown = bad ? '<div style="margin-top:5px">'
+        + cb.parts.map(pp=>'<div style="font-size:11px;color:var(--text-secondary)">'
+            +esc(pp.name)+' &mdash; '+esc(fmtUnitText(pp.units)+' units')+'</div>').join('')
+        + cb.missing.map(mm=>'<div style="font-size:11px;color:var(--danger-text)">'
+            +esc(mm.name)+' &mdash; cannot calculate: '+esc(mm.reason)+'</div>').join('')
+        + '<div style="font-size:11px;color:var(--text-muted);margin-top:3px">Known so far: '
+            +esc(fmtUnitText(cb.subtotalUnits)+' units')+' &mdash; not the full pin</div>'
+        + '</div>' : '';
+    return`<div class="ci ${done?'done':''}" onclick="quickCheckGroup('${esc(entry.group)}','${esc(entry.slot)}')">
+      <div class="chk ${done?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="var(--c-white)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div style="flex:1;min-width:0">
+        <div class="ci-name">
+          <span style="display:inline-flex;gap:2px;margin-right:5px">${entry.members.map(m=>`<span class="dot" style="background:${m.c.color};width:7px;height:7px"></span>`).join('')}</span>
+          ${esc(entry.group)}
+          <span style="font-size:10px;font-weight:600;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand-border);border-radius:8px;padding:1px 6px;margin-left:6px">1 pin</span>
+          ${some?'<span class="snz-badge">Part done</span>':''}
+        </div>
+        ${total?`<div class="ci-draw">${PIN_SVG}${esc(total)}</div>`:''}
+        ${bad?`<div class="ci-draw" style="color:var(--danger-text)">Combined draw incomplete</div>`:''}
+        <div class="ci-sub">${names}</div>
+        ${breakdown}
+      </div>
+    </div>`;
+  }
   function colHTML(items, slot){
     const ttl=slot==='am'?'AM':'PM';
     const cls=slot==='am'?'am':'pm';
     // Count done for this column
-    const dc=items.filter(r=>r.slot?doneToday(r.c,r.slot):allDoneToday(r.c)).length;
+    const dc=items.filter(r=> r.isGroup
+      ? r.members.every(m=>doneOnDate(m.c, m.slot, viewDate))
+      : (r.slot?doneToday(r.c,r.slot):allDoneToday(r.c))).length;
     const rows=items.length
-      ? items.map(r=>chkRow(r.c, r.slot||null)).join('')
+      ? items.map(r=> r.isGroup ? groupRow(r) : chkRow(r.c, r.slot||null)).join('')
       : `<div class="col-empty">Nothing scheduled</div>`;
     return`<div class="col">
       <div class="col-hdr"><span class="col-ttl ${cls}">${ttl}</span><span class="col-cnt">${dc}/${items.length}</span></div>
@@ -3471,6 +3657,27 @@ function quickCheck(pid,slot){
   save();render();
 }
 
+// Ticking a combined pin records every compound in it individually — one syringe,
+// several logs — so adherence and history stay per-compound.
+function quickCheckGroup(group, slot){
+  const date=viewDate;
+  const members=(D.compounds||[]).filter(c=>{
+    if(pinGroupOf(c)!==group) return false;
+    return scheduledDoseInstances(c, date).some(i=>(i.slot||'')===(slot||''));
+  });
+  if(!members.length) return;
+  const allDone=members.every(c=>doneOnDate(c, logSlotFor(c,{slot:slot}), date));
+  members.forEach(c=>{
+    const ls=logSlotFor(c,{slot:slot});
+    if(allDone){
+      D.logs=D.logs.filter(l=>!(l.pid===c.id && (l.slot||'')===ls && String(l.t).startsWith(date)));
+    } else if(!doneOnDate(c, ls, date)){
+      if(D.skips&&D.skips.length) D.skips=D.skips.filter(k=>!(k.pid===c.id && (k.slot||'')===ls));
+      D.logs.push(scheduledLogPayload(c, date, ls));
+    }
+  });
+  save(); render();
+}
 function tickAll(){
   const due=D.compounds.filter(c=>c.active&&isDue(c));
   const t=viewDate;
@@ -4594,6 +4801,9 @@ function openAdd(){
   document.getElementById('f-end').value='';
   document.getElementById('f-clock').value='';
   document.getElementById('f-vialSize').value='';
+  { const pg=document.getElementById('f-pinGroup'); if(pg) pg.value='';
+    const dl=document.getElementById('f-pingroup-list');
+    if(dl) dl.innerHTML=pinGroupNames().map(n=>'<option value="'+esc(n)+'"></option>').join(''); }
   document.getElementById('f-vialUnit').value='mg';
   document.getElementById('f-bac').value='';
   document.getElementById('f-freq').value='daily';
@@ -4604,6 +4814,8 @@ function openAdd(){
   document.getElementById('f-cat').value='Peptide';
   fSetFormulation('reconstituted');
   document.getElementById('f-active').checked=true;
+  { const w=document.getElementById('f-when-wrap'); if(w) w.style.display='none'; }
+  _fWhen='now';
   buildColors(COLORS[Math.floor(Math.random()*COLORS.length)]);
   selectAllDays();
   onFreq();onDur();
@@ -4642,6 +4854,9 @@ function openEdit(pid){
   document.getElementById('f-notes').value=c.notes||'';
   document.getElementById('f-vialSize').value=c.vialSize||'';
   document.getElementById('f-vialUnit').value=normUnit(c.vialUnit||'mg');
+  { const pg=document.getElementById('f-pinGroup'); if(pg) pg.value=pinGroupOf(c);
+    const dl=document.getElementById('f-pingroup-list');
+    if(dl) dl.innerHTML=pinGroupNames().map(n=>'<option value="'+esc(n)+'"></option>').join(''); }
   document.getElementById('f-bac').value=c.bacWater||'';
   document.getElementById('f-saline').value=c.saline||'';
   document.getElementById('f-volPerSpray').value=c.volPerSpray||'';
@@ -4660,6 +4875,13 @@ function openEdit(pid){
       at.textContent = lc+' logged dose'+(lc===1?'':'s')+' \u00b7 '+hc+' history entr'+(hc===1?'y':'ies')
         + (sn? ' \u00b7 '+sn+' other protocol'+(sn===1?'':'s')+' share this name' : ''); } }
   buildColors(c.color);
+  { const w=document.getElementById('f-when-wrap'); if(w) w.style.display=''; }
+  fSetWhen('now');
+  { const p=pendingOf(c); const el=document.getElementById('f-pending-note');
+    if(el){ if(p){ el.style.display=''; el.innerHTML=esc(pendingSummary(c))+
+        ' &middot; <a href="#" onclick="clearPendingChange(\''+esc(c.id)+'\');closeOv(\'ov-form\');render();return false" style="color:var(--warning-text);text-decoration:underline">cancel it</a>'; }
+      else el.style.display='none'; } }
+  fDrawPreview();
   document.getElementById('form-dot').style.background=c.color;
   setDays(c.days||[]);
   onFreq();onDur();
@@ -4739,6 +4961,7 @@ async function saveForm(){
       notes:document.getElementById('f-notes').value,
       vialSize:document.getElementById('f-vialSize').value,
       vialUnit:document.getElementById('f-vialUnit').value,
+      pinGroup:(document.getElementById('f-pinGroup')||{}).value||'',
       formulation:_fFormulation,
       bacWater:document.getElementById('f-bac').value,
       saline:document.getElementById('f-saline').value,
@@ -4746,6 +4969,15 @@ async function saveForm(){
       color:fColor,
       active:document.getElementById('f-active').checked,
     };
+    if(_fWhen==='later'){
+      const _fd=(document.getElementById('f-when-date')||{}).value;
+      if(!_fd || _fd<=tod()){ await ptAlert('Choose a date in the future for a scheduled change.','Date required'); return; }
+      setPendingChange(id, _fd, _changes);
+      save(); render(); closeOv('ov-form');
+      await ptAlert('Scheduled. "'+(D.compounds.find(x=>x.id===id)||{}).name+'" keeps its current dose until '+
+        fmtD(_fd)+', then changes automatically.','Change scheduled');
+      return;
+    }
     const _res=applyProtocolMutation(id, _changes, 'edit');
     if(!_res.ok){ await ptAlert('Could not save this change. Your protocol and history are unchanged.','Save failed'); return; }
   } else {
@@ -4771,6 +5003,7 @@ async function saveForm(){
       notes:document.getElementById('f-notes').value,
       vialSize:document.getElementById('f-vialSize').value,
       vialUnit:document.getElementById('f-vialUnit').value,
+      pinGroup:(document.getElementById('f-pinGroup')||{}).value||'',
       formulation:_fFormulation,
       bacWater:document.getElementById('f-bac').value,
       saline:document.getElementById('f-saline').value,
@@ -5803,6 +6036,7 @@ function init(){
   renderThemeControl();
   load();
   normalizeDurations();   // repair ongoing-protocols that carry a stale end date
+  applyDuePendingChanges();   // enact any change whose date has arrived
   checkBackupReminder();
   document.getElementById('hdrDate').textContent=new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
   viewDate=tod();
@@ -6031,7 +6265,8 @@ function kiChooseCompound(){
   set('ki-name', c.name); set('ki-dose', c.dose); set('ki-unit', c.unit||'mcg');
   set('ki-freq', c.freq||'daily'); set('ki-vial', c.vialSize); set('ki-bac', c.bacWater);
   set('ki-saline', c.saline); set('ki-volPerSpray', c.volPerSpray);
-  set('ki-vialUnit', c.vialUnit||'mg'); kiApplyRouteForm(c); kiSprayLink('dose');
+  set('ki-vialUnit', c.vialUnit||'mg'); set('ki-pinGroup', pinGroupOf(c));
+  kiApplyRouteForm(c); kiSprayLink('dose');
   // Normalize a possibly-contradictory stored schedule before displaying it.
   { const nc=normalizeSchedule({freq:c.freq, time:c.time}); set('ki-freq', nc.freq||'daily'); set('ki-time', (['AM','PM','Both'].includes(nc.time)?nc.time:'AM')); }
   // §3: inactive preloaded compound → start defaults to today (not a stale stored date).
@@ -6109,7 +6344,7 @@ function kiRenderStep(existing){
   const prog=document.getElementById('ki-progress');
   const nextBtn=document.getElementById('ki-next');
   // clear fields
-  ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray','ki-sprays','ki-start','ki-weeks','ki-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray','ki-sprays','ki-pinGroup','ki-start','ki-weeks','ki-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   kiApplyRouteForm(null);
   // Default start date to today (so a new protocol starts now unless changed).
   { const st=document.getElementById('ki-start'); if(st){ st.value=(typeof localDateStr==='function')?localDateStr(new Date()):new Date().toISOString().slice(0,10); } }
@@ -6195,6 +6430,7 @@ function kiCollect(){
     route:g('ki-route')||'SubQ Injection',
     formulation:_kiFormulation,
     vialSize:g('ki-vial')||'', vialUnit:g('ki-vialUnit')||'mg', bacWater:g('ki-bac')||'',
+    pinGroup:g('ki-pinGroup')||'',
     saline:g('ki-saline')||'', volPerSpray:g('ki-volPerSpray')||''
   };
 }
@@ -6287,7 +6523,7 @@ async function kiNextInner(after){
         Object.assign(c, { dose:data.dose, unit:data.unit, freq:data.freq,
           days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')),
           start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
-          route:data.route, formulation:data.formulation,
+          route:data.route, formulation:data.formulation, pinGroup:data.pinGroup,
           vialSize:data.vialSize, vialUnit:data.vialUnit, bacWater:data.bacWater,
           saline:data.saline, volPerSpray:data.volPerSpray, active:true });
         if(titr) c.titration=titr; else delete c.titration;
@@ -6315,7 +6551,7 @@ async function kiNextInner(after){
           Object.assign(ex, { dose:data.dose, unit:data.unit, freq:data.freq,
             days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')),
             start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
-            route:data.route, formulation:data.formulation,
+            route:data.route, formulation:data.formulation, pinGroup:data.pinGroup,
             vialSize:data.vialSize, vialUnit:data.vialUnit, bacWater:data.bacWater,
             saline:data.saline, volPerSpray:data.volPerSpray, active:true });
           if(titr) ex.titration=titr; else delete ex.titration;
@@ -6346,7 +6582,7 @@ async function kiNextInner(after){
       // Skipped when "Use existing" above adopted a stable record into c.
       if(!c){
       c={ id:uid(), name:data.name, dose:data.dose, unit:data.unit, freq:data.freq,
-        route:data.route||defaultRouteFor(data.name), formulation:data.formulation,
+        route:data.route||defaultRouteFor(data.name), formulation:data.formulation, pinGroup:data.pinGroup,
         days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')), start:data.start, weeks:data.weeks, end:data.end,
         durtype:data.durtype, vialSize:data.vialSize, vialUnit:data.vialUnit, bacWater:data.bacWater,
         saline:data.saline, volPerSpray:data.volPerSpray, active:true,
@@ -6449,6 +6685,9 @@ function kiSyncFormFields(){
   const oil=inj && _kiFormulation==='oil';
   const show=(id,on)=>{ const el=document.getElementById(id); if(el) el.style.display = on?'':'none'; };
   show('ki-form-wrap', inj);
+  show('ki-pingroup-wrap', inj);
+  { const dl=document.getElementById('ki-pingroup-list');
+    if(dl) dl.innerHTML=pinGroupNames().map(n=>'<option value="'+esc(n)+'"></option>').join(''); }
   show('ki-vialrow',   inj||spray);
   show('ki-bac-wrap',  (inj&&!oil)||spray);
   show('ki-nasalrow',  spray);
@@ -6680,6 +6919,7 @@ function renderTitrSummary(){
 // ─── SPRAY-MODE FORM WIRING ──────────────────────────
 let _fFormulation='reconstituted';
 function fSetFormulation(v){
+  if(typeof fDrawPreview==='function') setTimeout(fDrawPreview,0);
   _fFormulation = (v==='oil') ? 'oil' : 'reconstituted';
   document.querySelectorAll('#f-form-btns .f-form-opt').forEach(b=>{
     b.classList.toggle('on', b.getAttribute('data-form')===_fFormulation);
@@ -6702,11 +6942,146 @@ function fSyncFormFields(){
     ? 'Pre-mixed in oil. No BAC water — enter the label concentration.'
     : 'Powder reconstituted with BAC water.';
 }
+// The calculator's syringe, rendered read-only from a fixed unit value. Same
+// geometry, same graduation rules, same three-tier ticks — no size buttons, and the
+// barrel size is chosen automatically to suit the dose.
+// `units` may be a number, or an array of {units,color,name} drawn as stacked layers.
+function renderReadOnlySyringe(el, units, maxMl){
+  if(!el) return;
+  let layers=null;
+  if(Array.isArray(units)){
+    layers=units.slice();
+    units=layers.reduce((a,l)=>a+(l.units||0),0);
+  }
+  const maxUnits=maxMl*100;
+  const barrelBot=426, barrelH=376;
+  const u=Math.min(Math.max(units||0,0),maxUnits);
+  const fillH=Math.round((maxUnits>0?u/maxUnits:0)*barrelH);
+  const fillY=barrelBot-fillH;
+  const majorU = maxMl<=0.5 ? 10 : 20;
+  const minorU = maxMl<=0.5 ? 2 : 5;
+  const mediumU= majorU/2;
+  let ticks='';
+  for(let tu=0; tu<=maxUnits+0.001; tu+=minorU){
+    const ty=barrelBot-Math.round((tu/maxUnits)*barrelH);
+    const isMajor=Math.abs(tu%majorU)<0.001;
+    const isMedium=!isMajor && (majorU/minorU>=4) && Math.abs(tu%mediumU)<0.001;
+    const tw=isMajor?18:isMedium?13:7, sw=isMajor?1.5:isMedium?1.2:1;
+    ticks+='<line x1="198" y1="'+ty+'" x2="'+(198+tw)+'" y2="'+ty+'" stroke="var(--text-muted)" stroke-width="'+sw+'"/>';
+    if(isMajor) ticks+='<text x="222" y="'+(ty+4)+'" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-secondary)">'+Math.round(tu)+'</text>';
+    ticks+='<line x1="122" y1="'+ty+'" x2="'+(122-tw/2)+'" y2="'+ty+'" stroke="var(--border-primary)" stroke-width="1"/>';
+  }
+  if(u>0){
+    ticks+='<line x1="115" y1="'+fillY+'" x2="216" y2="'+fillY+'" stroke="var(--brand)" stroke-width="1.5" stroke-dasharray="4,3"/>';
+    ticks+='<circle cx="216" cy="'+fillY+'" r="2.5" fill="var(--brand)"/>';
+  }
+  el.innerHTML='<svg viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block;max-height:300px">'
+    +'<rect x="130" y="10" width="60" height="16" rx="4" fill="var(--text-primary)"/>'
+    +'<rect x="148" y="26" width="24" height="12" rx="2" fill="var(--text-secondary)"/>'
+    +'<rect x="152" y="38" width="16" height="'+Math.max(0,fillY-50)+'" rx="2" fill="var(--text-muted)"/>'
+    +'<rect x="122" y="48" width="76" height="380" rx="8" fill="var(--border-subtle)" stroke="var(--text-muted)" stroke-width="2"/>'
+    +'<clipPath id="ro-barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>'
+    +(layers
+       // Stacked bands, drawn from the plunger end so the order matches the draw order.
+       ? (function(){ let y=barrelBot, out='';
+           layers.forEach(function(L,i){
+             const h=Math.round(((L.units||0)/maxUnits)*barrelH);
+             y-=h;
+             out+='<rect x="124" y="'+y+'" width="72" height="'+h+'" fill="'+
+               (L.color||'var(--brand)')+'" clip-path="url(#ro-barrel-clip)"/>';
+             if(h>10) out+='<line x1="124" y1="'+y+'" x2="196" y2="'+y+
+               '" stroke="var(--surface-primary)" stroke-width="1" opacity="0.6"/>';
+           });
+           return out; })()
+       : '<rect x="124" y="'+fillY+'" width="72" height="'+fillH+'" rx="'+(fillH>6?4:0)+'" fill="var(--brand)" clip-path="url(#ro-barrel-clip)"/>')
+    +'<rect x="124" y="'+(fillY-12)+'" width="72" height="12" rx="3" fill="var(--text-primary)"/>'
+    + ticks
+    +'<rect x="138" y="428" width="44" height="18" rx="4" fill="var(--text-secondary)"/>'
+    +'<rect x="155" y="446" width="10" height="60" rx="2" fill="var(--text-primary)"/>'
+    +'<polygon points="155,506 165,506 160,520" fill="var(--text-primary)"/>'
+    +'<text x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="var(--text-secondary)" text-anchor="middle">'+(u>0?fmtUnitText(u)+' units':'\u2014 units')+'</text>'
+    +'<text x="280" y="458" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-muted)" text-anchor="middle">'+(u>0?(u*0.01).toFixed(3)+' ml':'\u2014 ml')+'</text>'
+    +'</svg>'
+    +'<div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:2px">'+maxMl.toFixed(1)+' ml syringe ('+Math.round(maxUnits)+' units)</div>'
+    +(layers ? '<div style="margin-top:8px">'+layers.map(function(L){
+        return '<div style="display:flex;align-items:center;gap:7px;font-size:12px;padding:2px 0">'
+          +'<span style="width:9px;height:9px;border-radius:2px;background:'+(L.color||'var(--brand)')+';flex-shrink:0"></span>'
+          +'<span style="flex:1;color:var(--text-primary)">'+esc(L.name||'')+'</span>'
+          +'<span style="color:var(--text-secondary);font-family:var(--mono)">'+fmtUnitText(L.units||0)+'u</span></div>';
+      }).join('')+'</div>' : '');
+}
+let _fWhen='now';
+function fSetWhen(v){
+  _fWhen = (v==='later') ? 'later' : 'now';
+  document.querySelectorAll('#f-when-btns .f-when-opt').forEach(b=>{
+    b.classList.toggle('on', b.getAttribute('data-when')===_fWhen);
+  });
+  const d=document.getElementById('f-when-date');
+  if(d){
+    d.style.display = _fWhen==='later' ? '' : 'none';
+    if(_fWhen==='later' && !d.value) d.value=addDays(tod(),1);
+  }
+  const h=document.getElementById('f-when-hint');
+  if(h) h.textContent = _fWhen==='later'
+    ? 'Your current protocol keeps running unchanged until that date.'
+    : 'Applied straight away.';
+}
+// Live draw preview in the protocol editor, from the values currently entered.
+function fDrawPreview(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const wrap=document.getElementById('f-draw-wrap');
+  const out=document.getElementById('f-draw-readout');
+  const svg=document.getElementById('f-draw-syringe');
+  if(!wrap||!out) return;
+  const route=g('f-route');
+  if(!isInjectableRoute(route)){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  const probe={id:'preview', name:g('f-name')||'', route:route, unit:g('f-unit'),
+    dose:g('f-dose'), vialSize:g('f-vialSize'), vialUnit:g('f-vialUnit'),
+    bacWater:g('f-bac'), formulation:_fFormulation, cat:g('f-cat')};
+  const info=drawInfo(probe, tod());
+  if(!info || info.error){
+    out.innerHTML='<span style="color:var(--text-muted);font-size:13px;font-weight:500">'+
+      esc(info&&info.error ? info.error : 'Enter dose, vial size and BAC water')+'</span>';
+    if(svg) svg.innerHTML=''; return;
+  }
+  const grp=(document.getElementById('f-pinGroup')||{}).value||'';
+  const others=(D.compounds||[]).filter(c=>c && c.id!==g('f-id') && pinGroupOf(c)===grp.trim() && grp.trim());
+  if(others.length){
+    // Show the whole syringe, with this compound's own layer included live.
+    const layers=[{name:g('f-name')||'This compound', color:fColor, units:info.units, ml:info.ml}];
+    let tot=info.ml; const cannot=[];
+    others.forEach(c=>{ const i2=drawInfo(c, tod());
+      if(i2 && !i2.error){ layers.push({name:c.name, color:c.color||'', units:i2.units, ml:i2.ml}); tot+=i2.ml; }
+      else cannot.push(c.name); });
+    if(cannot.length){
+      // No total, and no filled syringe: a partial fill could be mistaken for the pin.
+      out.innerHTML='<span style="color:var(--danger-text)">Combined draw incomplete</span>'
+        +'<div style="font-size:11px;color:var(--text-secondary);margin-top:4px">'
+        + layers.map(L=>esc(L.name)+' &mdash; '+esc(fmtUnitText(L.units)+' units')).join('<br>')
+        +'<br><span style="color:var(--danger-text)">'
+        + cannot.map(n=>esc(n)+' &mdash; cannot calculate').join('<br>')+'</span>'
+        +'<br><span style="color:var(--text-muted)">Known so far: '+esc(fmtUnitText(tot*100)+' units')+' &mdash; not the full pin</span></div>';
+      if(svg) svg.innerHTML='';
+      return;
+    }
+    out.innerHTML='<span>'+esc(fmtUnitText(tot*100)+' units')+'</span>'
+      +'<span style="font-size:12px;font-weight:500;color:var(--text-secondary)"> &middot; '+esc(tot.toFixed(2))+' mL combined &middot; '
+      +layers.length+' compounds</span>';
+    renderReadOnlySyringe(svg, layers, barrelFor(tot*100));
+    return;
+  }
+  const pin=isSubQRoute(route) ? fmtUnitText(info.units)+' units' : info.ml.toFixed(2)+' ml';
+  out.innerHTML=esc(pin)+'<span style="font-size:12px;font-weight:500;color:var(--text-secondary)"> &middot; '+
+    esc(info.ml.toFixed(2))+' mL</span>';
+  renderReadOnlySyringe(svg, info.units, barrelFor(info.units));
+}
 function onRouteChange(){
   const route=document.getElementById('f-route').value;
   const block=document.getElementById('f-spray-block');
   if(block) block.style.display = isSprayRoute(route) ? 'block' : 'none';
   fSyncFormFields();
+  fDrawPreview();
   if(isSprayRoute(route)){
     const vps=document.getElementById('f-volPerSpray');
     if(vps && !String(vps.value||'').trim()) vps.value='0.1';
@@ -7147,50 +7522,7 @@ function showCycleReminder(list, idx, reminded){
       </div>
     </div>`;
 
-  // The calculator's syringe, rendered read-only from a fixed unit value. Same
-// geometry, same graduation rules, same three-tier ticks — no size buttons, and the
-// barrel size is chosen automatically to suit the dose.
-function renderReadOnlySyringe(el, units, maxMl){
-  if(!el) return;
-  const maxUnits=maxMl*100;
-  const barrelBot=426, barrelH=376;
-  const u=Math.min(Math.max(units||0,0),maxUnits);
-  const fillH=Math.round((maxUnits>0?u/maxUnits:0)*barrelH);
-  const fillY=barrelBot-fillH;
-  const majorU = maxMl<=0.5 ? 10 : 20;
-  const minorU = maxMl<=0.5 ? 2 : 5;
-  const mediumU= majorU/2;
-  let ticks='';
-  for(let tu=0; tu<=maxUnits+0.001; tu+=minorU){
-    const ty=barrelBot-Math.round((tu/maxUnits)*barrelH);
-    const isMajor=Math.abs(tu%majorU)<0.001;
-    const isMedium=!isMajor && (majorU/minorU>=4) && Math.abs(tu%mediumU)<0.001;
-    const tw=isMajor?18:isMedium?13:7, sw=isMajor?1.5:isMedium?1.2:1;
-    ticks+='<line x1="198" y1="'+ty+'" x2="'+(198+tw)+'" y2="'+ty+'" stroke="var(--text-muted)" stroke-width="'+sw+'"/>';
-    if(isMajor) ticks+='<text x="222" y="'+(ty+4)+'" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-secondary)">'+Math.round(tu)+'</text>';
-    ticks+='<line x1="122" y1="'+ty+'" x2="'+(122-tw/2)+'" y2="'+ty+'" stroke="var(--border-primary)" stroke-width="1"/>';
-  }
-  if(u>0){
-    ticks+='<line x1="115" y1="'+fillY+'" x2="216" y2="'+fillY+'" stroke="var(--brand)" stroke-width="1.5" stroke-dasharray="4,3"/>';
-    ticks+='<circle cx="216" cy="'+fillY+'" r="2.5" fill="var(--brand)"/>';
-  }
-  el.innerHTML='<svg viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block;max-height:300px">'
-    +'<rect x="130" y="10" width="60" height="16" rx="4" fill="var(--text-primary)"/>'
-    +'<rect x="148" y="26" width="24" height="12" rx="2" fill="var(--text-secondary)"/>'
-    +'<rect x="152" y="38" width="16" height="'+Math.max(0,fillY-50)+'" rx="2" fill="var(--text-muted)"/>'
-    +'<rect x="122" y="48" width="76" height="380" rx="8" fill="var(--border-subtle)" stroke="var(--text-muted)" stroke-width="2"/>'
-    +'<clipPath id="ro-barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>'
-    +'<rect x="124" y="'+fillY+'" width="72" height="'+fillH+'" rx="'+(fillH>6?4:0)+'" fill="var(--brand)" clip-path="url(#ro-barrel-clip)"/>'
-    +'<rect x="124" y="'+(fillY-12)+'" width="72" height="12" rx="3" fill="var(--text-primary)"/>'
-    + ticks
-    +'<rect x="138" y="428" width="44" height="18" rx="4" fill="var(--text-secondary)"/>'
-    +'<rect x="155" y="446" width="10" height="60" rx="2" fill="var(--text-primary)"/>'
-    +'<polygon points="155,506 165,506 160,520" fill="var(--text-primary)"/>'
-    +'<text x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="var(--text-secondary)" text-anchor="middle">'+(u>0?fmtUnitText(u)+' units':'\u2014 units')+'</text>'
-    +'<text x="280" y="458" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-muted)" text-anchor="middle">'+(u>0?(u*0.01).toFixed(3)+' ml':'\u2014 ml')+'</text>'
-    +'</svg>'
-    +'<div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:2px">'+maxMl.toFixed(1)+' ml syringe ('+Math.round(maxUnits)+' units)</div>';
-}
+  
 // Live draw preview, using the same drawInfo path as Today so the figures agree.
   const cycleDrawPreview=()=>{
     const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
@@ -7212,17 +7544,18 @@ function renderReadOnlySyringe(el, units, maxMl){
     const maxMl = info.units<=30 ? 0.3 : (info.units<=50 ? 0.5 : 1.0);
     renderReadOnlySyringe(svg, info.units, maxMl);
   };
-  ['cycle-next-dose','cycle-next-unit','cycle-next-vial','cycle-next-bac'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){ el.addEventListener('input', cycleDrawPreview); el.addEventListener('change', cycleDrawPreview); }
-  });
-  cycleDrawPreview();
-
+  overlay._cycleDrawPreview = cycleDrawPreview;   // wired after the overlay is mounted
   overlay._cycleIdx = idx;
   overlay._cycleKey = key;
   overlay._cycleCid = c.id;
   overlay.id = 'cycle-reminder-overlay';
   document.body.appendChild(overlay);
+  // Now the fields exist in the document, so bind and draw.
+  ['cycle-next-dose','cycle-next-unit','cycle-next-vial','cycle-next-bac'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.addEventListener('input', cycleDrawPreview); el.addEventListener('change', cycleDrawPreview); }
+  });
+  cycleDrawPreview();
 
   document.getElementById('cycle-btn-schedule').addEventListener('click', function(){
     scheduleCycleNext(overlay._cycleCid, overlay._cycleKey, overlay._cycleIdx);
@@ -7534,6 +7867,12 @@ window.PT_debug = {
         <option value="Topical">Topical</option>
       </select>
 
+      <div id="ki-pingroup-wrap">
+        <label class="fl">Combine in one pin with</label>
+        <input class="fi" id="ki-pinGroup" list="ki-pingroup-list" placeholder="e.g. AM blend — leave blank for its own pin" style="margin-bottom:4px">
+        <datalist id="ki-pingroup-list"></datalist>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">Compounds sharing this label, due at the same time, are drawn into one syringe. Each is still logged and tracked separately.</div>
+      </div>
       <div id="ki-form-wrap">
         <label class="fl">Formulation</label>
         <div style="display:flex;gap:6px;margin-bottom:6px" id="ki-form-btns">
