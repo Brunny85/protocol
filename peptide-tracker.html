@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.2231</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0810.0102</div>
       </div>
     </div>
   </div>
@@ -2215,14 +2215,14 @@ async function renameBlend(group){
       'Merge blends', {okText:'Merge', cancelText:'Cancel'}))) return;
   }
   blendMembers(group).forEach(c=>{ c.pinGroup=name; });
-  save(); renderBlends(); render();
+  save(); renderBlends(); render(); setTimeout(renderBlendSyringes,0);
 }
 async function removeFromBlend(cid){
   const c=(D.compounds||[]).find(x=>x && x.id===cid);
   if(!c) return;
   if(!(await ptConfirm('Take "'+c.name+'" out of this blend?\n\nIt keeps its dose and schedule, and gets its own syringe.',
     'Remove from blend', {okText:'Remove', cancelText:'Keep it in'}))) return;
-  c.pinGroup=''; save(); renderBlends(); render();
+  c.pinGroup=''; save(); renderBlends(); render(); setTimeout(renderBlendSyringes,0);
 }
 async function addToBlend(group){
   const avail=(D.compounds||[]).filter(c=>c && !pinGroupOf(c) && isInjectableRoute(c.route));
@@ -2241,7 +2241,7 @@ let _blendAddTarget='';
 function confirmAddToBlend(cid){
   const c=(D.compounds||[]).find(x=>x && x.id===cid);
   if(c && _blendAddTarget){ c.pinGroup=_blendAddTarget; save(); }
-  closeOv('ov-blendadd'); renderBlends(); render();
+  closeOv('ov-blendadd'); renderBlends(); render(); setTimeout(renderBlendSyringes,0);
 }
 async function dissolveBlend(group){
   const n=blendMembers(group).length;
@@ -2249,7 +2249,7 @@ async function dissolveBlend(group){
     ' keep their doses, schedules and history &mdash; each simply gets its own syringe again.',
     'Break up blend', {destructive:true, okText:'Break it up', cancelText:'Keep the blend'}))) return;
   blendMembers(group).forEach(c=>{ c.pinGroup=''; });
-  save(); renderBlends(); render();
+  save(); renderBlends(); render(); setTimeout(renderBlendSyringes,0);
 }
 function renderBlends(){
   const el=document.getElementById('blends-body');
@@ -2284,7 +2284,7 @@ function renderBlends(){
       + b.missing.map(mm=>'<div style="font-size:12px;color:var(--danger-text);padding:6px 0;border-top:1px solid var(--border-subtle);margin-top:6px">'
           +esc(mm.c.name)+' &mdash; cannot calculate: '+esc(mm.reason)
           +' <button type="button" class="btn btn-s btn-sm" style="font-size:11px;padding:4px 8px;width:auto;margin-left:6px" onclick="openEdit(\''+esc(mm.c.id)+'\')">Fix</button></div>').join('')
-      +'<div id="blend-syr-'+esc(g).replace(/[^A-Za-z0-9]/g,'_')+'" style="margin-top:10px"></div>'
+      +'<div id="blend-syr-'+blendSlotId(g)+'" style="margin-top:10px"></div>'
       +'<div style="display:flex;gap:6px;margin-top:10px">'
       +'<button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="addToBlend(\''+esc(g)+'\')">Add compound</button>'
       +'<button type="button" class="btn btn-s btn-sm" style="flex:1;font-size:12px" onclick="editBlendSchedule(\''+esc(g)+'\')">Schedule</button>'
@@ -2296,10 +2296,16 @@ function renderBlends(){
   }).join('');
 }
 // Draw each blend's real pin after the cards are in the DOM.
+// One derivation for the slot id, so the element written and the element looked up
+// can never disagree. Index-suffixed, so two names that normalise alike stay distinct.
+function blendSlotId(g){
+  const names=pinGroupNames();
+  return String(names.indexOf(g))+'_'+String(g).replace(/[^A-Za-z0-9]/g,'_');
+}
 function renderBlendSyringes(){
   pinGroupNames().forEach(g=>{
     const b=blendSummary(g);
-    const el=document.getElementById('blend-syr-'+g.replace(/[^A-Za-z0-9]/g,'_'));
+    const el=document.getElementById('blend-syr-'+blendSlotId(g));
     if(!el) return;
     if(b.incomplete || !b.parts.length){ el.innerHTML=''; return; }
     const layers=b.parts.map(pp=>({name:pp.c.name, color:pp.c.color||'', units:pp.units, ml:pp.ml}));
