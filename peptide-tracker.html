@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.1003</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.1508</div>
       </div>
     </div>
   </div>
@@ -4619,6 +4619,7 @@ const SWIPE_CANCEL = {
   'ov-cycend':    ()=>{},
   'ov-addkind':   ()=>{},
   'ov-blends':    ()=>{},
+  'ov-blendsetup':()=>{},
   'ov-blendadd':  ()=>{}
 };
 function attachSwipeDismiss(ovId){
@@ -6503,6 +6504,86 @@ function kiSetDurtype(t){
 }
 // Entry point for adding protocols: ask what is being added, then route.
 let _kiBlendName='';
+// Settings every member of a blend must share. Collected once so they cannot drift
+// apart and stop coinciding — which would silently break the shared pin.
+let _kiBlendShared=null;
+let _bsDays=[], _bsDur='ongoing';
+function bsSetDur(v){
+  _bsDur=(v==='weeks')?'weeks':'ongoing';
+  document.querySelectorAll('#bs-dur-btns .ki-dur-opt').forEach(b=>{
+    b.classList.toggle('on', b.getAttribute('data-dur')===_bsDur); });
+  const w=document.getElementById('bs-weeks-wrap');
+  if(w) w.style.display=_bsDur==='weeks'?'':'none';
+  bsWeeksChanged();
+}
+function bsWeeksChanged(){
+  const h=document.getElementById('bs-end-hint');
+  if(!h) return;
+  const st=(document.getElementById('bs-start')||{}).value;
+  const wk=parseInt((document.getElementById('bs-weeks')||{}).value,10);
+  h.textContent=(_bsDur==='weeks' && st && Number.isFinite(wk) && wk>0)
+    ? 'Ends '+fmtD(calcEndFromWeeks(st,wk)) : '';
+}
+function bsRenderDays(){
+  const box=document.getElementById('bs-days');
+  if(!box) return;
+  const L=[['Mon',1],['Tue',2],['Wed',3],['Thu',4],['Fri',5],['Sat',6],['Sun',0]];
+  box.innerHTML=L.map(d=>'<div class="day-chk-item" onclick="bsTogDay('+d[1]+')">'
+    +'<div class="day-chk-box'+(_bsDays.indexOf(d[1])>-1?' on':'')+'" data-d="'+d[1]+'"></div>'
+    +'<span class="day-chk-lbl">'+d[0]+'</span></div>').join('');
+}
+function bsTogDay(i){
+  const at=_bsDays.indexOf(i);
+  if(at>-1) _bsDays.splice(at,1); else _bsDays.push(i);
+  _bsDays.sort((a,b)=>a-b); bsRenderDays();
+}
+function bsFreqChanged(){
+  const f=(document.getElementById('bs-freq')||{}).value;
+  const wrap=document.getElementById('bs-days-wrap');
+  const note=document.getElementById('bs-freq-note');
+  const lock=freqIgnoresDays(f);
+  if(wrap){ wrap.style.opacity=lock?'0.4':'1'; wrap.style.pointerEvents=lock?'none':''; }
+  if(lock) _bsDays=[];
+  bsRenderDays();
+  if(note){
+    const want=freqExpectedDays(f);
+    note.textContent=lock?'This frequency counts forward from the start date, so specific weekdays do not apply.'
+      :(want?'Select exactly '+want+' day'+(want===1?'':'s')+'.':'');
+    note.style.display=note.textContent?'block':'none';
+  }
+  const t=document.getElementById('bs-time');
+  if(t && f==='bid') t.value='Both';
+}
+function openBlendSetup(){
+  _kiBlendShared=null; _bsDays=[]; _bsDur='ongoing';
+  const set=(id,v)=>{const e=document.getElementById(id); if(e) e.value=v;};
+  set('bs-route','SubQ Injection'); set('bs-freq','daily'); set('bs-time','AM');
+  set('bs-start',tod()); set('bs-weeks','');
+  const ttl=document.getElementById('bs-title');
+  if(ttl) ttl.textContent='Blend: '+_kiBlendName;
+  bsSetDur('ongoing'); bsFreqChanged();
+  openOv('ov-blendsetup');
+}
+async function bsContinue(){
+  const g=id=>{const e=document.getElementById(id); return e?e.value:'';};
+  const freq=g('bs-freq'), start=g('bs-start');
+  if(!start){ await ptAlert('A start date is required.','Start date needed'); return; }
+  const want=freqExpectedDays(freq);
+  if(want!==undefined && _bsDays.length!==want){
+    await ptAlert('"'+freqLabel(freq)+'" needs exactly '+want+' day'+(want===1?'':'s')+' selected.','Check the days');
+    return;
+  }
+  const wk=parseInt(g('bs-weeks'),10);
+  if(_bsDur==='weeks' && !(Number.isFinite(wk)&&wk>0)){
+    await ptAlert('Enter how many weeks the blend runs for.','Length needed'); return;
+  }
+  _kiBlendShared={ route:g('bs-route'), freq:freq, days:_bsDays.slice(),
+    time:(freq==='bid'?'Both':g('bs-time')), start:start, durtype:_bsDur,
+    weeks:(_bsDur==='weeks'?String(wk):''),
+    end:(_bsDur==='weeks'?calcEndFromWeeks(start,wk):'') };
+  closeOv('ov-blendsetup');
+  kiOpenStack();
+}
 let _addKindPid=null;
 // Single entry point for every "add a protocol" route, including activating a
 // pre-loaded compound, so the blend choice is offered consistently.
@@ -6523,8 +6604,9 @@ async function startAdd(kind){
     const name=String(nm||'').trim();
     if(!name){ await ptAlert('A name is required for a blend.','Name required'); return; }
     _kiBlendName=name;
+    if(!_addKindPid){ openBlendSetup(); return; }   // shared schedule first
   } else {
-    _kiBlendName='';
+    _kiBlendName=''; _kiBlendShared=null;
   }
   // Activating an existing compound keeps its own flow, now with the blend choice made.
   if(_addKindPid){ const pid=_addKindPid; _addKindPid=null; kiOpenActivate(pid); return; }
@@ -6589,6 +6671,28 @@ function kiRenderStep(existing){
   kiPopulateChooser();
   kiResetTitration();
   _kiSyringeMl=null;
+  // A blend's schedule was agreed up front: apply it and hide those fields, so each
+  // step asks only for what genuinely differs between compounds.
+  { const sh=_kiBlendShared;
+    const set=(id,v)=>{const e=document.getElementById(id); if(e) e.value=v;};
+    const wrap=document.getElementById('ki-sched-wrap');
+    const note=document.getElementById('ki-shared-note');
+    if(sh){
+      set('ki-route', sh.route); set('ki-freq', sh.freq); set('ki-time', sh.time);
+      set('ki-start', sh.start); set('ki-weeks', sh.weeks); set('ki-end', sh.end);
+      if(typeof kiSetDaysArr==='function') kiSetDaysArr(sh.days||[]);
+      if(typeof kiSetDurtype==='function') kiSetDurtype(sh.durtype);
+      if(wrap) wrap.style.display='none';
+      if(note){ note.style.display='';
+        note.innerHTML='<b>'+esc(freqLabel(sh.freq))+'</b> &middot; '+esc(sh.time)
+          +' &middot; from '+esc(fmtD(sh.start))
+          +(sh.durtype==='weeks'?' for '+esc(sh.weeks)+' weeks':'')
+          +' &middot; '+esc(sh.route); }
+    } else {
+      if(wrap) wrap.style.display='';
+      if(note) note.style.display='none';
+    }
+  }
   { const pg=document.getElementById('ki-pinGroup');
     if(pg && _kiBlendName) pg.value=_kiBlendName; }
   kiUpdateBack();
@@ -6674,6 +6778,7 @@ function kiCollect(){
     formulation:_kiFormulation,
     vialSize:g('ki-vial')||'', vialUnit:g('ki-vialUnit')||'mg', bacWater:g('ki-bac')||'',
     pinGroup:(_kiBlendName || g('ki-pinGroup') || ''),
+    _shared:_kiBlendShared,
     saline:g('ki-saline')||'', volPerSpray:g('ki-volPerSpray')||''
   };
 }
@@ -7121,7 +7226,7 @@ async function kiCancel(){
   if(ptTapThrough()) return;
   _kiBlendName='';
   const n=_kiStackCount||0;
-  _kiBlendName='';
+  _kiBlendName=''; _kiBlendShared=null;
   if(_kiMode==='stack' && n>0){
     const choice = await ptDialog({kind:'confirm', title:'Cancel setup?',
       message:'You have added '+n+' protocol'+(n===1?'':'s')+' in this session.\n\n'+
@@ -8195,12 +8300,13 @@ window.PT_debug = {
       <input class="fi" id="ki-name" placeholder="e.g. BPC-157" style="margin-bottom:14px">
 
       <div style="display:flex;gap:8px;margin-bottom:14px">
-        <div style="flex:1"><label class="fl">Dose</label><input class="fi" id="ki-dose" oninput="kiDrawPreview()" type="number" step="0.01" placeholder="e.g. 250" oninput="kiSprayLink('dose')"></div>
+        <div style="flex:1"><label class="fl">Dose</label><input class="fi" id="ki-dose" type="number" step="0.01" placeholder="e.g. 250" oninput="kiSprayLink('dose');kiDrawPreview()"></div>
         <div style="width:110px"><label class="fl">Unit</label>
           <select class="fs" id="ki-unit" onchange="syncUnitFamily('ki-unit','ki-vialUnit','dose');kiSprayLink('dose');kiDrawPreview()"><option>mcg</option><option>mg</option><option value="IU">IU</option><option>ml</option><option>sprays</option></select></div>
       </div>
 
-      <label class="fl">Frequency</label>
+      <div id="ki-sched-wrap">
+<label class="fl">Frequency</label>
       <select class="fs" id="ki-freq" onchange="onKiFreq()" style="margin-bottom:14px">
         <optgroup label="Per day (on selected days)">
           <option value="daily" selected>Once daily</option>
@@ -8271,7 +8377,8 @@ window.PT_debug = {
         <input class="fi" id="ki-end" type="date" onchange="kiSyncDates('end')" style="margin-bottom:14px">
       </div>
 
-      <label class="fl">Administration</label>
+      </div>
+<label class="fl">Administration</label>
       <select class="fs" id="ki-route" onchange="onKiRoute()" style="margin-bottom:14px">
         <option value="SubQ Injection">Subcutaneous injection (SubQ)</option>
         <option value="IM Injection">Intramuscular injection (IM)</option>
@@ -8289,6 +8396,7 @@ window.PT_debug = {
           </div>
         </div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:6px">Everything you add until you tap Finish goes in this pin.</div>
+        <div id="ki-shared-note" style="display:none;font-size:11px;color:var(--text-secondary);margin-top:6px;padding-top:6px;border-top:1px solid var(--brand-border)"></div>
       </div>
       <div id="ki-pingroup-wrap">
         <label class="fl">Combine in one pin with</label>
@@ -8377,6 +8485,59 @@ window.PT_debug = {
       <div id="templates-body"></div>
       <button type="button" class="btn btn-p" style="width:100%;margin-top:12px" onclick="openTemplatePicker()">Save a new set</button>
       <button type="button" class="btn btn-s" style="width:100%;margin-top:8px" onclick="closeOv('ov-templates')">Close</button>
+    </div>
+  </div>
+
+  <!-- Blend setup: the settings every member must share -->
+  <div id="ov-blendsetup" class="ov hidden" style="z-index:255">
+    <div class="sh" style="max-height:88vh;overflow-y:auto">
+      <div class="sh-handle"></div>
+      <div class="sh-title" id="bs-title">Blend schedule</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">
+        Compounds can only share a syringe if they are given at the same time, so these
+        apply to every member. You will set each compound's own dose next.
+      </div>
+      <label class="fl">Route of Administration</label>
+      <select class="fs" id="bs-route" style="margin-bottom:14px">
+        <option>SubQ Injection</option><option>IM Injection</option><option>IV</option>
+      </select>
+      <label class="fl">Frequency</label>
+      <select class="fs" id="bs-freq" onchange="bsFreqChanged()" style="margin-bottom:14px">
+        <option value="daily">Once daily</option>
+        <option value="bid">Twice daily (BID)</option>
+        <option value="eod">Every other day</option>
+        <option value="e3d">Every 3 days</option>
+        <option value="2xweek">2 x per week</option>
+        <option value="3xweek">3 x per week</option>
+        <option value="4xweek">4 x per week</option>
+        <option value="5xweek">5 x per week</option>
+        <option value="weekly">Weekly</option>
+        <option value="biweekly">Fortnightly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+      <div id="bs-days-wrap">
+        <label class="fl">Days of week</label>
+        <div id="bs-freq-note" style="display:none;font-size:11px;color:var(--warning-text);margin-bottom:6px"></div>
+        <div class="day-chk-row" id="bs-days" style="margin-bottom:14px"></div>
+      </div>
+      <label class="fl">Time of day</label>
+      <select class="fs" id="bs-time" style="margin-bottom:14px">
+        <option>AM</option><option>PM</option><option>Both</option><option value="Any">Any time</option>
+      </select>
+      <label class="fl">Start date</label>
+      <input class="fi" id="bs-start" type="date" oninput="bsWeeksChanged()" style="margin-bottom:4px">
+      <div class="fhint" style="margin-bottom:14px">A future date schedules the whole blend to begin then.</div>
+      <label class="fl">Duration</label>
+      <div style="display:flex;gap:6px;margin-bottom:6px" id="bs-dur-btns">
+        <button type="button" class="btn btn-s btn-sm ki-dur-opt on" data-dur="ongoing" style="flex:1;font-size:13px;padding:8px" onclick="bsSetDur('ongoing')">Ongoing</button>
+        <button type="button" class="btn btn-s btn-sm ki-dur-opt" data-dur="weeks" style="flex:1;font-size:13px;padding:8px" onclick="bsSetDur('weeks')">Fixed length</button>
+      </div>
+      <div id="bs-weeks-wrap" style="display:none;margin-bottom:14px">
+        <input class="fi" id="bs-weeks" type="number" step="1" placeholder="Number of weeks" oninput="bsWeeksChanged()">
+        <div class="fhint" id="bs-end-hint"></div>
+      </div>
+      <button type="button" class="btn btn-p" style="width:100%;margin-top:6px" onclick="bsContinue()">Continue to compounds</button>
+      <button type="button" class="btn btn-s" style="width:100%;margin-top:8px" onclick="closeOv('ov-blendsetup')">Cancel</button>
     </div>
   </div>
 
