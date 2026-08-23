@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0808.2337</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.0118</div>
       </div>
     </div>
   </div>
@@ -1095,7 +1095,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
           <span id="tick-cnt" style="font-size:12px;color:var(--text2);margin-left:auto;font-family:var(--mono)"></span>
         </div>
       </div>
-      <button class="btn btn-s" onclick="openAdd()">+ Add Compound</button>
+      <button class="btn btn-s" onclick="openAddKind()">+ Add Compound</button>
       <button class="btn btn-p" onclick="manualSave()" id="save-btn" style="margin-top:10px">
         Save &amp; Update
       </button>
@@ -1124,7 +1124,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
     <div id="pg-proto" class="pg hidden">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div class="sec" style="margin:0">Protocol</div>
-        <button class="btn btn-s btn-sm" onclick="openAdd()">+ Add Compound</button>
+        <button class="btn btn-s btn-sm" onclick="openAddKind()">+ Add Compound</button>
       </div>
       <!-- Horizontally scrollable inline-edit table -->
       <div class="tbl-wrap">
@@ -1152,8 +1152,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
           <tbody id="proto-body"></tbody>
         </table>
       </div>
-      <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
-      <button class="btn btn-s" onclick="openAddKind()" style="margin-top:10px;width:100%">+ Add protocols (guided)</button>
+      <button class="btn btn-p" onclick="openAddKind()" style="margin-top:14px;font-size:15px">+ Add Compound</button>
       <button class="btn btn-s" onclick="openTemplates()" style="margin-top:10px;width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Saved protocol sets</button>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle)">
         <button class="btn btn-d" onclick="masterReset()" style="font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> Master Reset — Clear All Data</button>
@@ -3798,7 +3797,7 @@ function togActive(pid,e){
   if(!c.active){
     // Turning ON: open the guided key-info popup (with populate-from-previous)
     // so the user can confirm/set the dose before it goes live.
-    kiOpenActivate(pid);
+    openAddKind(pid);
     return;
   }
   // Turning OFF: silent, as before.
@@ -6392,9 +6391,19 @@ function kiSetDurtype(t){
 }
 // Entry point for adding protocols: ask what is being added, then route.
 let _kiBlendName='';
-function openAddKind(){ openOv('ov-addkind'); }
+let _addKindPid=null;
+// Single entry point for every "add a protocol" route, including activating a
+// pre-loaded compound, so the blend choice is offered consistently.
+function openAddKind(pid){ _addKindPid=pid||null; openOv('ov-addkind'); }
 async function startAdd(kind){
   closeOv('ov-addkind');
+  if(kind==='detailed'){
+    // The long-form editor. Blend membership is set on its own field there.
+    _kiBlendName='';
+    if(_addKindPid){ const pid=_addKindPid; _addKindPid=null; openEdit(pid); }
+    else openAdd();
+    return;
+  }
   if(kind==='blend'){
     const nm=await ptPrompt('Name this blend — the compounds you add next will be drawn into one syringe.\n\nFor example "AM blend" or "Recovery pin".',
       {title:'New blend', placeholder:'e.g. AM blend'});
@@ -6405,6 +6414,8 @@ async function startAdd(kind){
   } else {
     _kiBlendName='';
   }
+  // Activating an existing compound keeps its own flow, now with the blend choice made.
+  if(_addKindPid){ const pid=_addKindPid; _addKindPid=null; kiOpenActivate(pid); return; }
   kiOpenStack();
 }
 function kiOpenStack(){
@@ -6495,6 +6506,7 @@ function kiRenderStep(existing){
       set('ki-freq', existing.freq||'weekly'); set('ki-vial', existing.vialSize); set('ki-bac', existing.bacWater);
       set('ki-saline', existing.saline); set('ki-volPerSpray', existing.volPerSpray);
       set('ki-vialUnit', existing.vialUnit||'mg'); kiApplyRouteForm(existing);
+      if(_kiBlendName) set('ki-pinGroup', _kiBlendName); else set('ki-pinGroup', pinGroupOf(existing));
       { const ne=normalizeSchedule({freq:existing.freq, time:existing.time}); set('ki-freq', ne.freq||'weekly'); set('ki-time', (['AM','PM','Both'].includes(ne.time)?ne.time:'AM')); }
       // §3.2/§3: an inactive preloaded compound should NOT carry a stale start date into a
       // new activation — default to today. An already-active compound keeps its real start.
@@ -8149,6 +8161,13 @@ window.PT_debug = {
         <div class="fabpick-body">
           <div class="fabpick-t">Blend</div>
           <div class="fabpick-s">Several compounds drawn into one syringe</div>
+        </div>
+      </button>
+      <button type="button" class="fabpick-opt" onclick="startAdd('detailed')">
+        <div class="fabpick-ic" style="background:var(--surface-raised);color:var(--text-secondary)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></div>
+        <div class="fabpick-body">
+          <div class="fabpick-t">Full details</div>
+          <div class="fabpick-s">Every field at once, including titration and notes</div>
         </div>
       </button>
       <button type="button" class="btn btn-s" style="width:100%;margin-top:8px" onclick="closeOv('ov-addkind')">Cancel</button>
