@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.0812</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0809.1003</div>
       </div>
     </div>
   </div>
@@ -6673,7 +6673,7 @@ function kiCollect(){
     route:g('ki-route')||'SubQ Injection',
     formulation:_kiFormulation,
     vialSize:g('ki-vial')||'', vialUnit:g('ki-vialUnit')||'mg', bacWater:g('ki-bac')||'',
-    pinGroup:g('ki-pinGroup')||'',
+    pinGroup:(_kiBlendName || g('ki-pinGroup') || ''),
     saline:g('ki-saline')||'', volPerSpray:g('ki-volPerSpray')||''
   };
 }
@@ -6684,8 +6684,10 @@ function kiFinishStack(){
   if(kiStepHasEntry()){ kiNext('finish'); return; }
   _kiRollback=null;                          // committed
   closeOv('ov-keyinfo'); _kiMode=null; render();
-  if(_kiStackCount>0) ptAlert('Stack created — open any compound to add finer detail.');
-  _kiStackCount=0;
+  if(_kiStackCount>0) ptAlert(_kiBlendName
+    ? '"'+_kiBlendName+'" created with '+_kiStackCount+' compound'+(_kiStackCount===1?'':'s')+' — they will be drawn into one syringe.'
+    : 'Stack created — open any compound to add finer detail.');
+  _kiStackCount=0; _kiBlendName='';
 }
 function kiStepHasEntry(){
   // Does the current wizard step have anything worth saving? (name or dose or a chosen compound)
@@ -6875,7 +6877,9 @@ async function kiNextInner(after){
       // Save complete — now close the wizard.
       _kiRollback=null;                     // committed
       closeOv('ov-keyinfo'); _kiMode=null; render();
-      if(_kiStackCount>0) ptAlert('Stack created — open any compound to add finer detail.');
+      if(_kiStackCount>0) ptAlert(_kiBlendName
+    ? '"'+_kiBlendName+'" created with '+_kiStackCount+' compound'+(_kiStackCount===1?'':'s')+' — they will be drawn into one syringe.'
+    : 'Stack created — open any compound to add finer detail.');
       _kiStackCount=0; _kiCreated=[];
       return;
     }
@@ -7019,7 +7023,12 @@ function kiSyncFormFields(){
   const oil=inj && _kiFormulation==='oil';
   const show=(id,on)=>{ const el=document.getElementById(id); if(el) el.style.display = on?'':'none'; };
   show('ki-form-wrap', inj);
-  show('ki-pingroup-wrap', inj);
+  // In a blend run the label is fixed for every compound, so the field is replaced
+  // by a read-only banner — nothing to retype, nothing to mistype.
+  show('ki-pingroup-wrap', inj && !_kiBlendName);
+  show('ki-blend-banner', inj && !!_kiBlendName);
+  { const bn=document.getElementById('ki-blend-name');
+    if(bn) bn.textContent=_kiBlendName||''; }
   { const dl=document.getElementById('ki-pingroup-list');
     if(dl) dl.innerHTML=pinGroupNames().map(n=>'<option value="'+esc(n)+'"></option>').join(''); }
   show('ki-vialrow',   inj||spray);
@@ -7096,6 +7105,8 @@ async function kiBack(){
   kiSetDaysArr(c.days||[]);
   kiLoadTitration(c);
   _kiChosenId=id;                    // update this record, do not create another
+  { const t0=document.getElementById('ki-title');
+    if(t0 && _kiBlendName) t0.textContent='Blend: '+_kiBlendName; }
   const ttl=document.getElementById('ki-title');
   if(ttl) ttl.textContent='Edit '+(c.name||'protocol');
   const prog=document.getElementById('ki-progress');
@@ -8269,6 +8280,16 @@ window.PT_debug = {
         <option value="Topical">Topical</option>
       </select>
 
+      <div id="ki-blend-banner" style="display:none;background:var(--brand-soft);border:1px solid var(--brand-border);border-radius:11px;padding:10px 12px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="8" cy="7" r="1.4"/><circle cx="14" cy="12" r="1.4"/><circle cx="10" cy="17" r="1.4"/></svg>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px">Adding to blend</div>
+            <div id="ki-blend-name" style="font-size:15px;font-weight:700;color:var(--brand)"></div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:6px">Everything you add until you tap Finish goes in this pin.</div>
+      </div>
       <div id="ki-pingroup-wrap">
         <label class="fl">Combine in one pin with</label>
         <input class="fi" id="ki-pinGroup" list="ki-pingroup-list" placeholder="e.g. AM blend — leave blank for its own pin" style="margin-bottom:4px">
