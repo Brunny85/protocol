@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0810.0421</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0810.1104</div>
       </div>
     </div>
   </div>
@@ -3192,6 +3192,44 @@ function prepWeekData(start){
       });
     });
   }
+  // Blend members become ONE card: you draw one syringe, not one per compound.
+  const blendTotals = {};
+  for(let i=0;i<7;i++){
+    const date = addDays(start,i);
+    if(prepScope()==='remaining' && date < tod()) continue;
+    const seenPin = {};
+    (D.compounds||[]).forEach(c=>{
+      const g = pinGroupOf(c);
+      if(!g || !isInjectableRoute(c.route)) return;
+      scheduledDoseInstances(c, date).forEach(inst=>{
+        const slot = inst.slot||'';
+        const key = g+'|'+date+'|'+slot;
+        if(seenPin[key]) return;
+        seenPin[key] = 1;
+        const cb = combinedPinDraw(g, date, slot);
+        if(!cb) return;
+        const t = blendTotals[g] || (blendTotals[g] = {
+          pid:'blend:'+g, name:g, isBlend:true, group:g, unit:'', kind:'units',
+          doses:0, mass:0, vol:0, mlTotal:0, byVol:{}, members:{}, incomplete:false });
+        t.doses += 1;
+        if(cb.incomplete) t.incomplete = true;
+        else {
+          t.vol += cb.totalUnits; t.mlTotal += cb.totalMl;
+          const gk = cb.totalMl.toFixed(6)+'|'+cb.parts.length;
+          const grp = t.byVol[gk] || (t.byVol[gk] = {vol:cb.totalUnits, ml:cb.totalMl,
+                        dose:cb.parts.length, count:0});
+          grp.count += 1;
+        }
+        cb.parts.forEach(pp=>{ t.members[pp.name] = (t.members[pp.name]||0)+1; });
+      });
+    });
+  }
+  Object.keys(totals).forEach(pid=>{
+    const c=(D.compounds||[]).find(x=>x && x.id===pid);
+    if(c && pinGroupOf(c)) delete totals[pid];
+  });
+  Object.keys(blendTotals).forEach(g=>{ totals['blend:'+g] = blendTotals[g]; });
+
   const list = Object.values(totals);
   list.forEach(t=>{
     t.breakdown = Object.values(t.byVol).sort((a,b)=>(a.dose-b.dose)||((a.vol||0)-(b.vol||0)));
@@ -3366,7 +3404,9 @@ function rPrep(){
       const perMl  = prepPerMlText(t);
       const totVol = prepTotalText(t);
       const perU100= prepPerU100Text(t);
-      const hero   = perVol || prepPerDoseText(t);
+      const hero   = t.isBlend
+        ? (t.incomplete ? 'Combined draw incomplete' : fmtUnitText(t.vol/Math.max(1,t.doses))+' units')
+        : (perVol || prepPerDoseText(t));
       h += '<div style="background:var(--surface-primary);border:1px solid '+(done?'var(--success)':(stale?'var(--warning)':'var(--border-subtle)'))+';border-radius:var(--r);padding:11px 12px;margin-bottom:7px'+'">'
          + '<div style="display:flex;align-items:center;gap:8px">'
          +   (t.color?'<span style="width:8px;height:8px;border-radius:50%;background:'+esc(t.color)+';flex-shrink:0"></span>':'')
@@ -3393,7 +3433,8 @@ function rPrep(){
                +   t.doses+' <span style="font-size:17px;font-weight:600;color:var(--text-secondary)">&times;</span> '+esc(hero)
                + '</div>'
                + '<div style="font-size:13px;color:var(--text-secondary);margin-top:3px;font-weight:500">'
-               +   esc(prepPerDoseText(t))+' per '+esc(prepCountNoun(t,1))
+               +   (t.isBlend ? esc(Object.keys(t.members).join(' + '))
+                              : esc(prepPerDoseText(t))+' per '+esc(prepCountNoun(t,1)))
                +   (perMl?' &middot; '+esc(perMl):'')
                +   (perU100?' &middot; '+esc(perU100):'')
                + '</div>')
@@ -4836,10 +4877,10 @@ function checkFreqDaysConflict(){
   const exp=expect[freq];
   // daily/bid imply all 7; flag if days selected but fewer than 7
   let msg='';
-  if((freq==='daily'||freq==='bid') && nDays>0 && nDays<7){
-    msg='Frequency is “'+(freq==='bid'?'Twice daily':'Daily')+'” but only '+nDays+' day'+(nDays>1?'s':'')+' selected. These may conflict.';
-  } else if(exp!==undefined && nDays>0 && nDays!==exp){
-    msg='Frequency is “'+freqLabel(freq)+'” but '+nDays+' day'+(nDays>1?'s':'')+' selected. These may conflict.';
+  // Daily/BID on a subset of days is legitimate — it simply means those days only.
+  if(exp!==undefined && nDays>0 && nDays!==exp){
+    msg='“'+freqLabel(freq)+'” needs exactly '+exp+' day'+(exp===1?'':'s')+' selected, but '+nDays+
+        (nDays===1?' is':' are')+' chosen. Saving is blocked until this matches.';
   }
   el.textContent=msg;
   el.style.display=msg?'block':'none';
@@ -5199,6 +5240,24 @@ async function saveForm(){
   const fWeeks=document.getElementById('f-weeks').value;
   const fEnd=fDurtype==='weeks' ? calcEndFromWeeks(fStart,fWeeks)
                                 : document.getElementById('f-end').value;
+
+  // The editor saved without validating, so combinations the wizard refuses —
+  // "Weekly" with five days selected, an IU dose against a mg vial — could be stored
+  // and then behave unlike they read. One gate, both create and update.
+  {
+    const gv0=i=>{ const el=document.getElementById(i); return el?el.value:''; };
+    const _v=validateProtocolDraft({
+      name:gv0('f-name'), dose:gv0('f-dose'), unit:gv0('f-unit'), route:gv0('f-route'),
+      freq:freq, days:days, vialSize:gv0('f-vialSize'), vialUnit:gv0('f-vialUnit'),
+      bacWater:gv0('f-bac'), volPerSpray:gv0('f-volPerSpray'),
+      formulation:(typeof _fFormulation!=='undefined'?_fFormulation:''),
+      start:fStart, durtype:fDurtype, weeks:fWeeks, end:fEnd
+    }, {requireName:true});
+    if(!_v.ok){
+      await ptAlert(_v.errors.map(e=>e.message).join('\n\n'), 'Check this protocol');
+      return;
+    }
+  }
 
   // Reminder (not a hard block) if fields that affect other pages are missing.
   {
