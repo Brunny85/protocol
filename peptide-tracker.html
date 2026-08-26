@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0810.1104</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0810.1602</div>
       </div>
     </div>
   </div>
@@ -2404,6 +2404,7 @@ function applyDuePendingChanges(){
     const ch=Object.assign({}, p.changes);
     delete ch.pending;
     const r=applyProtocolMutation(c.id, ch, 'scheduled-change');
+    if(!r.ok){ p.failed=r.message||'could not be applied'; save(); return; }
     if(r.ok){
       const live=(D.compounds||[]).find(x=>x && x.id===c.id);
       if(live) delete live.pending;
@@ -2519,14 +2520,14 @@ async function applyTemplate(tid){
     okText:'Apply set', altText:(strays.length?'Apply and switch others off':''), cancelText:'Cancel'});
   if(go===false || go===null) return;
   const alsoOff = (go==='alt');
-  let added=0, updated=0;
+  let added=0, updated=0, tplFail='';
   tpl.compounds.forEach(tc=>{
     const ex=(D.compounds||[]).find(c=>c && normName(c.name)===normName(tc.name));
     if(ex){
       const ch=Object.assign({}, tc, {active:true});
       delete ch.name;                                  // never rename an existing record
       const r=applyProtocolMutation(ex.id, ch, 'template');
-      if(r.ok) updated++;
+      if(r.ok) updated++; else if(!tplFail) tplFail=ex.name+': '+(r.message||'could not be applied');
     } else {
       const nc=Object.assign({id:uid(), active:true, start:tod(), durtype:'ongoing',
         color:(typeof COLORS!=='undefined'&&COLORS.length)?COLORS[D.compounds.length%COLORS.length]:'#4B96E6'}, tc);
@@ -2536,7 +2537,8 @@ async function applyTemplate(tid){
   if(alsoOff) strays.forEach(c=>{ applyProtocolMutation(c.id, {active:false}, 'template-off'); });
   save(); render(); closeOv('ov-templates');
   await ptAlert('"'+tpl.name+'" applied. '+updated+' updated, '+added+' added'+
-    (alsoOff&&strays.length?', '+strays.length+' switched off':'')+'.','Set applied');
+    (alsoOff&&strays.length?', '+strays.length+' switched off':'')+'.'+
+    (tplFail?'\n\nNot applied &mdash; '+tplFail:''),'Set applied');
 }
 async function deleteTemplate(tid){
   const all=templatesRead(); const tpl=all.find(x=>x && x.id===tid);
@@ -2597,6 +2599,14 @@ function applyProtocolMutation(id, changes, reason){
   const before=JSON.parse(JSON.stringify(D.compounds[idx]));
   const cand=JSON.parse(JSON.stringify(D));
   const after=Object.assign({}, cand.compounds[idx], changes||{});
+  // Every write goes through here, so validating HERE covers protocol sets, scheduled
+  // changes, blend schedule edits and anything added later — not just the two forms.
+  // Merged against the existing record first, since callers pass partial changes.
+  if(typeof validateProtocolDraft==='function'){
+    const v=validateProtocolDraft(after, {requireName:true});
+    if(!v.ok) return {ok:false, error:'invalid', errors:v.errors,
+                      message:v.errors.map(e=>e.message).join('\n\n')};
+  }
   cand.compounds[idx]=after;
   if(!Array.isArray(cand.history)) cand.history=[];
   const changed = protocolExposureId(before) !== protocolExposureId(after);
@@ -5246,8 +5256,12 @@ async function saveForm(){
   // and then behave unlike they read. One gate, both create and update.
   {
     const gv0=i=>{ const el=document.getElementById(i); return el?el.value:''; };
+    // When editing, the name field is hidden and empty — the record keeps its own
+    // name. Fall back to it, or the gate refuses every edit as "name is required".
+    const _existing=(D.compounds||[]).find(x=>x && x.id===id);
+    const _name=gv0('f-name') || (_existing ? _existing.name : '');
     const _v=validateProtocolDraft({
-      name:gv0('f-name'), dose:gv0('f-dose'), unit:gv0('f-unit'), route:gv0('f-route'),
+      name:_name, dose:gv0('f-dose'), unit:gv0('f-unit'), route:gv0('f-route'),
       freq:freq, days:days, vialSize:gv0('f-vialSize'), vialUnit:gv0('f-vialUnit'),
       bacWater:gv0('f-bac'), volPerSpray:gv0('f-volPerSpray'),
       formulation:(typeof _fFormulation!=='undefined'?_fFormulation:''),
@@ -6740,11 +6754,12 @@ async function bsContinue(){
     // exposure change is recorded in history exactly as a manual edit would be.
     const grp=_bsEditGroup; _bsEditGroup='';
     const members=blendMembers(grp);
-    let failed=0;
-    members.forEach(c=>{ const r=applyProtocolMutation(c.id, sharedOnly, 'blend-schedule'); if(!r.ok) failed++; });
+    let failed=0, firstMsg='';
+    members.forEach(c=>{ const r=applyProtocolMutation(c.id, sharedOnly, 'blend-schedule');
+      if(!r.ok){ failed++; if(!firstMsg && r.message) firstMsg=c.name+': '+r.message; } });
     save(); closeOv('ov-blendsetup'); renderBlends(); render(); setTimeout(renderBlendSyringes,0);
     await ptAlert(failed
-      ? failed+' of '+members.length+' compounds could not be updated. The others were changed.'
+      ? failed+' of '+members.length+' compounds could not be updated.'+(firstMsg?'\n\n'+firstMsg:'')
       : 'Schedule applied to all '+members.length+' compounds in "'+grp+'".',
       failed?'Partly applied':'Schedule updated');
     return;
