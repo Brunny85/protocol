@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0810.2144</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0811.0118</div>
       </div>
     </div>
   </div>
@@ -2155,11 +2155,38 @@ function blendSchedSet(g, days, slot){
   const all=blendSchedRead();
   all[g]={days:(days||[]).slice(), slot:slot||''};
   blendSchedWrite(all);
+  syncBlendMemberDays();
 }
-function blendSchedClear(g){ const all=blendSchedRead(); delete all[g]; blendSchedWrite(all); }
+// A member only joins a pin if IT is scheduled that day, so its own days must cover
+// every blend it belongs to. Without this, setting a blend to Mon/Wed/Fri stored the
+// blend's days but left the compounds on their old days, and the pin never formed.
+// Days become the UNION across its blends; a compound in two blends runs on both sets.
+function syncBlendMemberDays(){
+  let changed=0;
+  (D.compounds||[]).forEach(c=>{
+    const gs=pinGroupsOf(c);
+    if(!gs.length) return;
+    const scheds=gs.map(g=>blendSchedFor(g)).filter(Boolean);
+    if(!scheds.length) return;                       // no blend schedules set: leave alone
+    if(scheds.some(sc=>!sc.days || !sc.days.length)) return;   // one runs every day
+    const union=[...new Set(scheds.reduce((a,sc)=>a.concat(sc.days),[]))].sort((a,b)=>a-b);
+    if(JSON.stringify(c.days||[])!==JSON.stringify(union)){
+      c.days=union;
+      // Keep frequency honest with the day count, or validation refuses later edits.
+      const n=union.length;
+      const map={1:'weekly',2:'2xweek',3:'3xweek',4:'4xweek',5:'5xweek'};
+      if(n>=1 && n<=5 && c.freq!=='bid' && c.freq!=='daily') c.freq=map[n];
+      else if(n===7) c.days=[];
+      changed++;
+    }
+  });
+  if(changed) save();
+  return changed;
+}
+function blendSchedClear(g){ const all=blendSchedRead(); delete all[g]; blendSchedWrite(all); syncBlendMemberDays(); }
 function blendSchedRename(from,to){
   const all=blendSchedRead();
-  if(all[from]){ all[to]=all[from]; delete all[from]; blendSchedWrite(all); }
+  if(all[from]){ all[to]=all[from]; delete all[from]; blendSchedWrite(all); syncBlendMemberDays(); }
 }
 // Is this blend drawn on that date and slot? With no schedule set, it follows its
 // members as before, so existing blends behave exactly as they did.
@@ -2324,6 +2351,7 @@ function confirmAddToBlend(cid){
   const c=(D.compounds||[]).find(x=>x && x.id===cid);
   if(c && _blendAddTarget){
     setPinGroups(c, pinGroupsOf(c).concat([_blendAddTarget]));
+    syncBlendMemberDays();
     const conf=pinGroupConflicts(c, _blendAddTarget);
     if(conf.length){
       setPinGroups(c, pinGroupsOf(c).filter(x=>x!==_blendAddTarget));
