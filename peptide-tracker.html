@@ -889,7 +889,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0811.0118</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0923.1612</div>
       </div>
     </div>
   </div>
@@ -1082,6 +1082,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
         <button class="date-nav-btn" onclick="changeDay(1)" id="nav-next-btn" title="Next day">›</button>
       </div>
       <div id="expiry-legend"></div>
+      <div id="shift-note"></div>
       <div class="past-banner hidden" id="past-banner"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg> Viewing a past day — tap to mark doses taken</div>
       <div class="milestone-card" id="milestone">
         <div class="milestone-lbl">Next Protocol Change</div>
@@ -1155,6 +1156,10 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <button class="btn btn-p" onclick="openAddKind()" style="margin-top:14px;font-size:15px">+ Add Compound</button>
       <button class="btn btn-s" onclick="openBlends()" style="margin-top:10px;width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="8" cy="7" r="1.4"/><circle cx="14" cy="12" r="1.4"/><circle cx="10" cy="17" r="1.4"/></svg> Blends</button>
       <button class="btn btn-s" onclick="openTemplates()" style="margin-top:10px;width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Saved protocol sets</button>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle)">
+        <button class="btn btn-s" onclick="endAllProtocols()" style="font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><circle cx="12" cy="12" r="9"/><path d="M9 9h6v6H9z"/></svg> End All Protocols Today</button>
+        <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px">Stamps today as the end date and switches each one off. Logs, history and inventory are kept.</div>
+      </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle)">
         <button class="btn btn-d" onclick="masterReset()" style="font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> Master Reset — Clear All Data</button>
       </div>
@@ -1433,6 +1438,9 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
           <option value="4xweek">4 x per week</option>
           <option value="5xweek">5 x per week</option>
         </optgroup>
+        <optgroup label="No fixed days">
+          <option value="flex">Flexible weekly target</option>
+        </optgroup>
         <optgroup label="Longer intervals">
           <option value="weekly">Weekly</option>
           <option value="biweekly">Fortnightly (every 2 weeks)</option>
@@ -1441,6 +1449,12 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
         </optgroup>
         <option value="prn">As needed (PRN)</option>
       </select>
+    </div>
+    <div class="fg" id="f-flex-wrap" style="display:none">
+      <label class="fl">Doses per week</label>
+      <input class="fi" id="f-weeklyTarget" type="number" min="1" step="1" placeholder="e.g. 3">
+      <div class="fhint">No fixed days &mdash; tick it on whichever days you actually take it, such as
+        training days. Today stops asking once the week&rsquo;s target is met.</div>
     </div>
     <div class="fg">
       <label class="fl">Days of Week</label>
@@ -1579,8 +1593,17 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
         <button class="btn btn-p btn-sm" style="flex-shrink:0" onclick="applySnoozeUntil()">Apply</button>
       </div>
     </div>
+    <div class="fg">
+      <label class="fl">Or move it to another day</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="shiftDose(1)">Move to tomorrow</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="shiftDose(2)">Move 2 days</button>
+      </div>
+      <div class="fhint">Snoozing skips this dose. Moving keeps it &mdash; it comes off this day and
+        lands on the new one. You will be warned if that means two doses in one day.</div>
+    </div>
     <div id="snz-unwrap" class="fg hidden">
-      <button class="btn btn-s" onclick="clearSnooze()">Resume now — cancel this snooze</button>
+      <button class="btn btn-s" onclick="clearSnooze()">Resume now &mdash; cancel this snooze or move</button>
     </div>
     <div class="brow">
       <button class="btn btn-s" onclick="closeOv('ov-snooze')">Cancel</button>
@@ -1862,7 +1885,8 @@ const COLORS=['#4ECDC4','#F59E0B','#EF4444','#A78BFA','#34D399','#60A5FA','#F472
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const FL={daily:'Daily',bid:'Twice Daily',tid:'Three Times Daily',eod:'Every Other Day',e3d:'Every 3 Days',
   '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
-  weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',oneweekpermonth:'1 week/month',prn:'As Needed'};
+  weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',oneweekpermonth:'1 week/month',
+  flex:'Flexible weekly',prn:'As Needed'};
 
 // ─── DEFAULT COMPOUNDS ───────────────────────────────────────
 const DEFAULTS=[
@@ -1907,7 +1931,7 @@ function freshDefaults(){
 
 
 // ─── STATE ───────────────────────────────────────────────────
-let D={compounds:[],logs:[],inventory:[],history:[],skips:[]};
+let D={compounds:[],logs:[],inventory:[],history:[],skips:[],shifts:[]};
 let viewDate=''; // set in init()
 let _firstRun=false;
 let fColor=COLORS[0], fSite='';
@@ -1979,6 +2003,7 @@ function migrateToCurrentSchema(data){
   candidate.inventory = candidate.inventory || [];
   candidate.history   = candidate.history   || [];
   candidate.skips     = candidate.skips     || [];
+  candidate.shifts    = candidate.shifts    || [];
   sanitizeIds(candidate);   // neutralise any unsafe imported IDs before they reach inline handlers
   return {candidate, flags};
 }
@@ -1994,12 +2019,13 @@ function sanitizeIds(cand){
   (cand.inventory||[]).forEach(fix);
   (cand.history||[]).forEach(h=>{ fix(h); });
   (cand.skips||[]).forEach(fix);
+  (cand.shifts||[]).forEach(fix);
   return cand;
 }
 function validateCandidate(cand){
   if(!cand || typeof cand!=='object') return 'not an object';
   if(cand.schema!==CURRENT_SCHEMA) return 'schema not stamped';
-  for(const key of ['compounds','logs','inventory','history','skips']){
+  for(const key of ['compounds','logs','inventory','history','skips','shifts']){
     if(cand[key]!==undefined && !Array.isArray(cand[key])) return key+' is not an array';
   }
   if(!Array.isArray(cand.compounds)) return 'compounds not an array';
@@ -2111,6 +2137,7 @@ function load(){
     D.inventory = best.inventory || [];
     D.history   = best.history   || [];
     D.skips     = best.skips     || [];
+    D.shifts    = best.shifts    || [];
     D.schema    = best.schema    || undefined;
     // keep in sync only when no migration error (migration already wrote primary)
     if(!_migrationError && !needsMigration(D)) safeWriteJson('protocol_data', D);
@@ -2253,7 +2280,7 @@ function combinedPinDraw(group, dateStr, slot){
   const parts=[], missing=[]; let totalMl=0, bad=null;
   (D.compounds||[]).forEach(c=>{
     if(!inPinGroup(c, group)) return;
-    const insts=scheduledDoseInstances(c, dateStr);
+    const insts=doseInstancesFor(c, dateStr);
     if(!insts.length) return;
     // Compare the SCHEDULED slot, not the log slot: a single-administration PM
     // compound logs with slot '' but is administered in the evening, and must not
@@ -2565,7 +2592,7 @@ function pendingSummary(c){
 // later. Stores SETTINGS ONLY: no ids, no logs, no history, no dates. Applying a
 // template never touches dose history; it goes through the normal mutation path.
 const TEMPLATE_KEY = 'pt_templates_v1';
-const TEMPLATE_FIELDS = ['name','dose','unit','route','formulation','freq','days','time',
+const TEMPLATE_FIELDS = ['name','dose','unit','route','formulation','freq','days','time','weeklyTarget',
   'cat','vialSize','vialUnit','bacWater','saline','volPerSpray','titration','doseNotes','timingNotes'];
 function templatesRead(){
   const r=safeReadJson(TEMPLATE_KEY, []);
@@ -2715,6 +2742,10 @@ function openTemplates(){ renderTemplates(); openOv('ov-templates'); }
 // exposure. A titration PLAN is one identity — progressing through its phases is
 // not a protocol change. Uses the canonical scheduler, not a private frequency map.
 function scheduledPerWeek(c, fromDate){
+  // A flexible protocol is due every day but TAKEN weeklyTarget times — the target is
+  // its real weekly exposure. Without this protocolExposureId would read MOTS-c as a
+  // 7x/week protocol and inflate every weekly total and history period.
+  if(c && c.freq==='flex') return flexTarget(c);
   const base = fromDate || c.start || tod();
   let n=0;
   for(let i=0;i<7;i++) n += scheduledDoseInstances(c, addDays(base,i)).length;
@@ -2863,6 +2894,13 @@ function scheduledDoseInstances(c, dateStr){
       // Selected weekdays are authoritative. Never invent them.
       due = !!(c.days && c.days.length) && sdOnSelectedDay(c, dateStr);
       break;
+    case 'flex':
+      // A weekly TARGET with no fixed weekdays — gym-day compounds and anything else
+      // taken "N times a week, whenever". Due every day so it can be ticked on any
+      // day; the weekly quota sits ABOVE the scheduler (flexRemaining) and decides
+      // when Today stops asking. Weekday selection is deliberately ignored, exactly
+      // as it is for the interval frequencies.
+      due = true; break;
     case 'oneweekpermonth':
       // Seven consecutive days per calendar month. Weekday selection is ignored.
       due = sdOneWeekBlockDue(c, dateStr); break;
@@ -2882,6 +2920,78 @@ function logSlotFor(c, inst){
   const multi = (c.freq==='bid' || c.time==='Both');
   return multi ? (inst && inst.slot ? inst.slot : '') : '';
 }
+// ─── MOVED DOSES (shift one occurrence to another day) ───────
+// A shift moves ONE administration from one date to another. It is NOT a protocol
+// change: the compound, its schedule, its exposure identity and its history are all
+// untouched. Records live in D.shifts as {pid, slot, sslot, from, to} where `sslot`
+// is the SCHEDULER slot (am/pm/'') and `slot` is the LOG slot, mirroring logSlotFor.
+//
+// The canonical scheduler stays pure and shift-blind. doseInstancesFor() is the thin
+// layer above it that every OCCURRENCE consumer reads — Today, Weekly Prep, combined
+// pins. Consumers that describe the PROTOCOL rather than a day (scheduledPerWeek,
+// protocolExposureId, adherence periods) deliberately keep reading the scheduler
+// directly, so moving a dose can never split a history period.
+function shiftRecFor(cid, sslot, date){
+  return (D.shifts||[]).find(k=> k && k.pid===cid && (k.sslot||'')===(sslot||'') && k.from===date);
+}
+function shiftsIntoDate(cid, date){
+  return (D.shifts||[]).filter(k=> k && k.pid===cid && k.to===date);
+}
+// The scheduler slot that produced a given log slot on a date. A single-administration
+// PM protocol logs with slot '' but is administered in the evening, so the two differ.
+function schedSlotFor(c, logSlot, date){
+  const m=scheduledDoseInstances(c, date).find(i=>logSlotFor(c,i)===(logSlot||''));
+  return m ? (m.slot||'') : (logSlot||'');
+}
+function doseInstancesFor(c, dateStr){
+  const base=scheduledDoseInstances(c, dateStr);
+  // An inactive or ended protocol has nothing to re-land. Without this an ended
+  // compound could still be pulled into a blend's pin by an old shift record.
+  if(!c || !c.active) return base;
+  const all=D.shifts||[];
+  if(!all.length) return base;
+  const out=base.filter(i=>!shiftRecFor(c.id, (i.slot||''), dateStr));
+  shiftsIntoDate(c.id, dateStr).forEach(k=>{
+    out.push({slot:k.sslot||'', shifted:true, from:k.from});
+  });
+  return out;
+}
+// Drop shift records well past their landing date so the store cannot grow forever.
+function pruneShifts(){
+  const floor=addDays(tod(),-45);
+  const before=(D.shifts||[]).length;
+  D.shifts=(D.shifts||[]).filter(k=> k && (k.to||'') >= floor);
+  if(D.shifts.length!==before) save();
+  return before-D.shifts.length;
+}
+
+// ─── FLEXIBLE WEEKLY TARGET ──────────────────────────────────
+// freq 'flex' means "N doses a week, on whichever days you actually take it" — the
+// gym-day case. There is no gym-day register: the compound is simply available every
+// day until the week's target is met. The week runs on the user's own week-start
+// setting, so it matches Weekly Prep.
+function isFlex(c){ return !!(c && c.freq==='flex'); }
+function flexTarget(c){
+  const n=parseInt(c && c.weeklyTarget, 10);
+  return (Number.isFinite(n) && n>0) ? n : 1;
+}
+function flexWeekBounds(dateStr){
+  const from=prepWeekStart(dateStr||tod());
+  return {from:from, to:addDays(from,6)};
+}
+function flexTakenInWeek(c, dateStr){
+  if(!c) return 0;
+  const b=flexWeekBounds(dateStr);
+  return (D.logs||[]).filter(l=>{
+    if(!l || l.pid!==c.id || !l.t) return false;
+    const d=String(l.t).slice(0,10);
+    return d>=b.from && d<=b.to;
+  }).length;
+}
+function flexRemaining(c, dateStr){
+  return Math.max(0, flexTarget(c) - flexTakenInWeek(c, dateStr));
+}
+
 // A compound shows today if:
 // - active
 // - days array is empty (means every day) OR today's DOW is in the days array
@@ -2956,6 +3066,14 @@ function toggleSkip(pid,slot,e){
   } else {
     cur.classList.add('hidden'); unw.classList.add('hidden');
   }
+  const mv=(D.shifts||[]).find(x=>x && x.pid===pid && (x.slot||'')===_snzSlot
+    && (x.from===viewDate || x.to===viewDate));
+  if(mv){
+    cur.textContent = mv.from===viewDate
+      ? 'This dose has been moved to '+fmtD(mv.to)
+      : 'This dose was moved here from '+fmtD(mv.from);
+    cur.classList.remove('hidden'); unw.classList.remove('hidden');
+  }
   document.getElementById('snz-until').value=addDays(viewDate,7);
   openOv('ov-snooze');
 }
@@ -2987,7 +3105,41 @@ function applySnoozeUntil(){
 
 function clearSnooze(){
   D.skips=(D.skips||[]).filter(k=>!(k.pid===_snzPid && (k.slot||'')===_snzSlot));
+  D.shifts=(D.shifts||[]).filter(k=>!(k && k.pid===_snzPid && (k.slot||'')===_snzSlot
+    && (k.from===viewDate || k.to===viewDate)));
   save(); render(); closeOv('ov-snooze');
+}
+// Move this dose to another day. Snoozing SKIPS a dose; moving KEEPS it and re-lands
+// it. If the target day already has this compound scheduled the result is two doses
+// that day — that is a real clinical choice, so it is stated plainly and confirmed
+// rather than silently blocked or silently merged.
+async function shiftDose(days){
+  const c=D.compounds.find(x=>x && x.id===_snzPid);
+  if(!c) return;
+  const from=viewDate, to=addDays(viewDate, Math.max(1, days||1));
+  const sslot=schedSlotFor(c, _snzSlot, from);
+  const already=scheduledDoseInstances(c, to).some(i=>(i.slot||'')===sslot);
+  if(already){
+    const each=fmtNum(parseFloat(effectiveDose(c, to)))+' '+normUnit(c.unit);
+    const go=await ptConfirm(
+      '"'+c.name+'" is already scheduled on '+fmtD(to)+(sslot?' ('+sslot.toUpperCase()+')':'')+
+      '.\n\nMoving this dose there means TWO doses that day \u2014 '+each+' each, '+
+      'drawn separately.\n\nSome protocols are doubled up after a miss and some are not. '+
+      'Only you can decide which this is.',
+      'That would be a double dose',
+      {okText:'Move it anyway', cancelText:'Cancel'});
+    if(!go) return;
+  }
+  if(!D.shifts) D.shifts=[];
+  D.shifts=D.shifts.filter(k=>!(k && k.pid===c.id && (k.sslot||'')===sslot && k.from===from));
+  D.shifts.push({id:uid(), pid:c.id, slot:_snzSlot||'', sslot:sslot, from:from, to:to});
+  // A moved dose is not a skipped one: clear any snooze covering it.
+  D.skips=(D.skips||[]).filter(k=>!(k.pid===c.id && (k.slot||'')===(_snzSlot||'')));
+  save(); render(); closeOv('ov-snooze');
+}
+function undoShift(sid){
+  D.shifts=(D.shifts||[]).filter(k=>!(k && k.id===sid));
+  save(); render();
 }
 function allDoneToday(c){
   if(c.time==='Both') return doneToday(c,'am')&&doneToday(c,'pm');
@@ -3027,6 +3179,7 @@ function rStack(){
   const compounds=active.filter(c=>!PEPTIDE_CATS.includes(c.cat)&&c.cat);
 
   function daysPerWeek(c){
+    if(c.freq==='flex') return flexTarget(c);
     if(!c.days||c.days.length===0){
       // daily or freq-based
       const map={daily:7,bid:7,tid:7,eod:3.5,e3d:2.3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:0.25,oneweekpermonth:7/4.345,prn:0};
@@ -3282,8 +3435,11 @@ function prepWeekData(start){
         // Only things drawn into a syringe belong here. Nasal, oral and topical
         // need no preparation, so they would only pad the list.
         if(!isInjectableRoute(c.route)) return;
+        // Flexible targets have no fixed days, so they are counted once for the whole
+        // week below rather than per day.
+        if(isFlex(c)) return;
         const b = bucket(c);
-        const insts = scheduledDoseInstances(c, date);
+        const insts = doseInstancesFor(c, date);
         insts.forEach(inst=>{
           const slot = logSlotFor(c, inst);
           const dose = effectiveDose(c, date);
@@ -3321,15 +3477,46 @@ function prepWeekData(start){
       days.push({date:date, items:items});
     }
   } finally { viewDate = prev; }               // always restore, even on throw
+  // A flexible protocol's weekly requirement IS its target — N identical pins, drawn
+  // whenever they are taken. There is no way to know which days those will be, so
+  // spreading them across the week would invent information.
+  const flexPins = (function(){
+    let made=0;
+    (D.compounds||[]).forEach(c=>{
+      if(!c || !c.active || !isFlex(c) || !isInjectableRoute(c.route)) return;
+      if(pinGroupsOf(c).length) return;          // blended flex is out of scope
+      const want=flexTarget(c);
+      if(!(want>0)) return;
+      const dv=parseFloat(effectiveDose(c, start))||0;
+      const draw=prepDraw(c, start);
+      const t={pid:c.id, name:c.name||'Unnamed', color:c.color||'', unit:c.unit||'',
+        route:c.route||'', group:prepGroupOf(c), vialSize:c.vialSize,
+        vialUnit:c.vialUnit||'mg', bacWater:c.bacWater, subq:isSubQRoute(c.route),
+        flex:true, doses:want, mass:dv*want, vol:0, mlTotal:0, kind:null,
+        minDose:dv, maxDose:dv, minVol:null, maxVol:null, byVol:{}};
+      if(draw){
+        t.kind=draw.kind; t.vol=draw.value*want;
+        if(draw.ml!=null) t.mlTotal=draw.ml*want;
+        t.minVol=draw.value; t.maxVol=draw.value;
+        t.byVol[draw.value.toFixed(6)+'@'+dv]={vol:draw.value, ml:draw.ml, dose:dv, count:want};
+      } else {
+        t.byVol['na@'+dv]={vol:null, ml:null, dose:dv, count:want};
+      }
+      totals[c.id]=t;
+      made+=want;
+    });
+    return made;
+  })();
   // Physical syringes: compounds sharing a pin group on the same date+slot are one
   // draw. Counted with the same grouping model Today uses, so the two cannot disagree.
-  let physicalPins = 0;
+  let physicalPins = flexPins;
   const pinSeen = {};
   for(let i=0;i<7;i++){
     const date = addDays(start,i);
     (D.compounds||[]).forEach(c=>{
       if(!c || !isInjectableRoute(c.route)) return;
-      scheduledDoseInstances(c, date).forEach(inst=>{
+      if(isFlex(c)) return;                      // counted from its target above
+      doseInstancesFor(c, date).forEach(inst=>{
         const gs = pinGroupsOf(c);
         const keys = gs.length ? gs.filter(g=>blendDrawsOn(g, date, inst.slot||''))
                                    .map(g=>'G|'+g+'|'+date+'|'+(inst.slot||''))
@@ -3346,8 +3533,9 @@ function prepWeekData(start){
     const seenPin = {};
     (D.compounds||[]).forEach(c=>{
       if(!isInjectableRoute(c.route)) return;
+      if(isFlex(c)) return;
       pinGroupsOf(c).forEach(g=>{
-      scheduledDoseInstances(c, date).forEach(inst=>{
+      doseInstancesFor(c, date).forEach(inst=>{
         const slot = inst.slot||'';
         if(!blendDrawsOn(g, date, slot)) return;
         const key = g+'|'+date+'|'+slot;
@@ -3855,8 +4043,13 @@ function rToday(){
   // One row per scheduled administration, straight from the canonical scheduler.
   const rows=[];
   active.forEach(c=>{
-    scheduledDoseInstances(c, viewDate).forEach(inst=>{
-      rows.push({c:c, inst:inst, slot:logSlotFor(c, inst)});
+    doseInstancesFor(c, viewDate).forEach(inst=>{
+      const sl=logSlotFor(c, inst);
+      // A flexible protocol is due every day, but stops asking once the week's target
+      // is met. One already taken today still shows, so the day reads correctly.
+      if(isFlex(c) && !inst.shifted && flexRemaining(c, viewDate)<=0
+         && !doneOnDate(c, sl, viewDate)) return;
+      rows.push({c:c, inst:inst, slot:sl});
     });
   });
   let totalDoses=0, doneDoses=0, snoozed=0;
@@ -3913,7 +4106,7 @@ function rToday(){
   const amItems=merged.filter(r=>(r.isGroup?r.col:colOf(r))==='am');
   const pmItems=merged.filter(r=>(r.isGroup?r.col:colOf(r))==='pm');
 
-  function chkRow(c, slot){
+  function chkRow(c, slot, inst){
     // slot is 'am', 'pm', or null (single dose)
     const ok = slot ? doneToday(c,slot) : allDoneToday(c);
     const checkId = slot ? c.id+'_'+slot : c.id;
@@ -3922,12 +4115,16 @@ function rToday(){
     const expiring = dLeft!==null && dLeft>=0 && dLeft<=7;
     const snz = isSkipped(c, slot||'', viewDate);
     const snzTo = snz ? snoozeEndsOn(c, slot||'', viewDate) : '';
+    const moved = (inst && inst.shifted)
+      ? '<span class="snz-badge">Moved from '+esc(fmtD(inst.from))+'</span>' : '';
+    const flexLbl = isFlex(c)
+      ? ' \u00b7 '+flexTakenInWeek(c, viewDate)+' of '+flexTarget(c)+' this week' : '';
     return`<div class="ci ${ok?'done':''} ${expiring&&!snz?'expiring':''} ${snz?'snoozed':''}" onclick="quickCheck('${c.id}','${slot||''}')">
       <div class="chk ${ok?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="var(--c-white)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div style="flex:1;min-width:0">
-        <div class="ci-name"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}${snz?'<span class="snz-badge">'+(snzTo?'Back '+fmtD(snzTo):'Snoozed')+'</span>':(expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':'')}</div>
+        <div class="ci-name"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}${snz?'<span class="snz-badge">'+(snzTo?'Back '+fmtD(snzTo):'Snoozed')+'</span>':(expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':'')}${moved}</div>
         ${pin?`<div class="ci-draw">${pin}</div>`:''}
-        <div class="ci-sub">${esc(doseLabel(c))} · ${esc(c.route)}</div>
+        <div class="ci-sub">${esc(doseLabel(c))} · ${esc(c.route)}${flexLbl}</div>
       </div>
       <button class="snooze-btn ${snz?'on':''}" title="${snz?'Un-snooze':'Snooze for this day'}"
         onclick="toggleSkip('${c.id}','${slot||''}',event)">
@@ -3981,7 +4178,7 @@ function rToday(){
       ? r.members.every(m=>doneOnDate(m.c, m.slot, viewDate))
       : (r.slot?doneToday(r.c,r.slot):allDoneToday(r.c))).length;
     const rows=items.length
-      ? items.map(r=> r.isGroup ? groupRow(r) : chkRow(r.c, r.slot||null)).join('')
+      ? items.map(r=> r.isGroup ? groupRow(r) : chkRow(r.c, r.slot||null, r.inst)).join('')
       : `<div class="col-empty">Nothing scheduled</div>`;
     return`<div class="col">
       <div class="col-hdr"><span class="col-ttl ${cls}">${ttl}</span><span class="col-cnt">${dc}/${items.length}</span></div>
@@ -3995,6 +4192,22 @@ function rToday(){
     const d=daysUntilCycleEnd(c);
     return d!==null && d>=0 && d<=7;
   });
+  (function renderShiftNote(){
+    const el=document.getElementById('shift-note');
+    if(!el) return;
+    const out=(D.shifts||[]).filter(k=>k && k.from===viewDate);
+    if(!out.length){ el.innerHTML=''; return; }
+    el.innerHTML='<div class="past-banner" style="background:var(--brand-soft);'
+      +'border-color:var(--brand-border);color:var(--text-secondary);text-align:left">'
+      + out.map(k=>{
+          const cc=(D.compounds||[]).find(x=>x && x.id===k.pid);
+          return esc(cc?cc.name:'A dose')+(k.sslot?' ('+esc(k.sslot.toUpperCase())+')':'')
+            +' moved to '+esc(fmtD(k.to))
+            +' &middot; <a href="#" onclick="undoShift(\''+esc(k.id)+'\');return false" '
+            +'style="color:var(--brand)">undo</a>';
+        }).join('<br>')
+      + '</div>';
+  })();
   const lg=document.getElementById('expiry-legend');
   if(lg) lg.innerHTML = anyExpiring
     ? '<div class="expiry-legend-inner"><span style="display:inline-flex;color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/></svg></span>'+
@@ -4077,7 +4290,8 @@ function quickCheckGroup(group, slot){
   save(); render();
 }
 function tickAll(){
-  const due=D.compounds.filter(c=>c.active&&isDue(c));
+  const due=D.compounds.filter(c=>c.active&&isDue(c)
+    && !(isFlex(c) && flexRemaining(c, viewDate)<=0));
   const t=viewDate;
   // Check if everything is done
   const active=due.filter(c=>!(c.time==='Both'
@@ -4296,6 +4510,7 @@ function addSizeEntry(pid, e){
 
 function dosesPerDay(c){
   if(!c) return 0;
+  if(c.freq==='flex') return flexTarget(c)/7;
   const freq=c.freq;
   const daysPerWeek=c.days&&c.days.length>0?c.days.length:7;
   const multiplier=c.time==='Both'?2:1;
@@ -4485,7 +4700,8 @@ function adherenceStatus(cid, ds){
   // reconstruct config as of that date
   let snap=null; (D.history||[]).forEach(h=>{ if(h.cid===cid && h.savedAt.slice(0,10)<=ds && (!snap||h.savedAt>snap.savedAt)) snap=h; });
   const cfg=snap?snap.snap:c; if(!cfg) return 'none';
-  if(cfg.active===false || cfg.freq==='prn') return 'none';
+  // A flexible protocol has no scheduled day to miss, so it is never assessed here.
+  if(cfg.active===false || cfg.freq==='prn' || cfg.freq==='flex') return 'none';
   if(cfg.start && ds<cfg.start) return 'none';
   // §5: before tracking began, days are not assessed (pre-tracking), never missed.
   const trackFloor = c && c.trackingStartDate ? c.trackingStartDate : (cfg.start||null);
@@ -4594,7 +4810,7 @@ function rHistByDate(){
   snaps.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
   // Frequency/timing summary helper (e.g. "Daily · Both · 7 days/week")
   function freqSummary(sn){
-    const freqMap={daily:'Daily',bid:'Twice daily',tid:'Three times daily',eod:'Every other day',e3d:'Every 3 days','2xweek':'2×/week','3xweek':'3×/week','4xweek':'4×/week','5xweek':'5×/week',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',oneweekpermonth:'1 week/month',prn:'As needed'};
+    const freqMap={daily:'Daily',bid:'Twice daily',tid:'Three times daily',eod:'Every other day',e3d:'Every 3 days','2xweek':'2×/week','3xweek':'3×/week','4xweek':'4×/week','5xweek':'5×/week',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',oneweekpermonth:'1 week/month',flex:'Flexible weekly',prn:'As needed'};
     const parts=[];
     if(sn.freq) parts.push(freqMap[sn.freq]||sn.freq);
     if(sn.time) parts.push(sn.time==='Both'?'AM + PM':sn.time);
@@ -4642,7 +4858,7 @@ function toggleAdherence(cid, fromStr, toStr){
 
   // was a dose scheduled on date? (uses snap.days if set, else every day; skips prn)
   const scheduledOn=(dt)=>{
-    if(snap.freq==='prn') return false;
+    if(snap.freq==='prn' || snap.freq==='flex') return false;
     if(snap.active===false) return false;
     if(snap.days && snap.days.length){ return snap.days.includes(dt.getDay()); }
     return true; // no specific days = every day
@@ -5010,16 +5226,24 @@ function syncFreqTime(freqId, timeId, source){
 
 function onFreq(){
   syncFreqTime('f-freq','f-time','freq');
+  syncFlexField('f-freq','f-flex-wrap');
   applyFreqDayLock('f-freq','f-days','f-freq-warn');
   checkFreqDaysConflict();
 }
 function onFTime(){ syncFreqTime('f-freq','f-time','time'); }
 function onKiFreq(){
   syncFreqTime('ki-freq','ki-time','freq');
+  syncFlexField('ki-freq','ki-flex-wrap');
   applyFreqDayLock('ki-freq','ki-days','ki-freq-note');
   if(typeof kiFreqChanged==='function') kiFreqChanged();
 }
 function onKiTime(){ syncFreqTime('ki-freq','ki-time','time'); }
+// The weekly-target field applies only to 'flex', so it is shown only for it.
+function syncFlexField(freqId, wrapId){
+  const fe=document.getElementById(freqId), w=document.getElementById(wrapId);
+  if(!fe || !w) return;
+  w.style.display = fe.value==='flex' ? '' : 'none';
+}
 function checkFreqDaysConflict(){
   const el=document.getElementById('f-freq-warn'); if(!el) return;
   const freq=document.getElementById('f-freq').value;
@@ -5042,7 +5266,7 @@ function checkFreqDaysConflict(){
 // different number of selected days contradicts that.
 const INTERVAL_FREQS=['eod','e3d','biweekly','monthly','oneweekpermonth'];
 const FREQ_DAY_COUNT={'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,'weekly':1};
-function freqIgnoresDays(f){ return f==='eod'||f==='e3d'; }
+function freqIgnoresDays(f){ return f==='eod'||f==='e3d'||f==='flex'; }
 function freqExpectedDays(f){ return FREQ_DAY_COUNT[f]; }
 // Disable and clear the weekday picker whenever the frequency drives the schedule.
 function applyFreqDayLock(freqId, daysWrapId, noteId){
@@ -5061,7 +5285,7 @@ function applyFreqDayLock(freqId, daysWrapId, noteId){
   }
 }
 function freqLabel(f){
-  return ({daily:'Daily',bid:'Twice daily',tid:'Three times daily',eod:'Every other day',e3d:'Every 3 days','2xweek':'2× per week','3xweek':'3× per week','4xweek':'4× per week','5xweek':'5× per week',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',oneweekpermonth:'1 week/month',prn:'As needed'})[f]||f;
+  return ({daily:'Daily',bid:'Twice daily',tid:'Three times daily',eod:'Every other day',e3d:'Every 3 days','2xweek':'2× per week','3xweek':'3× per week','4xweek':'4× per week','5xweek':'5× per week',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',oneweekpermonth:'1 week/month',flex:'Flexible weekly target',prn:'As needed'})[f]||f;
 }
 function onDur(){
   // Both weeks and end-date fields are always visible now. For "Ongoing", clear/disable them.
@@ -5284,6 +5508,7 @@ function openAdd(){
   document.getElementById('f-vialUnit').value='mg';
   document.getElementById('f-bac').value='';
   document.getElementById('f-freq').value='daily';
+  { const wt=document.getElementById('f-weeklyTarget'); if(wt) wt.value=''; }
   document.getElementById('f-unit').value='mg';
   document.getElementById('f-route').value='SubQ Injection';
   document.getElementById('f-time').value='AM';
@@ -5319,6 +5544,7 @@ function openEdit(pid){
   document.getElementById('f-route').value=c.route;
   document.getElementById('f-doseNotes').value=c.doseNotes||'';
   document.getElementById('f-freq').value=c.freq;
+  { const wt=document.getElementById('f-weeklyTarget'); if(wt) wt.value=c.weeklyTarget||''; }
   { const nc=normalizeSchedule({freq:c.freq, time:c.time}); if(document.getElementById('f-freq')) document.getElementById('f-freq').value=nc.freq; document.getElementById('f-time').value=nc.time; }
   document.getElementById('f-clock').value=c.clock||'';
   document.getElementById('f-timingNotes').value=c.timingNotes||'';
@@ -5404,7 +5630,8 @@ async function saveForm(){
     const _name=gv0('f-name') || (_existing ? _existing.name : '');
     const _v=validateProtocolDraft({
       name:_name, dose:gv0('f-dose'), unit:gv0('f-unit'), route:gv0('f-route'),
-      freq:freq, days:days, vialSize:gv0('f-vialSize'), vialUnit:gv0('f-vialUnit'),
+      freq:freq, days:days, weeklyTarget:gv0('f-weeklyTarget'),
+      vialSize:gv0('f-vialSize'), vialUnit:gv0('f-vialUnit'),
       bacWater:gv0('f-bac'), volPerSpray:gv0('f-volPerSpray'),
       formulation:(typeof _fFormulation!=='undefined'?_fFormulation:''),
       start:fStart, durtype:fDurtype, weeks:fWeeks, end:fEnd
@@ -5450,6 +5677,7 @@ async function saveForm(){
       route:document.getElementById('f-route').value,
       doseNotes:document.getElementById('f-doseNotes').value,
       freq,days,
+      weeklyTarget:document.getElementById('f-weeklyTarget').value,
       time:document.getElementById('f-time').value,
       clock:document.getElementById('f-clock').value,
       timingNotes:document.getElementById('f-timingNotes').value,
@@ -5492,6 +5720,7 @@ async function saveForm(){
       route:document.getElementById('f-route').value,
       doseNotes:document.getElementById('f-doseNotes').value,
       freq,days,
+      weeklyTarget:document.getElementById('f-weeklyTarget').value,
       time:document.getElementById('f-time').value,
       clock:document.getElementById('f-clock').value,
       timingNotes:document.getElementById('f-timingNotes').value,
@@ -6204,6 +6433,47 @@ function updateQuickRef(){try{
 function updatePinLabel(){} // kept for compatibility
 
 
+// End every ACTIVE protocol as at today: stamps today as the end date and switches it
+// off. Nothing is deleted — logs, history and inventory are untouched, and each closure
+// goes through the canonical mutation path so history gets a proper period boundary.
+// Two deliberate steps, the second typed, because a single tap would otherwise clear
+// the whole of Today and Weekly Prep.
+async function endAllProtocols(){
+  const live=(D.compounds||[]).filter(c=>c && c.active);
+  if(!live.length){ await ptAlert('Nothing is active at the moment, so there is nothing to end.','No active protocols'); return; }
+  const today=tod();
+  const names=live.slice(0,8).map(c=>'\u2022 '+c.name).join('\n')
+    + (live.length>8 ? '\n\u2022 ...and '+(live.length-8)+' more' : '');
+  const go=await ptConfirm(
+    'End all '+live.length+' active protocol'+(live.length===1?'':'s')+' as at '+fmtD(today)+'?\n\n'
+    +names+'\n\nEach one is given today as its end date and switched off. They stop appearing on '
+    +'Today and in Weekly Prep.\n\nYour dose logs, protocol history and inventory are NOT changed, '
+    +'and nothing is deleted. You can switch any of them back on individually afterwards.',
+    'End all protocols', {destructive:true, okText:'Continue', cancelText:'Cancel'});
+  if(!go) return;
+  const typed=await ptPrompt('This ends every active protocol at once.\n\nType END (capitals) to confirm.',
+    {title:'Confirm ending all protocols', placeholder:'END'});
+  if(typed===null) return;
+  if(String(typed||'').trim().toUpperCase()!=='END'){
+    await ptAlert('Cancelled \u2014 the text did not match. Nothing was changed.','Cancelled'); return;
+  }
+  let done=0; const failed=[];
+  live.forEach(c=>{
+    const r=applyProtocolMutation(c.id, {active:false, end:today, durtype:'enddate', weeks:''}, 'ended-all');
+    if(r.ok){
+      const liveC=(D.compounds||[]).find(x=>x && x.id===c.id);
+      // A pending future change would otherwise switch an ended protocol back on.
+      if(liveC) delete liveC.pending;
+      D.shifts=(D.shifts||[]).filter(k=>!(k && k.pid===c.id));
+      done++;
+    } else failed.push(c.name+': '+(r.message||'could not be ended'));
+  });
+  save(); render();
+  await ptAlert(done+' protocol'+(done===1?'':'s')+' ended as at '+fmtD(today)+'.'
+    +(failed.length ? '\n\nNot ended \u2014 these are unchanged:\n'+failed.join('\n') : ''),
+    failed.length ? 'Partly done' : 'Protocols ended');
+}
+
 async function masterReset(){
   // Step 1: First confirmation
   if(!(await ptConfirm('MASTER RESET\n\nThis will permanently delete ALL data including:\n• All compounds & protocols\n• All dose logs\n• All inventory\n• All history\n\nThis cannot be undone.\n\nAre you sure?'))) return;
@@ -6217,7 +6487,7 @@ async function masterReset(){
   APP_KEYS.forEach(k=>safeRemove(k));
   ['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v6','pt_v7'].forEach(k=>safeRemove(k));
   // Build clean default state directly — do NOT call the recovery-oriented load().
-  const clean={compounds:freshDefaults(),logs:[],inventory:defaultInventory(),history:[],skips:[],schema:CURRENT_SCHEMA};
+  const clean={compounds:freshDefaults(),logs:[],inventory:defaultInventory(),history:[],skips:[],shifts:[],schema:CURRENT_SCHEMA};
   // Persist + verify BEFORE announcing success.
   const wr=safeWriteJson('protocol_data', clean, true);
   if(!wr.ok){ await ptAlert('Reset could not be completed — writing clean state failed ('+(wr.reason||'error')+'). Nothing was reset.','Reset failed'); return; }
@@ -6328,7 +6598,7 @@ function importFromFile(input){
       // 4. commit to live state only after verified persistence.
       D.compounds=candidate.compounds||[]; D.logs=candidate.logs||[];
       D.inventory=candidate.inventory||[]; D.history=candidate.history||[];
-      D.skips=candidate.skips||[]; D.schema=CURRENT_SCHEMA;
+      D.skips=candidate.skips||[]; D.shifts=candidate.shifts||[]; D.schema=CURRENT_SCHEMA;
       const bk=safeWriteJson('pt_backup', D, true);
       render(); renderStorageUsage();
       await ptAlert('Data restored successfully.'+(bk.ok?'':' (Note: the secondary backup copy could not be written.)'));
@@ -6439,6 +6709,7 @@ function copyStackPrompt(){
   if(!active.length){ptAlert('No active compounds to analyse.');return;}
 
   function dpw(c){
+    if(c.freq==='flex') return flexTarget(c);
     if(!c.days||!c.days.length){
       const m={daily:7,bid:7,tid:7,eod:3.5,e3d:2.3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:0.25,oneweekpermonth:7/4.345,prn:0};
       return m[c.freq]||7;
@@ -6542,6 +6813,7 @@ function init(){
   load();
   normalizeDurations();   // repair ongoing-protocols that carry a stale end date
   applyDuePendingChanges();   // enact any change whose date has arrived
+  pruneShifts();          // drop moved-dose records long past their landing date
   checkBackupReminder();
   document.getElementById('hdrDate').textContent=new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
   viewDate=tod();
@@ -6573,7 +6845,7 @@ function checkMissedDoses(){
     const dt=new Date(); dt.setDate(dt.getDate()-back);
     const ds=dt.toISOString().slice(0,10);
     (D.compounds||[]).forEach(c=>{
-      if(!c.active || c.freq==='prn') return;
+      if(!c.active || c.freq==='prn' || c.freq==='flex') return;
       // scheduled that day?
       const dow=dt.getDay();
       const sched = (c.days&&c.days.length) ? c.days.includes(dow) : true;
@@ -6772,6 +7044,7 @@ function kiChooseCompound(){
   set('ki-freq', c.freq||'daily'); set('ki-vial', c.vialSize); set('ki-bac', c.bacWater);
   set('ki-saline', c.saline); set('ki-volPerSpray', c.volPerSpray);
   set('ki-vialUnit', c.vialUnit||'mg'); set('ki-pinGroup', pinGroupOf(c));
+  set('ki-weeklyTarget', c.weeklyTarget||'');
   kiApplyRouteForm(c); kiSprayLink('dose');
   // Normalize a possibly-contradictory stored schedule before displaying it.
   { const nc=normalizeSchedule({freq:c.freq, time:c.time}); set('ki-freq', nc.freq||'daily'); set('ki-time', (['AM','PM','Both'].includes(nc.time)?nc.time:'AM')); }
@@ -6974,7 +7247,8 @@ function kiPopulateFrom(){
   set('ki-name', sn.name); set('ki-dose', sn.dose); set('ki-unit', sn.unit);
   set('ki-freq', sn.freq); set('ki-vial', sn.vialSize); set('ki-bac', sn.bacWater);
   set('ki-saline', sn.saline); set('ki-volPerSpray', sn.volPerSpray);
-  set('ki-vialUnit', sn.vialUnit||'mg'); kiApplyRouteForm(sn);
+  set('ki-vialUnit', sn.vialUnit||'mg'); set('ki-weeklyTarget', sn.weeklyTarget||'');
+  kiApplyRouteForm(sn);
   if(['AM','PM','Both'].includes(sn.time)) set('ki-time', sn.time);
   if(sn.weeks) set('ki-weeks', sn.weeks);
   kiSetDaysArr(sn.days||[]);
@@ -6986,7 +7260,7 @@ function kiRenderStep(existing){
   const prog=document.getElementById('ki-progress');
   const nextBtn=document.getElementById('ki-next');
   // clear fields
-  ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray','ki-sprays','ki-pinGroup','ki-start','ki-weeks','ki-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray','ki-sprays','ki-pinGroup','ki-start','ki-weeks','ki-end','ki-weeklyTarget'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   kiApplyRouteForm(null);
   // Default start date to today (so a new protocol starts now unless changed).
   { const st=document.getElementById('ki-start'); if(st){ st.value=(typeof localDateStr==='function')?localDateStr(new Date()):new Date().toISOString().slice(0,10); } }
@@ -7052,7 +7326,8 @@ function kiRenderStep(existing){
       set('ki-name', existing.name); set('ki-dose', existing.dose); set('ki-unit', existing.unit||'mcg');
       set('ki-freq', existing.freq||'weekly'); set('ki-vial', existing.vialSize); set('ki-bac', existing.bacWater);
       set('ki-saline', existing.saline); set('ki-volPerSpray', existing.volPerSpray);
-      set('ki-vialUnit', existing.vialUnit||'mg'); kiApplyRouteForm(existing);
+      set('ki-vialUnit', existing.vialUnit||'mg'); set('ki-weeklyTarget', existing.weeklyTarget||'');
+      kiApplyRouteForm(existing);
       if(_kiBlendName) set('ki-pinGroup', _kiBlendName); else set('ki-pinGroup', pinGroupOf(existing));
       { const ne=normalizeSchedule({freq:existing.freq, time:existing.time}); set('ki-freq', ne.freq||'weekly'); set('ki-time', (['AM','PM','Both'].includes(ne.time)?ne.time:'AM')); }
       // §3.2/§3: an inactive preloaded compound should NOT carry a stale start date into a
@@ -7097,6 +7372,7 @@ function kiCollect(){
   return {
     name, dose:parseFloat(g('ki-dose'))||0, unit:g('ki-unit'),
     freq:g('ki-freq'), days:kiGetDays(), time:g('ki-time')||'AM',
+    weeklyTarget:g('ki-weeklyTarget')||'',
     // Ongoing carries no duration: never emit weeks/end for it, whatever the
     // inputs happen to hold (prefill from a chosen compound, or an earlier step).
     start:start||'',
@@ -7132,7 +7408,7 @@ function kiHighlightField(field, persist){
   // Map a validator field name to the wizard element id, then highlight (+ optionally scroll).
   const map={ name:'ki-name', dose:'ki-dose', unit:'ki-unit', route:'ki-route', freq:'ki-freq',
     start:'ki-start', end:'ki-end', weeks:'ki-weeks', vialSize:'ki-vial', bacWater:'ki-bac',
-    volPerSpray:'ki-volPerSpray', titration:'ki-titr-tog' };
+    volPerSpray:'ki-volPerSpray', titration:'ki-titr-tog', weeklyTarget:'ki-weeklyTarget' };
   const el=document.getElementById(map[field]||field);
   if(!el) return;
   el.classList.add('field-error');
@@ -7148,7 +7424,7 @@ function kiHighlightField(field, persist){
 function kiScrollToField(field){
   const map={ name:'ki-name', dose:'ki-dose', unit:'ki-unit', route:'ki-route', freq:'ki-freq',
     start:'ki-start', end:'ki-end', weeks:'ki-weeks', vialSize:'ki-vial', bacWater:'ki-bac',
-    volPerSpray:'ki-volPerSpray', titration:'ki-titr-tog' };
+    volPerSpray:'ki-volPerSpray', titration:'ki-titr-tog', weeklyTarget:'ki-weeklyTarget' };
   const el=document.getElementById(map[field]||field);
   if(el){ try{ el.scrollIntoView({block:'center', behavior:'smooth'}); }catch(e){} }
 }
@@ -7200,6 +7476,7 @@ async function kiNextInner(after){
       const live=D.compounds.find(x=>x && x.id===_kiChosenId);
       if(live && live.active && data.start && data.start > tod()){
         const changes={dose:data.dose, unit:data.unit, freq:data.freq, days:data.days||[],
+          weeklyTarget:data.weeklyTarget,
           time:(data.freq==='bid'?'Both':(data.time||'AM')),
           start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
           route:data.route, formulation:data.formulation, pinGroup:data.pinGroup,
@@ -7230,7 +7507,8 @@ async function kiNextInner(after){
       c=D.compounds.find(x=>x.id===_kiChosenId);
       if(c){
         Object.assign(c, { dose:data.dose, unit:data.unit, freq:data.freq,
-          days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')),
+          days:data.days||[], weeklyTarget:data.weeklyTarget,
+          time:(data.freq==='bid'?'Both':(data.time||'AM')),
           start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
           route:data.route, formulation:data.formulation, pinGroup:data.pinGroup,
           vialSize:data.vialSize, vialUnit:data.vialUnit, bacWater:data.bacWater,
@@ -7258,7 +7536,8 @@ async function kiNextInner(after){
         if(choice===true){
           // Use existing: update the STABLE record in place. No new id, no lost history.
           Object.assign(ex, { dose:data.dose, unit:data.unit, freq:data.freq,
-            days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')),
+            days:data.days||[], weeklyTarget:data.weeklyTarget,
+            time:(data.freq==='bid'?'Both':(data.time||'AM')),
             start:data.start, weeks:data.weeks, end:data.end, durtype:data.durtype,
             route:data.route, formulation:data.formulation, pinGroup:data.pinGroup,
             vialSize:data.vialSize, vialUnit:data.vialUnit, bacWater:data.bacWater,
@@ -7291,6 +7570,7 @@ async function kiNextInner(after){
       // Skipped when "Use existing" above adopted a stable record into c.
       if(!c){
       c={ id:uid(), name:data.name, dose:data.dose, unit:data.unit, freq:data.freq,
+        weeklyTarget:data.weeklyTarget,
         route:data.route||defaultRouteFor(data.name), formulation:data.formulation, pinGroup:data.pinGroup,
         days:data.days||[], time:(data.freq==='bid'?'Both':(data.time||'AM')), start:data.start, weeks:data.weeks, end:data.end,
         durtype:data.durtype, vialSize:data.vialSize, vialUnit:data.vialUnit, bacWater:data.bacWater,
@@ -7530,7 +7810,7 @@ async function kiBack(){
   const set=(f,v)=>{const el=document.getElementById(f); if(el) el.value=(v==null?'':v);};
   set('ki-name', c.name); set('ki-dose', c.dose); set('ki-unit', c.unit||'mcg');
   set('ki-freq', c.freq||'daily'); set('ki-vial', c.vialSize); set('ki-bac', c.bacWater);
-  set('ki-vialUnit', c.vialUnit||'mg');
+  set('ki-vialUnit', c.vialUnit||'mg'); set('ki-weeklyTarget', c.weeklyTarget||'');
   set('ki-saline', c.saline); set('ki-volPerSpray', c.volPerSpray);
   set('ki-start', c.start); set('ki-weeks', c.weeks); set('ki-end', c.end);
   kiApplyRouteForm(c);
@@ -8041,6 +8321,14 @@ function validateProtocolDraft(d, ctx){
   }
   if((d.freq==='daily'||d.freq==='bid') && dayCount>0 && dayCount<7){
     // daily on a subset of days is legitimate — it just means those days only.
+  }
+  // A flexible protocol is defined by its weekly target, so that target is required.
+  if(d.freq==='flex'){
+    const wt=parseInt(d.weeklyTarget,10);
+    if(!(Number.isFinite(wt) && wt>0))
+      errors.push({field:'weeklyTarget', message:'A flexible protocol needs a weekly target \u2014 how many doses a week you intend to take.'});
+    else if(wt>21)
+      errors.push({field:'weeklyTarget', message:'A weekly target above 21 is not supported.'});
   }
   // Duration: ongoing requires a start date (but no end); fixed-length requires start + end/weeks.
   const durtype=d.durtype||(has(d.weeks)||has(d.end)?'weeks':'ongoing');
@@ -8692,6 +8980,9 @@ window.PT_debug = {
           <option value="4xweek">4 x per week</option>
           <option value="5xweek">5 x per week</option>
         </optgroup>
+        <optgroup label="No fixed days">
+          <option value="flex">Flexible weekly target</option>
+        </optgroup>
         <optgroup label="Longer intervals">
           <option value="weekly">Weekly</option>
           <option value="biweekly">Fortnightly (every 2 weeks)</option>
@@ -8700,6 +8991,13 @@ window.PT_debug = {
         </optgroup>
         <option value="prn">As needed (PRN)</option>
       </select>
+
+      <div id="ki-flex-wrap" style="display:none">
+        <label class="fl">Doses per week</label>
+        <input class="fi" id="ki-weeklyTarget" type="number" min="1" step="1" placeholder="e.g. 3" style="margin-bottom:4px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">No fixed days &mdash;
+          tick it on whichever days you actually take it, such as training days.</div>
+      </div>
 
       <label class="fl">Days of week</label>
       <div class="day-chk-row" id="ki-days" style="margin-bottom:6px">
