@@ -104,6 +104,9 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 #app{height:100%;display:flex;flex-direction:column;overflow:hidden}
 
 /* Header */
+.hdr-gear{background:none;border:none;color:var(--text-secondary);width:44px;height:44px;margin-right:-10px;margin-left:4px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;align-self:center}
+.hdr-gear:active{background:var(--surface-secondary)}
+.hdr-gear.on{color:var(--brand)}
 .hdr{background:var(--header-bg);padding-top:env(safe-area-inset-top,44px);padding-left:18px;padding-right:18px;padding-bottom:9px;border-bottom:1px solid var(--border-subtle);box-shadow:0 1px 4px var(--shadow);flex-shrink:0;position:relative;z-index:10}
 .hdr h1{font-size:26px;font-weight:700;letter-spacing:-.5px;color:var(--text-primary)}
 .hdr h1 span{color:var(--brand)}
@@ -147,26 +150,26 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .c-accent{color:var(--accent)}.c-warn{color:var(--warn)}.c-ok{color:var(--success)}
 
 /* AM/PM columns */
-.ampm{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.ampm{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px}
 .col{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
 .col-hdr{display:flex;align-items:center;justify-content:space-between;
   padding:9px 13px;background:var(--card2);border-bottom:1px solid var(--border)}
 .col-ttl{font-size:12px;font-weight:700;letter-spacing:.5px}
 .col-ttl.am{color:var(--text-primary);font-weight:800}.col-ttl.pm{color:var(--text-secondary);font-weight:800}
 .col-cnt{font-size:11px;color:var(--text2);font-family:var(--mono)}
-.ci{display:flex;align-items:center;gap:9px;padding:9px 13px;
+.ci{display:flex;align-items:center;gap:11px;padding:12px 13px;min-height:52px;
   border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
 .ci:last-child{border-bottom:none}
 .ci:active{background:var(--card2)}
 .ci.done{opacity:.5}
-.chk{width:22px;height:22px;border-radius:6px;border:2px solid var(--border-primary);
+.chk{width:26px;height:26px;border-radius:7px;border:2px solid var(--border-primary);
   flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;transition:all .15s}
 .chk.done{background:var(--success);border-color:var(--success)}
 .chk svg{display:none}
 .chk.done svg{display:block}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .ci-name{font-size:13px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ci-sub{font-size:10px;color:var(--text2);margin-top:1px}
+.ci-sub{font-size:11px;color:var(--text2);margin-top:2px}
 .col-empty{padding:14px 13px;font-size:12px;color:var(--text2);text-align:center}
 
 /* Tick all */
@@ -273,15 +276,15 @@ html[data-theme="dark"] .fs{background-image:url("data:image/svg+xml,%3Csvg xmln
   font-family:var(--sans);padding:10px 2px;cursor:pointer;-webkit-appearance:none;
   text-align:center;width:64px}
 /* Active toggle */
-.act-tog{width:36px;height:20px;border-radius:99px;border:none;cursor:pointer;
+.act-tog{width:46px;height:26px;border-radius:99px;border:none;cursor:pointer;
   display:inline-flex;align-items:center;padding:3px;transition:background .15s}
 .act-tog.on{background:var(--success)}.act-tog.off{background:var(--border-primary)}
-.act-knob{width:14px;height:14px;border-radius:50%;background:var(--c-white);transition:transform .15s;pointer-events:none}
-.act-tog.on .act-knob{transform:translateX(16px)}
+.act-knob{width:20px;height:20px;border-radius:50%;background:var(--c-white);transition:transform .15s;pointer-events:none}
+.act-tog.on .act-knob{transform:translateX(20px)}
 /* Day Y cell */
-.day-cell{width:28px;padding:8px 2px}
+.day-cell{width:34px;padding:6px 2px}
 .day-y{display:inline-flex;align-items:center;justify-content:center;
-  width:20px;height:20px;border-radius:4px;font-size:10px;font-weight:700;
+  width:30px;height:30px;border-radius:6px;font-size:11px;font-weight:700;
   cursor:pointer;border:1.5px solid var(--border-primary);color:var(--text-muted);transition:all .12s;
   user-select:none}
 .day-y.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
@@ -291,9 +294,10 @@ html[data-theme="dark"] .fs{background-image:url("data:image/svg+xml,%3Csvg xmln
 .edit-btn:active{color:var(--accent)}
 /* col widths */
 .col-name{min-width:132px;max-width:150px;text-align:left!important}
-.col-act{width:44px}.col-dose{width:54px}.col-unit{width:46px}.col-time{width:62px}.col-day{width:28px}.col-dt{width:82px;white-space:nowrap}
+.col-act{width:54px}.col-dose{width:54px}.col-unit{width:46px}.col-time{width:62px}.col-day{width:34px}.col-dt{width:82px;white-space:nowrap}
 /* Protocol inline table */
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--border)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--border);position:relative}
+.tbl-scroll-hint{font-size:11px;color:var(--text-muted);text-align:right;margin:6px 2px 0}
 table{width:100%;border-collapse:collapse;min-width:460px}
 th{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;
   letter-spacing:.6px;padding:9px 8px;border-bottom:1px solid var(--border);
@@ -339,12 +343,26 @@ tr:active td{background:var(--card2)}
 .site{background:var(--card);border:1px solid var(--border);border-radius:10px;
   padding:9px 6px;text-align:center;cursor:pointer;font-size:12px;color:var(--text2)}
 .site.on{border-color:var(--accent);color:var(--accent);background:var(--brand-soft)}
+.site.site-next{border-style:dashed}
+.site-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--brand);margin-left:6px}
+.site-chip{display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:4px 9px;min-height:28px;border-radius:99px;
+  border:1px dashed var(--border-primary);background:transparent;color:var(--text-secondary);font-size:11px;font-family:var(--sans);cursor:pointer}
+.site-chip.set{border-style:solid;border-color:var(--brand-border);background:var(--brand-soft);color:var(--brand)}
 .site-ic{font-size:18px;display:block;margin-bottom:3px}
 
 /* Streak */
-.streak{display:flex;gap:4px;flex-wrap:wrap}
-.sd{width:12px;height:12px;border-radius:3px;background:var(--border)}
-.sd.on{background:var(--brand)}
+.streak{display:block}
+.sd-range{font-size:11px;color:var(--text-muted);margin-bottom:6px}
+.streak-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px 3px}
+.sd-col{display:flex;flex-direction:column;align-items:center;gap:2px}
+.sd-dow{font-size:9px;color:var(--text-muted);line-height:1}
+.sd-day{font-size:9px;color:var(--text-muted);font-family:var(--mono);line-height:1}
+.sd{width:100%;aspect-ratio:1;max-width:26px;border-radius:4px;background:var(--surface-secondary)}
+.sd.none{opacity:.45}
+.sd.taken{background:var(--success)}
+.sd.partial{background:linear-gradient(135deg,var(--success) 50%,var(--danger) 50%)}
+.sd.paused{background:var(--warning)}
+.sd.missed{background:var(--danger)}
 
 /* Misc */
 .empty{text-align:center;padding:44px 20px;color:var(--text2)}
@@ -489,7 +507,7 @@ tr:active td{background:var(--card2)}
 /* Expiring cycle (within 7 days of end) */
 .ci.expiring{background:var(--danger-soft)}
 .ci.expiring .ci-sub{color:var(--danger-text)}
-.snooze-btn{width:26px;height:26px;border-radius:50%;flex-shrink:0;padding:0;cursor:pointer;
+.snooze-btn{width:38px;height:38px;border-radius:50%;flex-shrink:0;padding:0;cursor:pointer;
   border:1.5px solid var(--border-primary);background:transparent;color:var(--text-primary);opacity:.5;
   display:flex;align-items:center;justify-content:center}
 .snooze-btn.on{border-color:var(--warn);color:var(--warn);opacity:1}
@@ -557,8 +575,8 @@ html[data-theme="light"] .hdr{border-bottom:3px solid var(--brand)}
    render content unreadable on charcoal — listed in the build notes. ── */
 html[data-theme="dark"] .card{border:1px solid var(--border-primary);box-shadow:none}
 html[data-theme="dark"] .hdr{border-bottom:2px solid var(--brand);box-shadow:none}
-html[data-theme="dark"] #proto-tbl tr:nth-child(even) td{background:var(--brand)}
-html[data-theme="dark"] #proto-tbl tr:nth-child(even) td:first-child{background:var(--brand)}
+html[data-theme="dark"] #proto-tbl tr:nth-child(even) td{background:var(--surface-secondary)}
+html[data-theme="dark"] #proto-tbl tr:nth-child(even) td:first-child{background:var(--surface-secondary)}
 html[data-theme="dark"] #proto-tbl th{color:var(--text2);background:var(--card2);border-bottom:2px solid var(--border);padding:8px 6px}
 html[data-theme="dark"] #proto-tbl th.col-name{background:var(--card2)}
 html[data-theme="dark"] .chk.done{background:var(--surface-primary);border-color:var(--text-primary)}
@@ -749,7 +767,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
 .tickall.complete .tickall-row{background:var(--success-soft)}
 .tickall.complete .tickall-lbl{color:var(--success-text)}
 /* Item 7: natural column heights */
-.ampm{align-items:flex-start}
+.ampm{align-items:stretch}
 
 /* Records: date-recall calendar */
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -795,6 +813,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
 .adh-cell.blank{background:var(--surface-secondary);color:var(--text-muted);opacity:.5}
 .adh-cell.taken,.adh-dot.taken{background:var(--success)}
 .adh-cell.paused,.adh-dot.paused{background:var(--warning)}
+.adh-cell.partial,.adh-dot.partial{background:linear-gradient(135deg,var(--success) 50%,var(--danger) 50%)}
 .adh-cell.missed,.adh-dot.missed{background:var(--danger)}
 .adh-cell.today-due{background:var(--brand)}
 .adh-cell.future{background:var(--surface-secondary);opacity:.4}
@@ -803,6 +822,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
 /* Calendar per-compound adherence colours */
 .cal-day.adh-taken{background:var(--success);color:var(--c-white);font-weight:700}
 .cal-day.adh-paused{background:var(--warning);color:var(--c-white);font-weight:700}
+.cal-day.adh-partial{background:linear-gradient(135deg,var(--success) 50%,var(--danger) 50%);color:var(--c-white);font-weight:700}
 .cal-day.adh-missed{background:var(--danger);color:var(--c-white);font-weight:700}
 .cal-day.adh-none{background:var(--surface-secondary);color:var(--text-muted);opacity:.55}
 .cal-adh-legend{display:flex;gap:14px;justify-content:center;margin:4px 0 12px;font-size:11px;color:var(--text-secondary)}
@@ -888,9 +908,9 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <!-- Page title right aligned -->
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 RC3 · build b0923.1612</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:1px;white-space:nowrap" id="hdrDate"></div>
       </div>
+      <button class="hdr-gear" onclick="nav('settings',null)" title="Settings" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button>
     </div>
   </div>
 
@@ -1083,12 +1103,14 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       </div>
       <div id="expiry-legend"></div>
       <div id="shift-note"></div>
+      <div id="missed-banner"></div>
       <div class="past-banner hidden" id="past-banner"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg> Viewing a past day — tap to mark doses taken</div>
       <div class="milestone-card" id="milestone">
         <div class="milestone-lbl">Next Protocol Change</div>
         <div class="milestone-body" id="milestone-body">—</div>
       </div>
       <div class="ampm" id="ampm"></div>
+      <div id="flex-card"></div>
       <div class="tickall hidden" id="tickall">
         <div class="tickall-row" onclick="tickAll()">
           <div class="chk" id="tick-chk"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="var(--c-white)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -1096,30 +1118,49 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
           <span id="tick-cnt" style="font-size:12px;color:var(--text2);margin-left:auto;font-family:var(--mono)"></span>
         </div>
       </div>
-      <button class="btn btn-s" onclick="openAddKind()">+ Add Compound</button>
-      <button class="btn btn-p" onclick="manualSave()" id="save-btn" style="margin-top:10px">
-        Save &amp; Update
-      </button>
-      <div id="save-confirm" style="text-align:center;font-size:12px;color:var(--success);margin-top:6px;display:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M20 6L9 17l-5-5"/></svg> Saved successfully</div>
+    </div>
 
-      <!-- Data backup -->
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn btn-s" onclick="exportData()" style="flex:1;font-size:13px">⬇ Save Backup</button>
-        <button class="btn btn-s" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:13px">⬆ Restore Backup</button>
-        <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importFromFile(this)">
+    <div id="pg-settings" class="pg hidden">
+      <div class="sec">Data</div>
+      <div class="col" style="margin-bottom:14px;padding:12px 13px">
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-s" onclick="exportData()" style="flex:1;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 3v12M6 11l6 6 6-6M4 21h16"/></svg> Save Backup</button>
+          <button class="btn btn-s" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 21V9M6 13l6-6 6 6M4 3h16"/></svg> Restore Backup</button>
+          <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importFromFile(this)">
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px">Save a backup to Files before every update</div>
+        <button class="btn btn-s" onclick="openSnapshot()" style="width:100%;margin-top:12px;font-size:13px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg> Dose Snapshot &mdash; export a date range</button>
+        <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px">What was taken, when, at what dose, and what was missed.</div>
+        <div id="storage-usage"></div>
       </div>
-      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px">Save backup to Files before every update</div>
-      <div id="storage-usage"></div>
 
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border-subtle)">
-        <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Appearance</div>
-        <div class="tog-row" style="border-bottom:none;padding:6px 0">
+      <div class="sec">Appearance</div>
+      <div class="col" style="margin-bottom:14px;padding:6px 13px">
+        <div class="tog-row" style="border-bottom:none;padding:8px 0">
           <span style="font-size:15px;color:var(--text-primary)">Dark mode</span>
           <label class="tog"><input type="checkbox" id="theme-toggle" onchange="setTheme(this.checked?'dark':'light')"><div class="tog-track"></div></label>
         </div>
-        <div id="theme-note" style="font-size:11px;color:var(--text-muted);margin-top:2px"></div>
+        <div id="theme-note" style="font-size:11px;color:var(--text-muted);margin-top:-4px;padding-bottom:6px"></div>
       </div>
 
+      <div class="sec">Protocols</div>
+      <div class="col" style="margin-bottom:14px;padding:12px 13px">
+        <button class="btn btn-s" onclick="endAllProtocols()" style="font-size:14px;width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><circle cx="12" cy="12" r="9"/><path d="M9 9h6v6H9z"/></svg> End All Protocols Today</button>
+        <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px">Stamps today as the end date and switches each one off. Logs, history and inventory are kept.</div>
+      </div>
+
+      <div class="sec">About</div>
+      <div class="col" style="margin-bottom:14px;padding:12px 13px;font-size:13px;color:var(--text-secondary);line-height:1.6">
+        <div><span style="color:var(--text-primary);font-weight:600">Peptide Tracker</span> v2.2 RC3</div>
+        <div>Build <span id="about-build" style="font-family:var(--mono)"></span></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Quote the build when reporting a fault.</div>
+      </div>
+
+      <div class="sec" style="color:var(--danger-text)">Danger zone</div>
+      <div class="col" style="margin-bottom:14px;padding:12px 13px;border-color:var(--danger)">
+        <button class="btn btn-d" onclick="masterReset()" style="font-size:14px;width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> Master Reset — Clear All Data</button>
+        <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px">Removes every protocol, log, vial and history record on this device. Two confirmations, one typed.</div>
+      </div>
     </div>
 
     <div id="pg-proto" class="pg hidden">
@@ -1136,7 +1177,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
               <th class="col-act">Active</th>
               <th class="col-dose">Dosage</th>
               <th class="col-unit">Unit</th>
-              <th class="col-time">AM/PM/Both</th>
+              <th class="col-time">Time</th>
               <th class="col-day">M</th>
               <th class="col-day">T</th>
               <th class="col-day">W</th>
@@ -1156,13 +1197,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
       <button class="btn btn-p" onclick="openAddKind()" style="margin-top:14px;font-size:15px">+ Add Compound</button>
       <button class="btn btn-s" onclick="openBlends()" style="margin-top:10px;width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="8" cy="7" r="1.4"/><circle cx="14" cy="12" r="1.4"/><circle cx="10" cy="17" r="1.4"/></svg> Blends</button>
       <button class="btn btn-s" onclick="openTemplates()" style="margin-top:10px;width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Saved protocol sets</button>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle)">
-        <button class="btn btn-s" onclick="endAllProtocols()" style="font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><circle cx="12" cy="12" r="9"/><path d="M9 9h6v6H9z"/></svg> End All Protocols Today</button>
-        <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px">Stamps today as the end date and switches each one off. Logs, history and inventory are kept.</div>
-      </div>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle)">
-        <button class="btn btn-d" onclick="masterReset()" style="font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> Master Reset — Clear All Data</button>
-      </div>
+      <div class="tbl-scroll-hint">Swipe the table sideways for days and edit &rarr;</div>
     
       <!-- Useful Links -->
       <div class="sec">Useful Links</div>
@@ -1204,7 +1239,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
 
       <!-- Stats sub-page -->
       <div id="rec-stats">
-        <div class="sec">Adherence — Last 30 Days</div>
+        <div class="sec">Adherence &mdash; Last 30 Days</div>
         <div class="card"><div class="streak" id="streak"></div></div>
         <div class="sec">By Compound</div>
         <div id="stats-list"></div>
@@ -1568,6 +1603,65 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
 </div>
 
 <!-- ═══ SNOOZE SHEET ═══ -->
+<div class="ov hidden" id="ov-site">
+  <div class="sh">
+    <div class="sh-handle"></div>
+    <div class="sh-title" id="site-title">Injection site</div>
+    <p id="site-sub" style="font-size:13px;color:var(--text2);margin:-10px 0 16px;line-height:1.5"></p>
+    <div class="sg" id="site-grid"></div>
+    <div class="fhint" style="margin-top:10px">Rotating sites reduces irritation and lipohypertrophy. Picking a site for an unticked dose records it as taken there.</div>
+    <button class="btn btn-s" style="margin-top:14px" onclick="closeOv('ov-site')">Cancel</button>
+  </div>
+</div>
+
+<div class="ov hidden" id="ov-snapshot">
+  <div class="sh">
+    <div class="sh-handle"></div>
+    <div class="sh-title">Dose Snapshot</div>
+    <p style="font-size:13px;color:var(--text2);margin:-10px 0 16px;line-height:1.5">
+      One row per compound per day &mdash; what was scheduled, what was taken, at what dose,
+      and what was missed. Defaults to this week, Sunday to Saturday.
+    </p>
+    <div class="fg">
+      <label class="fl">Starting from</label>
+      <input class="fi" id="snap-from" type="date" onchange="rSnapshotPreview()">
+    </div>
+    <div class="fg">
+      <label class="fl">Number of days</label>
+      <input class="fi" id="snap-days" type="number" min="1" max="366" step="1" value="7" onchange="rSnapshotPreview()" oninput="rSnapshotPreview()">
+    </div>
+    <div class="fg">
+      <label class="fl">Quick ranges</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="snapQuick('this')">This week</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="snapQuick('last')">Last week</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="snapQuick('14')">Last 14 days</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="snapQuick('30')">Last 30 days</button>
+      </div>
+    </div>
+    <div id="snap-summary" style="background:var(--brand-soft);border:1px solid var(--brand-border);
+      border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)"></div>
+    <div id="snap-preview" style="max-height:190px;overflow:auto;border:1px solid var(--border);
+      border-radius:10px;padding:8px 10px;margin-bottom:14px;font-family:var(--mono);
+      font-size:10px;line-height:1.6;color:var(--text-secondary);white-space:pre"></div>
+    <div class="fg">
+      <label class="fl">Export as CSV</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="snapshotCopy('csv')">Copy CSV</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="snapshotDownload('csv')">Download CSV</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Export as JSON</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="snapshotCopy('json')">Copy JSON</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="snapshotDownload('json')">Download JSON</button>
+      </div>
+    </div>
+    <button class="btn btn-s" onclick="closeOv('ov-snapshot')">Close</button>
+  </div>
+</div>
+
 <div class="ov hidden" id="ov-snooze">
   <div class="sh">
     <div class="sh-handle"></div>
@@ -1694,6 +1788,7 @@ html[data-theme="light"] .calc-section-lbl{color:var(--text-muted)}
 // ═══════════════════════════════════════════════════════════
 const APP_VERSION = '2.2';
 const CURRENT_SCHEMA = 2;
+const APP_BUILD = 'b1027.1400';
 const APP_KEYS = ['protocol_data','pt_backup','saved_doses','saved_stacks',
   'pt_cycle_reminded','pt_missed_confirmed','pt_last_backup_remind','pt_premigration_v1',
   'pt_migration_temp','pt_preimport_backup','pt_prep_v1','pt_theme','pt_prep_day','pt_prep_scope','pt_week_start','pt_templates_v1','pt_blend_sched_v1'];
@@ -1891,7 +1986,7 @@ const FL={daily:'Daily',bid:'Twice Daily',tid:'Three Times Daily',eod:'Every Oth
 // ─── DEFAULT COMPOUNDS ───────────────────────────────────────
 const DEFAULTS=[
   {id:'p1', name:'BPC-157',              cat:'Peptide',       dose:500,  unit:'mcg',route:'SubQ Injection',freq:'daily',   days:[],         time:'AM' ,clock:'',timingNotes:'',doseNotes:'',start:'',durtype:'weeks',  weeks:'4',end:'',          cycle:'',       pct:'',notes:'',color:'#34D399',active:false},
-  {id:'p2', name:'Retatutride',          cat:'Peptide',       dose:500,  unit:'mcg',route:'SubQ Injection',freq:'3xweek',  days:[2,4,6],    time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',durtype:'enddate',weeks:'', end:'2026-06-02',cycle:'',       pct:'',notes:'',color:'#4ECDC4',active:false},
+  {id:'p2', name:'Retatrutide',          cat:'Peptide',       dose:500,  unit:'mcg',route:'SubQ Injection',freq:'3xweek',  days:[2,4,6],    time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',durtype:'enddate',weeks:'', end:'2026-06-02',cycle:'',       pct:'',notes:'',color:'#4ECDC4',active:false},
   {id:'p3', name:'TB-500',               cat:'Peptide',       dose:700,  unit:'mcg',route:'SubQ Injection',freq:'daily',   days:[],         time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',durtype:'weeks',  weeks:'4',end:'',          cycle:'',       pct:'',notes:'',color:'#A78BFA',active:false},
   {id:'p4', name:'NAD+',                 cat:'Peptide',       dose:0,    unit:'mg', route:'SubQ Injection',           freq:'3xweek',  days:[1,3,5],    time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#FDE047',active:false},
   {id:'p5', name:'MOTSc',                cat:'Peptide',       dose:5,    unit:'mg', route:'SubQ Injection', freq:'3xweek',  days:[1,3,5],    time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#FB923C',active:false},
@@ -1914,8 +2009,8 @@ const DEFAULTS=[
 // The static DEFAULTS carry example dates that go stale over time; without this a
 // reset could leave active compounds hidden because their end date is in the past.
 function freshDefaults(){
-  const todayStr=(typeof localDateStr==='function')?localDateStr(new Date()):new Date().toISOString().slice(0,10);
-  const recentStart=(()=>{ const d=new Date(); d.setDate(d.getDate()-14); return (typeof localDateStr==='function')?localDateStr(d):d.toISOString().slice(0,10); })();
+  const todayStr=localDateStr(new Date());
+  const recentStart=(()=>{ const d=new Date(); d.setDate(d.getDate()-14); return localDateStr(d); })();
   return DEFAULTS.map(x=>{
     const c={...x};
     if(c.active){
@@ -2741,6 +2836,36 @@ function openTemplates(){ renderTemplates(); openOv('ov-templates'); }
 // configurations belong to the same period when they deliver the same weekly
 // exposure. A titration PLAN is one identity — progressing through its phases is
 // not a protocol change. Uses the canonical scheduler, not a private frequency map.
+// Long-run shape of a protocol from the canonical scheduler: average doses and due
+// days per week over twelve weeks. The probe ignores the end date and the active flag,
+// so this DESCRIBES the protocol (what Stack Summary and inventory forecasting need)
+// rather than its remaining life. scheduledPerWeek below is the exposure identity's
+// seven-day count and is left alone.
+function protocolWeeklyShape(c){
+  if(!c) return {doses:0, days:0};
+  if(c.freq==='flex') return {doses:flexTarget(c), days:flexTarget(c)};
+  if(c.freq==='prn')  return {doses:0, days:0};
+  const probe=Object.assign({}, c, {end:'', weeks:'', durtype:'ongoing', active:true});
+  const base=c.start || tod();
+  let doses=0, days=0;
+  for(let i=0;i<84;i++){
+    const k=scheduledDoseInstances(probe, addDays(base,i)).length;
+    if(k){ doses+=k; days++; }
+  }
+  return {doses:doses/12, days:days/12};
+}
+function protocolDosesPerWeek(c){ return protocolWeeklyShape(c).doses; }
+// A short label for the shape: "Daily", "EOD", "3x/wk", "2x/day".
+function weeklyShapeLabel(c){
+  const sh=protocolWeeklyShape(c);
+  if(c && c.freq==='flex') return 'Flexible \u00b7 '+flexTarget(c)+'/wk';
+  if(c && c.freq==='prn')  return 'As needed';
+  const perDay = sh.days ? sh.doses/sh.days : 0;
+  const dayStr = Math.abs(sh.days-7)<0.01 ? 'Daily'
+               : Math.abs(sh.days-3.5)<0.01 ? 'EOD'
+               : (Math.round(sh.days*10)/10)+'x/wk';
+  return perDay>1.5 ? dayStr+' \u00b7 '+Math.round(perDay)+'x/day' : dayStr;
+}
 function scheduledPerWeek(c, fromDate){
   // A flexible protocol is due every day but TAKEN weeklyTarget times — the target is
   // its real weekly exposure. Without this protocolExposureId would read MOTS-c as a
@@ -3002,6 +3127,8 @@ function normalizeDurations(){
   let fixed=0;
   (D.compounds||[]).forEach(c=>{
     if(!c) return;
+    // The compound shipped misspelt in the default list; correct any stored copy once.
+    if(c.name==='Retatutride'){ c.name='Retatrutide'; fixed++; }
     if(c.durtype==='ongoing' && (c.end || c.weeks)){ c.end=''; c.weeks=''; fixed++; }
     // isDue() skips its start check when start is empty ("if(c.start && ...)"), so an
     // active record with no start is due on every matching weekday, forever, with no
@@ -3023,11 +3150,16 @@ function normalizeDurations(){
 function isDue(c){
   return scheduledDoseInstances(c, viewDate).length > 0;
 }
+// A log marked kind:'extra' was taken outside the schedule (a second dose, or a dose
+// on a day nothing was due). It is recorded and counted, but it never ticks a
+// scheduled dose — otherwise an extra on Tuesday evening would hide a missed Tuesday
+// morning.
+function isExtraLog(l){ return !!(l && l.kind==='extra'); }
 function doneOnDate(c,slot,date){
   if(slot){
-    return D.logs.some(l=>l.pid===c.id&&l.slot===slot&&l.t.startsWith(date));
+    return D.logs.some(l=>l.pid===c.id&&l.slot===slot&&l.t.startsWith(date)&&!isExtraLog(l));
   }
-  return D.logs.some(l=>l.pid===c.id&&l.t.startsWith(date));
+  return D.logs.some(l=>l.pid===c.id&&l.t.startsWith(date)&&!isExtraLog(l));
 }
 function doneToday(c,slot){ return doneOnDate(c,slot,viewDate); }
 
@@ -3178,21 +3310,11 @@ function rStack(){
   const peptides=active.filter(c=>PEPTIDE_CATS.includes(c.cat)||!c.cat);
   const compounds=active.filter(c=>!PEPTIDE_CATS.includes(c.cat)&&c.cat);
 
-  function daysPerWeek(c){
-    if(c.freq==='flex') return flexTarget(c);
-    if(!c.days||c.days.length===0){
-      // daily or freq-based
-      const map={daily:7,bid:7,tid:7,eod:3.5,e3d:2.3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:0.25,oneweekpermonth:7/4.345,prn:0};
-      return map[c.freq]||7;
-    }
-    return c.days.length;
-  }
-
-  function dosesPerDay(c){
-    // Prefer explicit per-day frequency; fall back to AM+PM ("Both") = 2.
-    if(c.freq==='bid') return 2;
-    return c.time==='Both'?2:1;
-  }
+  // Both from the canonical scheduler. Weekly totals are dose x doses-per-week; the
+  // old "dose on jab days x days" maths double-counted nothing but labelled a BID
+  // day's two doses as one "session".
+  function daysPerWeek(c){ return protocolWeeklyShape(c).days; }
+  function dosesPerDay(c){ const sh=protocolWeeklyShape(c); return sh.days ? sh.doses/sh.days : 0; }
 
   function fmtDose(dose,unit){
     return dose+' '+unit;
@@ -3201,11 +3323,12 @@ function rStack(){
   function buildRow(c){
     const dpw=daysPerWeek(c);
     const dpd=dosesPerDay(c);
-    const jabDose=c.dose*(dpd); // dose on jab days (e.g. BPC Both = 500mcg x2 = 1000mcg per jab day)
-    const weeklyDose=jabDose*dpw;
-    const jabDoseStr=fmtDose(jabDose,c.unit);
+    const perDoseStr=fmtDose(c.dose,c.unit);
+    const jabDose=c.dose*(dpd);          // total on a due day: a BID day is two doses
+    const weeklyDose=c.dose*protocolDosesPerWeek(c);
+    const jabDoseStr=fmtDose(jabDose%1===0?jabDose:parseFloat(jabDose.toFixed(2)),c.unit);
     const weeklyStr=fmtDose(weeklyDose%1===0?weeklyDose:parseFloat(weeklyDose.toFixed(2)),c.unit);
-    const dpwStr=dpw===7?'Daily':dpw===3.5?'EOD':dpw%1===0?dpw+'x/wk':dpw+'x/wk';
+    const dpwStr=weeklyShapeLabel(c);
     return`<div class="stack-row">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <div style="width:8px;height:8px;border-radius:50%;background:${c.color||'var(--text-muted)'};flex-shrink:0"></div>
@@ -3852,6 +3975,10 @@ function isOilBased(c){
   const f=(c.formulation||'').toLowerCase();
   if(f==='oil') return true;
   if(f==='reconstituted') return false;
+  // An IU-dosed compound is reconstituted by definition (HGH, HCG): oil carries mass
+  // units only. Without this the category rule below treated them as Test-E and
+  // refused every draw with a message that pointed at the wrong field.
+  if(normUnit(c.unit)==='IU' || normUnit(c.vialUnit)==='IU') return false;
   const cat=(c.cat||'').toLowerCase();
   const route=(c.route||'').toLowerCase();
   return cat==='hormone' || route.indexOf('oil')>-1 || route.indexOf('im injection')>-1;
@@ -3979,13 +4106,35 @@ function sprayMcgPerSpray(c){
   return (r.ok && Number.isFinite(r.mcgPerSpray)) ? r.mcgPerSpray : null;
 }
 const PIN_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg> ';
+// Why a draw cannot be computed, phrased as the thing to fix. A plausible number is
+// never shown in place of this; the point is to send the user to the right field.
+function drawRefusalText(c){
+  if(!c) return 'Check vial units';
+  // Prefer the calculator's own reason when it gives one that names a field.
+  try{
+    const info=drawInfo(c);
+    if(info && info.error){
+      if(/oil/i.test(info.error) && !/mg|mcg/.test(normUnit(c.unit)||''))
+        return 'Set formulation \u2014 oil needs a mass dose';
+      if(/concentration/i.test(info.error)) return 'Set vial size and BAC water';
+    }
+  }catch(e){}
+  const du=normUnit(c.unit), vu=normUnit(c.vialUnit);
+  const vs=parseFloat(c.vialSize), bw=parseFloat(c.bacWater);
+  if(!(vs>0))               return 'Set vial size to draw';
+  if(isInjectableRoute(c.route) && isSubQRoute(c.route) && !(bw>0) && c.formulation!=='oil')
+                             return 'Set BAC water to draw';
+  if(du && vu && unitFamily(du)!==unitFamily(vu))
+                             return 'Dose is '+du+' but vial is '+vu+' \u2014 fix one';
+  return 'Check vial units';
+}
 function pinBadge(c){
   const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater), dose=parseFloat(effectiveDose(c));
   // Every injectable now reports through drawInfo: pin amount + the dose it holds.
   if(!isSprayRoute(c.route)){
     const info=drawInfo(c);
     if(info && info.error){
-      return '<span style="color:var(--warning-text);font-size:12px">Check vial units</span>';
+      return '<span style="color:var(--warning-text);font-size:12px">'+esc(drawRefusalText(c))+'</span>';
     }
     const txt=pinAmountText(c, info);
     if(txt) return PIN_SVG+txt;
@@ -4043,13 +4192,11 @@ function rToday(){
   // One row per scheduled administration, straight from the canonical scheduler.
   const rows=[];
   active.forEach(c=>{
+    // Flexible protocols have no scheduled day, so they never belong in an AM/PM
+    // column or its count. They are recorded in their own card below.
+    if(isFlex(c)) return;
     doseInstancesFor(c, viewDate).forEach(inst=>{
-      const sl=logSlotFor(c, inst);
-      // A flexible protocol is due every day, but stops asking once the week's target
-      // is met. One already taken today still shows, so the day reads correctly.
-      if(isFlex(c) && !inst.shifted && flexRemaining(c, viewDate)<=0
-         && !doneOnDate(c, sl, viewDate)) return;
-      rows.push({c:c, inst:inst, slot:sl});
+      rows.push({c:c, inst:inst, slot:logSlotFor(c, inst)});
     });
   });
   let totalDoses=0, doneDoses=0, snoozed=0;
@@ -4117,14 +4264,13 @@ function rToday(){
     const snzTo = snz ? snoozeEndsOn(c, slot||'', viewDate) : '';
     const moved = (inst && inst.shifted)
       ? '<span class="snz-badge">Moved from '+esc(fmtD(inst.from))+'</span>' : '';
-    const flexLbl = isFlex(c)
-      ? ' \u00b7 '+flexTakenInWeek(c, viewDate)+' of '+flexTarget(c)+' this week' : '';
     return`<div class="ci ${ok?'done':''} ${expiring&&!snz?'expiring':''} ${snz?'snoozed':''}" onclick="quickCheck('${c.id}','${slot||''}')">
       <div class="chk ${ok?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="var(--c-white)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div style="flex:1;min-width:0">
         <div class="ci-name"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}${snz?'<span class="snz-badge">'+(snzTo?'Back '+fmtD(snzTo):'Snoozed')+'</span>':(expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':'')}${moved}</div>
         ${pin?`<div class="ci-draw">${pin}</div>`:''}
-        <div class="ci-sub">${esc(doseLabel(c))} · ${esc(c.route)}${flexLbl}</div>
+        <div class="ci-sub">${esc(doseLabel(c))} · ${esc(c.route)}</div>
+        ${siteChip(c, slot||'')}
       </div>
       <button class="snooze-btn ${snz?'on':''}" title="${snz?'Un-snooze':'Snooze for this day'}"
         onclick="toggleSkip('${c.id}','${slot||''}',event)">
@@ -4155,7 +4301,7 @@ function rToday(){
         <div class="ci-name">
           <span style="display:inline-flex;gap:2px;margin-right:5px">${entry.members.map(m=>`<span class="dot" style="background:${m.c.color};width:7px;height:7px"></span>`).join('')}</span>
           ${esc(entry.group)}
-          <span style="font-size:10px;font-weight:600;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand-border);border-radius:8px;padding:1px 6px;margin-left:6px">'+entry.members.length+' in 1 pin</span>
+          <span style="font-size:10px;font-weight:600;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand-border);border-radius:8px;padding:1px 6px;margin-left:6px">${entry.members.length} in 1 pin</span>
           ${some?'<span class="snz-badge">Part done</span>':''}
         </div>
         ${total?`<div class="ci-draw">${PIN_SVG}${esc(total)}</div>`:''}
@@ -4186,7 +4332,12 @@ function rToday(){
     </div>`;
   }
 
-  document.getElementById('ampm').innerHTML=colHTML(amItems,'am')+colHTML(pmItems,'pm');
+  // Single column: AM then PM. An empty column is dropped when the other has doses,
+  // so a morning-only day is one card rather than a card and a placeholder.
+  const amH = (amItems.length || !pmItems.length) ? colHTML(amItems,'am') : '';
+  const pmH = (pmItems.length || !amItems.length) ? colHTML(pmItems,'pm') : '';
+  document.getElementById('ampm').innerHTML=amH+(amH&&pmH?pmH:(!amH?pmH:''));
+  rFlexToday();
 
   const anyExpiring=rows.some(r=>{ const c=r.c;
     const d=daysUntilCycleEnd(c);
@@ -4231,13 +4382,71 @@ function rToday(){
 // date it was administered — not c.dose, which is the CURRENT phase of a titration.
 // Backdated ticks therefore store the historical phase dose, matching what Today showed.
 function scheduledLogPayload(c, dateStr, slot, extra){
-  const ts = (dateStr===tod()) ? localDateTimeStr(new Date()) : (dateStr+'T12:00');
+  const backTime = slot==='pm' ? 'T19:00' : slot==='am' ? 'T08:00'
+                 : (c && (c.time==='PM'||c.time==='BedTime')) ? 'T19:00' : 'T12:00';
+  const ts = (dateStr===tod()) ? localDateTimeStr(new Date()) : (dateStr+backTime);
   const p = {id:uid(), pid:c.id, slot:slot||'',
              dose:effectiveDose(c, dateStr), unit:normUnit(c.unit),
              site:'', t:ts, notes:(dateStr!==tod() ? 'Backdated' : '')};
   if(extra) Object.keys(extra).forEach(k=>{ p[k]=extra[k]; });
   return p;
 }
+// ─── FLEXIBLE DOSES CARD ─────────────────────────────────────
+// Flexible protocols are taken on training days, which vary week to week, so there
+// is no day to schedule them on. They are recorded here instead: tick the ones you
+// took, and the card tracks how many of each week's target remain.
+//
+// Ticking goes through quickCheck, exactly as a scheduled dose does, so the log,
+// adherence and history records are identical — only the placement differs.
+function rFlexToday(){
+  const el=document.getElementById('flex-card');
+  if(!el) return;
+  const live=(D.compounds||[]).filter(c=>c && c.active && isFlex(c));
+  if(!live.length){ el.innerHTML=''; return; }
+  // A training day that has not happened yet cannot be recorded, so a future date
+  // shows the week's standing without offering a tick.
+  const future = viewDate > tod();
+  let remTotal=0;
+  const rows=live.map(c=>{
+    const taken = flexTakenInWeek(c, viewDate);
+    const tgt   = flexTarget(c);
+    const rem   = Math.max(0, tgt - taken);
+    remTotal += rem;
+    const done  = doneOnDate(c, '', viewDate);
+    const over  = taken > tgt;
+    const pin   = pinBadge(c);
+    const status = over ? taken+' of '+tgt+' taken this week'
+                 : rem>0 ? rem+' left this week'
+                 : 'Done \u2014 '+taken+' of '+tgt+' this week';
+    const statusCol = over ? 'var(--warn-text, var(--text-secondary))'
+                    : rem>0 ? 'var(--text-secondary)' : 'var(--text-muted)';
+    return '<div class="ci '+(done?'done':'')+'"'
+      + (future ? ' style="opacity:.55"' : ' onclick="quickCheck(\''+c.id+'\',\'\')"')
+      + '>'
+      + '<div class="chk '+(done?'done':'')+'"><svg width="12" height="9" fill="none" viewBox="0 0 12 9">'
+      + '<path d="M1 4l3.5 3.5L11 1" stroke="var(--c-white)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
+      + '<div style="flex:1;min-width:0">'
+      +   '<div class="ci-name"><span class="dot" style="background:'+esc(c.color||'')+'"></span>'+esc(c.name)+'</div>'
+      +   (pin ? '<div class="ci-draw">'+pin+'</div>' : '')
+      +   '<div class="ci-sub">'+esc(doseLabel(c, viewDate))+' \u00b7 '+esc(c.route||'')+'</div>'
+      +   (future ? '' : siteChip(c, ''))
+      + '</div>'
+      + '<div style="font-size:11px;font-family:var(--mono);text-align:right;'
+      +   'white-space:nowrap;color:'+statusCol+'">'+esc(status)+'</div>'
+      + '</div>';
+  }).join('');
+  el.innerHTML =
+    '<div class="col" style="margin-bottom:12px">'
+    + '<div class="col-hdr"><span class="col-ttl am">FLEXIBLE DOSES</span>'
+    +   '<span class="col-cnt">'+remTotal+' left this week</span></div>'
+    + '<div style="padding:8px 13px 0;font-size:11px;color:var(--text-muted)">'
+    +   (future ? 'A future training day cannot be recorded \u2014 showing this week\u2019s standing.'
+               : 'No fixed days \u2014 tick whichever of these you took today.')
+    + '</div>'
+    + rows
+    + '</div>';
+}
+
 function quickCheck(pid,slot){
   const c=D.compounds.find(x=>x.id===pid);if(!c)return;
   const t=viewDate;
@@ -4290,8 +4499,7 @@ function quickCheckGroup(group, slot){
   save(); render();
 }
 function tickAll(){
-  const due=D.compounds.filter(c=>c.active&&isDue(c)
-    && !(isFlex(c) && flexRemaining(c, viewDate)<=0));
+  const due=D.compounds.filter(c=>c.active&&isDue(c)&&!isFlex(c));
   const t=viewDate;
   // Check if everything is done
   const active=due.filter(c=>!(c.time==='Both'
@@ -4381,19 +4589,34 @@ function inlineName(pid,el){
   const c=D.compounds.find(x=>x.id===pid);if(!c)return;
   c.name=el.value.trim()||c.name;save();rToday();
 }
+// Inline table edits used to write straight to the record, bypassing validation and
+// history. An IU unit could be set against an mg vial here with no refusal. They now
+// go through applyProtocolMutation like every other change; on refusal the field is
+// restored and the reason shown.
+function inlineMutate(pid, el, changes, restore){
+  const r=applyProtocolMutation(pid, changes, 'inline-edit');
+  if(!r.ok){
+    if(el && restore!==undefined) el.value=restore;
+    if(r.message) ptAlert(r.message, 'Not changed');
+    return false;
+  }
+  return true;
+}
 function inlineDose(pid,el){
   const c=D.compounds.find(x=>x.id===pid);if(!c)return;
   const r=parseNum(el.value,'pos');
   if(!r.ok){ el.value=c.dose; return; }   // reject blank/zero/neg/NaN — keep prior, restore display
-  c.dose=r.value; save();
+  inlineMutate(pid, el, {dose:r.value}, c.dose);
 }
 function inlineUnit(pid,el){
   const c=D.compounds.find(x=>x.id===pid);if(!c)return;
-  c.unit=el.value;save();
+  if(!inlineMutate(pid, el, {unit:el.value}, c.unit)) return;
+  rToday();
 }
 function inlineTime(pid,el){
   const c=D.compounds.find(x=>x.id===pid);if(!c)return;
-  c.time=el.value;save();rToday();
+  if(!inlineMutate(pid, el, {time:el.value}, c.time)) return;
+  rToday();
 }
 function togActive(pid,e){
   e.stopPropagation();
@@ -4404,9 +4627,9 @@ function togActive(pid,e){
     openAddKind(pid);
     return;
   }
-  // Turning OFF: silent, as before.
-  c.active=false;
-  save();rProto();rToday();
+  // Turning OFF: silent, as before — but recorded, so history shows when it stopped.
+  inlineMutate(pid, null, {active:false});
+  rProto();rToday();
 }
 
 // Turning a compound on starts a new cycle: today + 12 weeks by default.
@@ -4428,8 +4651,8 @@ function togDay(pid,day,e){
   let days=c.days&&c.days.length>0?[...c.days]:[0,1,2,3,4,5,6];
   if(days.includes(day)) days=days.filter(d=>d!==day);
   else days.push(day);
-  c.days=days.length===7?[]:days;
-  save();rProto();rToday();
+  inlineMutate(pid, null, {days:(days.length===7?[]:days)});
+  rProto();rToday();
 }
 
 function rLog(){
@@ -4509,14 +4732,8 @@ function addSizeEntry(pid, e){
 }
 
 function dosesPerDay(c){
-  if(!c) return 0;
-  if(c.freq==='flex') return flexTarget(c)/7;
-  const freq=c.freq;
-  const daysPerWeek=c.days&&c.days.length>0?c.days.length:7;
-  const multiplier=c.time==='Both'?2:1;
-  const map={daily:7,bid:7,eod:3.5,e3d:7/3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:7/30,prn:0};
-  const dosesPerWeek=(map[freq]!==undefined?map[freq]:daysPerWeek)*multiplier;
-  return dosesPerWeek/7;
+  // From the canonical scheduler, so inventory forecasts agree with Today.
+  return protocolDosesPerWeek(c)/7;
 }
 
 function daysUntilNextVial(c,inv){
@@ -4634,10 +4851,42 @@ function rInv(){
   }).join('');
 }
 
+// One day's standing across every active fixed-schedule protocol:
+// 'taken' all due doses taken; 'partial' some; 'missed' none of them; 'paused' all
+// snoozed; 'none' nothing was due.
+function dayAdherence(ds){
+  let due=0, taken=0, partial=0, paused=0;
+  (D.compounds||[]).forEach(c=>{
+    if(!c || !c.active) return;
+    const st=adherenceStatus(c.id, ds);
+    if(st==='none') return;
+    due++;
+    if(st==='taken') taken++;
+    else if(st==='partial') partial++;
+    else if(st==='paused') paused++;
+  });
+  if(!due) return 'none';
+  if(taken===due) return 'taken';
+  if(paused===due) return 'paused';
+  if(taken||partial) return 'partial';
+  return 'missed';
+}
 function rStats(){
-  let dots='';
-  for(let i=29;i>=0;i--){const d=dAgo(i);dots+=`<div class="sd ${D.logs.some(l=>l.t.startsWith(d))?'on':''}" title="${d}"></div>`;}
-  document.getElementById('streak').innerHTML=dots;
+  const DOW=['S','M','T','W','T','F','S'];
+  let cells='';
+  for(let i=29;i>=0;i--){
+    const d=dAgo(i);
+    const st=dayAdherence(d);
+    const dt=new Date(d+'T12:00:00');
+    cells+=`<div class="sd-col" title="${d}"><div class="sd-dow">${DOW[dt.getDay()]}</div>`
+          +`<div class="sd ${st}"></div><div class="sd-day">${dt.getDate()}</div></div>`;
+  }
+  document.getElementById('streak').innerHTML=
+    `<div class="sd-range">${esc(fmtD(dAgo(29)))} \u2013 ${esc(fmtD(dAgo(0)))}</div>`
+    +`<div class="streak-grid">${cells}</div>`
+    +`<div class="cal-adh-legend" style="margin-top:8px"><span><i style="background:var(--success)"></i>All taken</span>`
+    +`<span><i style="background:linear-gradient(135deg,var(--success) 50%,var(--danger) 50%)"></i>Some</span>`
+    +`<span><i style="background:var(--warning)"></i>Paused</span><span><i style="background:var(--danger)"></i>Missed</span></div>`;
   document.getElementById('stats-list').innerHTML=D.compounds.filter(c=>c.active).map(c=>{
     const logs=D.logs.filter(l=>l.pid===c.id);
     const last=logs.length?logs.sort((a,b)=>new Date(b.t)-new Date(a.t))[0]:null;
@@ -4665,7 +4914,7 @@ function calSelectCompound(){
   window._calCompound=document.getElementById('cal-compound-filter').value;
   rHistByDate();
 }
-// adherence status for one compound on one date: 'taken'|'paused'|'missed'|'none'
+// adherence status for one compound on one date: 'taken'|'partial'|'paused'|'missed'|'none'
 // §5: trackingStartDate marks when the user actually began TRACKING this protocol in the
 // app (i.e. when the record was created/activated), as distinct from the clinical start
 // date, which may be back-dated. Adherence/missed-dose logic must not retroactively mark
@@ -4702,20 +4951,27 @@ function adherenceStatus(cid, ds){
   const cfg=snap?snap.snap:c; if(!cfg) return 'none';
   // A flexible protocol has no scheduled day to miss, so it is never assessed here.
   if(cfg.active===false || cfg.freq==='prn' || cfg.freq==='flex') return 'none';
-  if(cfg.start && ds<cfg.start) return 'none';
   // §5: before tracking began, days are not assessed (pre-tracking), never missed.
   const trackFloor = c && c.trackingStartDate ? c.trackingStartDate : (cfg.start||null);
   if(trackFloor && ds<trackFloor) return 'none';
-  if(cfg.end && ds>cfg.end) return 'none';
-  const dow=new Date(ds+'T12:00:00').getDay();
-  const sched=(cfg.days&&cfg.days.length)?cfg.days.includes(dow):true;
-  if(!sched) return 'none';
-  if((D.logs||[]).some(l=>l.pid===cid && (l.t||'').startsWith(ds))) return 'taken';
-  const cRef={id:cid,time:cfg.time};
-  const slots=cfg.time==='Both'?['am','pm','']:[''];
-  if(slots.some(x=>!!snoozeFor(cRef,x,ds))) return 'paused';
-  const todayStr=new Date().toISOString().slice(0,10);
-  if(ds<todayStr) return 'missed';
+  // What was due comes from the canonical scheduler, read against the protocol as it
+  // stood that day. An old snapshot may lack the active flag; it was active to be
+  // snapshotted, so the probe says so. Moves are per-date overrides on the live
+  // record and are honoured through the layer.
+  const probe=Object.assign({active:true}, cfg, {id:cid});
+  const insts=doseInstancesFor(probe, ds);
+  if(!insts.length) return 'none';
+  const cRef={id:cid,time:cfg.time,freq:cfg.freq};
+  let done=0, paused=0;
+  insts.forEach(inst=>{
+    const sl=logSlotFor(cRef, inst);
+    if(doneOnDate(cRef, sl, ds)) done++;
+    else if(snoozeFor(cRef, sl, ds) || (sl && snoozeFor(cRef, '', ds))) paused++;
+  });
+  if(done===insts.length) return 'taken';
+  if(done>0) return 'partial';                 // some slots, not all
+  if(paused===insts.length) return 'paused';
+  if(ds<tod()) return 'missed';
   return 'none';
 }
 function rHistByDate(){
@@ -4738,7 +4994,7 @@ function rHistByDate(){
 
   // which day-keys (YYYY-MM-DD) have any snapshot on/before them within this month?
   const hist=(D.history||[]).slice();
-  const todayStr=new Date().toISOString().slice(0,10);
+  const todayStr=tod();
   // a day "has data" if at least one snapshot exists on-or-before that day
   const firstSnap = hist.length ? hist.map(h=>h.savedAt).sort()[0].slice(0,10) : null;
 
@@ -4775,10 +5031,10 @@ function rHistByDate(){
   if(window._calCompound){
     const c=D.compounds.find(x=>x.id===window._calCompound);
     const st=adherenceStatus(window._calCompound, selDate);
-    const stLbl={taken:'Taken',paused:'Paused',missed:'Missed',none:'Not scheduled'}[st];
-    const stCol={taken:'var(--success-text)',paused:'var(--warning-text)',missed:'var(--danger-text)',none:'var(--text-muted)'}[st];
+    const stLbl={taken:'Taken',partial:'Part taken',paused:'Paused',missed:'Missed',none:'Not scheduled'}[st]||st;
+    const stCol={taken:'var(--success-text)',partial:'var(--warning-text)',paused:'var(--warning-text)',missed:'var(--danger-text)',none:'var(--text-muted)'}[st]||'var(--text-muted)';
     lbl.innerHTML=(c?esc(c.name):'')+' on '+new Date(selDate+'T12:00:00').toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
-    list.innerHTML='<div class="cal-adh-legend"><span><i style="background:var(--success)"></i>Taken</span><span><i style="background:var(--warning)"></i>Paused</span><span><i style="background:var(--danger)"></i>Missed</span></div>'+
+    list.innerHTML='<div class="cal-adh-legend"><span><i style="background:var(--success)"></i>Taken</span><span><i style="background:linear-gradient(135deg,var(--success) 50%,var(--danger) 50%)"></i>Part</span><span><i style="background:var(--warning)"></i>Paused</span><span><i style="background:var(--danger)"></i>Missed</span></div>'+
       '<div class="proto-box"><div class="proto-box-item"><div class="proto-box-dot" style="background:'+(c&&c.color||'var(--text-muted)')+'"></div>'+
       '<div class="proto-box-info"><div class="proto-box-name">'+stLbl+'</div>'+
       '<div class="proto-box-sub" style="color:'+stCol+'">'+(c?esc(c.dose+' '+(c.unit||'')+' · '+(c.route||'')):'')+'</div></div></div></div>';
@@ -4798,7 +5054,7 @@ function rHistByDate(){
     if(!sn) return false;
     if(sn.active===false) return false;
     if(sn.start && selDate < sn.start) return false;
-    const end = sn.end || (sn.durtype==='weeks'&&sn.weeks&&sn.start ? (()=>{const sd=new Date(sn.start+'T12:00:00');sd.setDate(sd.getDate()+sn.weeks*7);return sd.toISOString().slice(0,10);})() : null);
+    const end = sn.end || (sn.durtype==='weeks'&&sn.weeks&&sn.start ? (()=>{const sd=new Date(sn.start+'T12:00:00');sd.setDate(sd.getDate()+sn.weeks*7);return localDateStr(sd);})() : null);
     if(end && selDate > end) return false;
     return true;
   });
@@ -4863,12 +5119,12 @@ function toggleAdherence(cid, fromStr, toStr){
     if(snap.days && snap.days.length){ return snap.days.includes(dt.getDay()); }
     return true; // no specific days = every day
   };
-  const dstr=dt=>dt.toISOString().slice(0,10);
+  const dstr=dt=>localDateStr(dt);
   const wasTaken=(ds)=> (D.logs||[]).some(l=>l.pid===cid && (l.t||'').startsWith(ds));
   const cRef={id:cid, time:snap.time}; // stable ref for snoozeFor even if compound was deleted
   const wasPaused=(ds)=>{ const sl2 = snap.time==='Both'?['am','pm','']:['']; return sl2.some(x=>!!snoozeFor(cRef, x, ds)); };
 
-  const todayStr=new Date().toISOString().slice(0,10);
+  const todayStr=tod();
   let cells='';
   const dow=['S','M','T','W','T','F','S'];
   cells+=dow.map(x=>`<div class="adh-dow">${x}</div>`).join('');
@@ -4877,13 +5133,11 @@ function toggleAdherence(cid, fromStr, toStr){
   days.forEach(dt=>{
     const ds=dstr(dt);
     let cls='blank', title=ds;
-    if(scheduledOn(dt)){
-      if(wasTaken(ds)){ cls='taken'; }
-      else if(wasPaused(ds)){ cls='paused'; }
-      else if(ds<todayStr){ cls='missed'; }   // past, due, not taken, not paused
-      else if(ds===todayStr){ cls='today-due'; }
-      else cls='future';
-    }
+    // One adherence truth: the same function the calendar and the export use.
+    const st=adherenceStatus(cid, ds);
+    if(st==='taken'||st==='partial'||st==='paused'||st==='missed') cls=st;
+    else if(ds>todayStr && scheduledOn(dt)) cls='future';
+    else if(ds===todayStr && scheduledOn(dt)) cls='today-due';
     cells+=`<div class="adh-cell ${cls}" title="${ds}"><span>${dt.getDate()}</span></div>`;
   });
   box.innerHTML=`<div class="adh-legend">
@@ -4957,7 +5211,7 @@ function rHist(){
     if(idx<periods.length-1){
       const nextFrom=new Date(periods[idx+1].from+'T12:00:00');
       nextFrom.setDate(nextFrom.getDate()-1);
-      let to=nextFrom.toISOString().slice(0,10);
+      let to=localDateStr(nextFrom);
       if(to<p.from) to=p.from; // never reverse
       p.to=to;
     } else p.to=null; // ongoing
@@ -5071,19 +5325,27 @@ function setRecTab(tab){
 function nav(pg,btn){
   document.querySelectorAll('.pg').forEach(p=>p.classList.add('hidden'));
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
-  document.getElementById('pg-'+pg).classList.remove('hidden');
-  btn.classList.add('on');
+  const page=document.getElementById('pg-'+pg); if(!page) return;
+  page.classList.remove('hidden');
+  if(btn) btn.classList.add('on');
+  const gear=document.querySelector('.hdr-gear'); if(gear) gear.classList.toggle('on', pg==='settings');
   document.getElementById('scr').scrollTop=0;
   currentPage=pg;
   // Protocol and Inventory have their own explicit Add buttons; the FAB only
   // overlapped their content, so it is hidden there too.
-  document.getElementById('fab').style.display=['records','calc','stack','proto','inv'].includes(pg)?'none':'flex';
+  document.getElementById('fab').style.display=['records','calc','stack','proto','inv','settings'].includes(pg)?'none':'flex';
   if(pg==='today'){viewDate=tod();updateDateNav();}
   if(pg==='records') setRecTab(currentRecTab);
   if(pg==='calc') initCalc();
   if(pg==='stack') setStackTab(currentStackTab);
-  const titles={today:'Today',proto:'Protocol',inv:'Inventory',calc:'Calculator',stack:'Stack Summary',records:'Records'};
+  if(pg==='settings') rSettings();
+  const titles={today:'Today',proto:'Protocol',inv:'Inventory',calc:'Calculator',stack:'Stack Summary',records:'Records',settings:'Settings'};
   document.getElementById('hdrTitle').textContent=titles[pg]||pg;
+}
+function rSettings(){
+  if(typeof renderStorageUsage==='function') renderStorageUsage();
+  if(typeof renderThemeControl==='function') renderThemeControl();
+  const b=document.getElementById('about-build'); if(b) b.textContent=APP_BUILD;
 }
 function fabAction(){
   // The + button offers a choice: add a new protocol (guided wizard) or log a dose
@@ -5111,6 +5373,8 @@ const SWIPE_CANCEL = {
   'ov-log':       ()=>{},
   'ov-inv':       ()=>{},
   'ov-snooze':    ()=>{},
+  'ov-snapshot':  ()=>{},                       // read-only export sheet, nothing to cancel
+  'ov-site':      ()=>{ _siteCtx=null; },
   'ov-fabpick':   ()=>{},
   'ov-cycend':    ()=>{},
   'ov-addkind':   ()=>{},
@@ -5786,15 +6050,98 @@ function openLog(pid){
   // localDateTimeStr already returns LOCAL date/time — do not apply the offset again.
   document.getElementById('l-time').value=localDateTimeStr(new Date());
   document.getElementById('l-notes').value='';
-  fSite='';
-  document.querySelectorAll('.site').forEach(s=>s.classList.remove('on'));
   openOv('ov-log');
 }
 function prefillLog(){
   const c=D.compounds.find(x=>x.id===document.getElementById('l-pid').value);
   if(c){document.getElementById('l-dose').value=c.dose;document.getElementById('l-unit').value=normUnit(c.unit);}
+  // Pre-select the next site in the rotation; the user can still tap another.
+  fSite='';
+  document.querySelectorAll('.site').forEach(x=>x.classList.remove('on'));
+  const next=c ? suggestSite(c) : '';
+  if(next){
+    const el=[...document.querySelectorAll('#l-sites .site')].find(x=>(x.getAttribute('onclick')||'').indexOf("'"+next+"'")>-1);
+    if(el){ el.classList.add('on'); fSite=next; }
+  }
 }
 function selSite(el,s){document.querySelectorAll('.site').forEach(x=>x.classList.remove('on'));el.classList.add('on');fSite=s}
+
+// ─── INJECTION SITE ROTATION ─────────────────────────────────
+// Rotation order per route. SubQ alternates sides of the abdomen before moving to
+// the thighs; IM rotates glutes, delts, thighs. The next site is simply the one after
+// the last recorded site for that compound, so a missed day never breaks the cycle.
+const SITE_ROTATION={
+  subq:['Abdomen L','Abdomen R','Thigh L','Thigh R','Delt L','Delt R'],
+  im:  ['Glute L','Glute R','Delt L','Delt R','Thigh L','Thigh R']
+};
+function siteRotationFor(c){
+  if(!c || !isInjectableRoute(c.route)) return [];
+  return isSubQRoute(c.route) ? SITE_ROTATION.subq : SITE_ROTATION.im;
+}
+function lastSiteLog(c){
+  if(!c) return null;
+  let best=null;
+  (D.logs||[]).forEach(l=>{
+    if(!l || l.pid!==c.id || !l.site) return;
+    if(!best || String(l.t||'')>String(best.t||'')) best=l;
+  });
+  return best;
+}
+function lastSiteFor(c){ const l=lastSiteLog(c); return l ? l.site : ''; }
+function suggestSite(c){
+  const rot=siteRotationFor(c);
+  if(!rot.length) return '';
+  const last=lastSiteFor(c);
+  const i=rot.indexOf(last);
+  return i<0 ? rot[0] : rot[(i+1)%rot.length];
+}
+// The site recorded for a given dose on a given day, if any.
+function siteOnDate(c, slot, date){
+  const l=(D.logs||[]).find(x=>x && x.pid===c.id && (x.slot||'')===(slot||'') && String(x.t||'').startsWith(date) && !isExtraLog(x));
+  return l ? (l.site||'') : '';
+}
+let _siteCtx=null;
+function openSitePick(pid, slot, e){
+  if(e) e.stopPropagation();
+  const c=(D.compounds||[]).find(x=>x && x.id===pid); if(!c) return;
+  const rot=siteRotationFor(c); if(!rot.length) return;
+  _siteCtx={pid:pid, slot:slot||'', date:viewDate};
+  const cur=siteOnDate(c, slot, viewDate);
+  const next=suggestSite(c);
+  const last=lastSiteFor(c);
+  document.getElementById('site-title').textContent=c.name+(slot?' ('+slot.toUpperCase()+')':'');
+  document.getElementById('site-sub').textContent = last ? 'Last used: '+last+' \u00b7 next in rotation: '+next
+                                                         : 'No site recorded yet \u00b7 suggested: '+next;
+  document.getElementById('site-grid').innerHTML=rot.map(sname=>
+    '<div class="site '+(sname===cur?'on':'')+(sname===next&&!cur?' site-next':'')+'" onclick="applySite(\''+esc(sname)+'\')">'
+    +esc(sname)+(sname===next?'<span class="site-tag">next</span>':'')+'</div>').join('');
+  openOv('ov-site');
+}
+function applySite(sname){
+  if(!_siteCtx) return;
+  const c=(D.compounds||[]).find(x=>x && x.id===_siteCtx.pid); if(!c) return;
+  const {slot, date}=_siteCtx;
+  let l=(D.logs||[]).find(x=>x && x.pid===c.id && (x.slot||'')===slot && String(x.t||'').startsWith(date) && !isExtraLog(x));
+  if(!l){
+    // Picking a site for an unticked dose ticks it: you are recording that you took
+    // it, there. Goes through the same payload as a tap on the row.
+    l=scheduledLogPayload(c, date, slot);
+    if(D.skips&&D.skips.length) D.skips=D.skips.filter(k=>!(k.pid===c.id && (k.slot||'')===slot));
+    D.logs.push(l);
+  }
+  l.site=sname;
+  save(); render(); closeOv('ov-site');
+}
+// A compact chip for a Today row: the recorded site, or the suggested next one.
+function siteChip(c, slot){
+  if(!c || !isInjectableRoute(c.route) || !siteRotationFor(c).length) return '';
+  const cur=siteOnDate(c, slot, viewDate);
+  const txt=cur ? cur : (suggestSite(c) ? 'Site: '+suggestSite(c) : '');
+  if(!txt) return '';
+  return '<button class="site-chip '+(cur?'set':'')+'" onclick="openSitePick(\''+c.id+'\',\''+(slot||'')+'\',event)" title="Injection site">'
+    +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-12a7 7 0 00-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg> '
+    +esc(txt)+'</button>';
+}
 function saveLog(){
   const pid=document.getElementById('l-pid').value;
   const dose=document.getElementById('l-dose').value;
@@ -5809,8 +6156,15 @@ function saveLog(){
     const hr=parseInt((t.split('T')[1]||'00:00').slice(0,2),10);
     slot = (hr<12) ? 'am' : 'pm';
   }
-  D.logs.push({id:uid(),pid,slot,dose,unit:document.getElementById('l-unit').value,
-    site:fSite,t,notes:document.getElementById('l-notes').value});
+  // Scheduled or extra? It is scheduled only if an instance was due that day in that
+  // slot and nothing has ticked it yet. Anything else is an extra dose: still logged,
+  // still counted, never credited against the schedule.
+  const dayStr=t.slice(0,10);
+  const open = c ? doseInstancesFor(c, dayStr).some(i=>logSlotFor(c,i)===slot) && !doneOnDate(c, slot, dayStr) : false;
+  const entry={id:uid(),pid,slot,dose,unit:document.getElementById('l-unit').value,
+    site:fSite,t,notes:document.getElementById('l-notes').value};
+  if(!open) entry.kind='extra';
+  D.logs.push(entry);
   save();render();closeOv('ov-log');
 }
 
@@ -5877,7 +6231,7 @@ function defaultInventory(){
   }
   return [
     {id:uid(),pid:pid('BPC-157'),        vials:21, qty:10,   unit:'mg', purchased:'2026-06-21'},
-    {id:uid(),pid:pid('Retatutride'),    vials:11, qty:20,   unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('Retatrutide'),    vials:11, qty:20,   unit:'mg', purchased:'2026-06-21'},
     {id:uid(),pid:pid('TB-500'),         vials:10, qty:10,   unit:'mg', purchased:'2026-06-21'},
     {id:uid(),pid:pid('NAD+'),           vials:8,  qty:1000, unit:'mg', purchased:'2026-06-21'},
     {id:uid(),pid:pid('MOTSc'),          vials:10, qty:40,   unit:'mg', purchased:'2026-06-21'},
@@ -6516,6 +6870,235 @@ async function checkBackupReminder(){try{
 }catch(e){console.error("function checkBackupReminder() error:",e.message);}
 }
 
+// ─── DOSE SNAPSHOT ───────────────────────────────────────────
+// Exports what was taken over a date range, for loading into another tracker.
+// One row per compound per day, carrying BOTH what was scheduled and what was
+// actually logged, so a missed or part-taken day is visible rather than absent.
+//
+// Status comes from adherenceStatus so the export agrees with the Records tab,
+// with one refinement: adherenceStatus marks a whole day taken as soon as any log
+// exists (the known slot-aware gap), so a day with fewer logs than scheduled doses
+// is reported here as 'partial' rather than 'taken'. That is strictly more
+// information, never a contradiction.
+
+// Sunday of the week containing dateStr. The export defaults to Sunday-to-Saturday
+// independently of the Weekly Prep week-start setting, which is a separate choice.
+function snapWeekStart(dateStr){
+  const d=new Date((dateStr||tod())+'T12:00:00');
+  return addDays(dateStr||tod(), -d.getDay());
+}
+// Config as it stood on a date. Mirrors the reconstruction in adherenceStatus
+// deliberately, so the two cannot report different protocols for the same day.
+function snapCfgAt(cid, ds){
+  const c=(D.compounds||[]).find(x=>x && x.id===cid);
+  let snap=null;
+  (D.history||[]).forEach(h=>{
+    if(h.cid===cid && h.savedAt.slice(0,10)<=ds && (!snap||h.savedAt>snap.savedAt)) snap=h;
+  });
+  return (snap && snap.snap) ? snap.snap : c;
+}
+function buildDoseSnapshot(from, days){
+  // Anything that is not a positive count falls back to a week, so 0, a negative
+  // and junk all behave the same rather than silently meaning 'one day'.
+  const _d=parseInt(days,10);
+  const nDays=Math.min(366, (Number.isFinite(_d) && _d>0) ? _d : 7);
+  const start=from||snapWeekStart(tod());
+  const end=addDays(start, nDays-1);
+  const rows=[];
+  const tally={taken:0, partial:0, missed:0, paused:0, extra:0, pending:0, doses:0};
+  for(let i=0;i<nDays;i++){
+    const ds=addDays(start,i);
+    const dow=new Date(ds+'T12:00:00');
+    const wd=dow.toLocaleDateString('en-GB',{weekday:'short'});
+    (D.compounds||[]).forEach(c=>{
+      if(!c) return;
+      const cfg=snapCfgAt(c.id, ds) || c;
+      const allLogs=(D.logs||[]).filter(l=>l && l.pid===c.id && String(l.t||'').slice(0,10)===ds);
+      const flex=cfg.freq==='flex';
+      // Extra doses are reported in their own column so they never inflate what was
+      // taken against the schedule.
+      const logs=flex ? allLogs : allLogs.filter(l=>!isExtraLog(l));
+      const extras=flex ? [] : allLogs.filter(isExtraLog);
+      // Scheduled count comes from the current record via the canonical layer. A
+      // flexible protocol has no scheduled day, so it contributes none.
+      const schedN = flex ? 0 : doseInstancesFor(c, ds).length;
+      const takenN = logs.length;
+      const extraN = extras.length;
+      if(!schedN && !takenN && !extraN) return;       // nothing to say about this day
+      let status;
+      if(flex)                       status = 'flexible-taken';
+      else if(!schedN)               status = 'extra';
+      else if(takenN===0){
+        const st=adherenceStatus(c.id, ds);
+        if(st==='paused')            status = 'paused';
+        else if(st==='missed')       status = 'missed';
+        else if(st==='none'){
+          // adherenceStatus reports 'none' both for a day that cannot be assessed
+          // (before tracking began) and for one that is not due yet. A scheduled day
+          // from today onward is pending, not missed and not absent — without this
+          // the other app cannot tell "not taken yet" from "not scheduled".
+          if(ds>=tod()) status = 'pending';
+          else          return;
+        }
+        else                         status = 'missed';
+      }
+      else if(takenN < schedN)       status = 'partial';
+      else                           status = 'taken';
+      const totalDose=allLogs.reduce((a,l)=>a+(parseFloat(l.dose)||0),0);
+      const first=logs[0]||extras[0];
+      const perDose = first ? (parseFloat(first.dose)||0)
+                            : (parseFloat(effectiveDose(cfg, ds))||parseFloat(cfg.dose)||0);
+      rows.push({
+        date: ds,
+        weekday: wd,
+        compound: c.name||'Unnamed',
+        category: cfg.cat||c.cat||'',
+        route: cfg.route||c.route||'',
+        schedule: flex ? 'flexible' : (cfg.freq||''),
+        weekly_target: flex ? flexTarget(cfg) : '',
+        dose: perDose,
+        unit: normUnit(cfg.unit||c.unit)||'',
+        doses_scheduled: schedN,
+        doses_taken: takenN,
+        doses_extra: extraN,
+        total_dose: (takenN||extraN) ? totalDose : 0,
+        status: status,
+        notes: allLogs.map(l=>l.notes||'').filter(Boolean).join('; ')
+      });
+      tally.doses += takenN + extraN;
+      if(status==='taken'||status==='flexible-taken') tally.taken++;
+      else if(tally[status]!==undefined) tally[status]++;
+      if(extraN && status!=='extra') tally.extra++;
+    });
+  }
+  rows.sort((a,b)=> a.date<b.date?-1 : a.date>b.date?1 : a.compound.localeCompare(b.compound));
+  return {from:start, to:end, days:nDays, rows:rows, tally:tally,
+          generated:(typeof utcStamp==='function'?utcStamp():new Date().toISOString())};
+}
+const SNAP_COLS=['date','weekday','compound','category','route','schedule','weekly_target',
+                 'dose','unit','doses_scheduled','doses_taken','doses_extra','total_dose','status','notes'];
+// Quote per RFC 4180, and neutralise a leading character a spreadsheet would read as
+// a formula. Compound names never legitimately start with one.
+function snapCsvCell(v){
+  let t=(v===null||v===undefined)?'':String(v);
+  if(/^[=+@\t\r]/.test(t)) t="'"+t;
+  return /[",\n\r]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t;
+}
+function snapshotCsv(snap){
+  const head=SNAP_COLS.join(',');
+  const body=snap.rows.map(r=>SNAP_COLS.map(k=>snapCsvCell(r[k])).join(',')).join('\n');
+  return head+'\n'+body+(body?'\n':'');
+}
+function snapshotJson(snap){
+  const payload={
+    source:'Peptide Tracker', generated:snap.generated,
+    range:{from:snap.from, to:snap.to, days:snap.days},
+    totals:snap.tally, doses:snap.rows
+  };
+  // safeStringify is the guarded serialiser and returns {ok, json}; it takes no
+  // indent, so the readable form is produced from its verified output.
+  const ser=safeStringify(payload);
+  if(!ser.ok) return '';
+  try{ return JSON.stringify(JSON.parse(ser.json), null, 2); }
+  catch(e){ return ser.json; }
+}
+let _snapCache=null;
+function currentSnapshot(){
+  const f=document.getElementById('snap-from');
+  const d=document.getElementById('snap-days');
+  _snapCache=buildDoseSnapshot(f?f.value:'', d?d.value:7);
+  return _snapCache;
+}
+function rSnapshotPreview(){
+  const snap=currentSnapshot();
+  const sum=document.getElementById('snap-summary');
+  const pre=document.getElementById('snap-preview');
+  if(sum){
+    const t=snap.tally;
+    const parts=[t.doses+' dose'+(t.doses===1?'':'s')+' logged'];
+    if(t.missed)  parts.push(t.missed+' missed');
+    if(t.partial) parts.push(t.partial+' part-taken');
+    if(t.paused)  parts.push(t.paused+' snoozed');
+    if(t.extra)   parts.push(t.extra+' off-schedule');
+    if(t.pending) parts.push(t.pending+' still to come');
+    sum.innerHTML='<strong>'+esc(fmtD(snap.from))+' \u2013 '+esc(fmtD(snap.to))+'</strong>'
+      +' \u00b7 '+snap.days+' day'+(snap.days===1?'':'s')+'<br>'
+      +esc(parts.join(' \u00b7 '))+'<br>'
+      +'<span style="color:var(--text-muted)">'+snap.rows.length+' row'
+      +(snap.rows.length===1?'':'s')+' in the export</span>';
+  }
+  if(pre){
+    pre.textContent = snap.rows.length
+      ? snapshotCsv(snap).split('\n').slice(0,40).join('\n')
+      : 'Nothing recorded or scheduled in this range.';
+  }
+}
+function snapQuick(which){
+  const f=document.getElementById('snap-from');
+  const d=document.getElementById('snap-days');
+  if(!f||!d) return;
+  if(which==='this'){ f.value=snapWeekStart(tod()); d.value=7; }
+  else if(which==='last'){ f.value=addDays(snapWeekStart(tod()),-7); d.value=7; }
+  else { const n=parseInt(which,10)||7; f.value=addDays(tod(),-(n-1)); d.value=n; }
+  rSnapshotPreview();
+}
+function openSnapshot(){
+  const f=document.getElementById('snap-from');
+  const d=document.getElementById('snap-days');
+  if(f && !f.value) f.value=snapWeekStart(tod());
+  if(d && !d.value) d.value=7;
+  rSnapshotPreview();
+  openOv('ov-snapshot');
+}
+function snapName(snap, ext){
+  return 'peptide-doses-'+snap.from+'-to-'+snap.to+'.'+ext;
+}
+async function snapshotCopy(kind){
+  const snap=currentSnapshot();
+  if(!snap.rows.length){ await ptAlert('There is nothing to export in that range.','Nothing to export'); return; }
+  const text=(kind==='json')?snapshotJson(snap):snapshotCsv(snap);
+  let ok=false;
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(text); ok=true;
+    }
+  }catch(e){ ok=false; }
+  if(!ok){
+    // Safari refuses the clipboard outside a trusted gesture often enough that a
+    // silent failure would be worse than a visible fallback.
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      ok=document.execCommand('copy');
+      document.body.removeChild(ta);
+    }catch(e){ ok=false; }
+  }
+  await ptAlert(ok ? snap.rows.length+' rows copied as '+kind.toUpperCase()+'. Paste it into the other app.'
+                   : 'Could not reach the clipboard. Use Download '+kind.toUpperCase()+' instead.',
+                ok ? 'Copied' : 'Copy failed');
+}
+function snapshotDownload(kind){
+  const snap=currentSnapshot();
+  if(!snap.rows.length){ ptAlert('There is nothing to export in that range.','Nothing to export'); return; }
+  const json=(kind==='json');
+  const text=json?snapshotJson(snap):snapshotCsv(snap);
+  const name=snapName(snap, json?'json':'csv');
+  const blob=new Blob([text],{type:json?'application/json':'text/csv'});
+  try{
+    const file=new File([blob], name, {type:blob.type});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({files:[file], title:'Dose snapshot'}).catch(()=>{});
+      return;
+    }
+  }catch(e){ /* fall through to a plain download */ }
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function exportData(){
   const date=localDateStr();
   const filename='peptide-backup-'+date+'.json';
@@ -6681,6 +7264,9 @@ function sameProtocolConfig(a,b){
   const norm=v=>(v===undefined||v===null?'':String(v).trim());
   return keys.every(k=>norm(a[k])===norm(b[k]));
 }
+// Formerly the "Save & Update" button. Every write path now records its own history
+// through applyProtocolMutation or snapshotCompound, so there is nothing for a manual
+// save to add; kept callable for the console and for any future bulk path.
 function manualSave(){
   // Snapshot ALL compounds via the canonical deep-snapshot path (applies retention).
   // Dirty check: only snapshot compounds whose protocol config actually changed
@@ -6708,27 +7294,19 @@ function copyStackPrompt(){
   const active=D.compounds.filter(c=>c.active);
   if(!active.length){ptAlert('No active compounds to analyse.');return;}
 
-  function dpw(c){
-    if(c.freq==='flex') return flexTarget(c);
-    if(!c.days||!c.days.length){
-      const m={daily:7,bid:7,tid:7,eod:3.5,e3d:2.3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:0.25,oneweekpermonth:7/4.345,prn:0};
-      return m[c.freq]||7;
-    }
-    return c.days.length;
-  }
+  function dpw(c){ return protocolWeeklyShape(c).days; }
 
   const PEPTIDE_CATS=['Peptide','Growth Hormone','Nootropic'];
   const peptides=active.filter(c=>PEPTIDE_CATS.includes(c.cat)||!c.cat);
   const compounds=active.filter(c=>!PEPTIDE_CATS.includes(c.cat)&&c.cat);
 
   function describeCompound(c){
-    const d=dpw(c);
-    const sessions=c.time==='Both'?2:1;
-    const jabDose=c.dose*sessions;
-    const weekly=parseFloat((jabDose*d).toFixed(2));
-    const freqStr=d===7?'daily':d===3.5?'every other day':d+'x per week';
+    const sh=protocolWeeklyShape(c);
+    const perDay=sh.days ? Math.round(sh.doses/sh.days) : 1;
+    const weekly=parseFloat((c.dose*sh.doses).toFixed(2));
+    const freqStr=weeklyShapeLabel(c).toLowerCase().replace('eod','every other day');
     const timingStr=c.time==='Both'?'AM and PM':c.time||'any time';
-    return '  - '+esc(c.name)+': '+jabDose+' '+c.unit+' per session, '+freqStr+', '+timingStr+
+    return '  - '+esc(c.name)+': '+c.dose+' '+c.unit+' per dose'+(perDay>1?' ('+perDay+' doses a day)':'')+', '+freqStr+', '+timingStr+
       ', weekly total: '+weekly+' '+c.unit+
       (c.route?', route: '+c.route:'')+
       (c.start?', started: '+c.start:'');
@@ -6815,7 +7393,7 @@ function init(){
   applyDuePendingChanges();   // enact any change whose date has arrived
   pruneShifts();          // drop moved-dose records long past their landing date
   checkBackupReminder();
-  document.getElementById('hdrDate').textContent=new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('hdrDate').textContent=new Date().toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'});
   viewDate=tod();
   updateDateNav();
   render();
@@ -6838,31 +7416,31 @@ function init(){
 // not paused. Ask the user to confirm they were actually missed vs just not entered.
 function checkMissedDoses(){
   const LOOKBACK=1; // only the previous day
-  const todayStr=new Date().toISOString().slice(0,10);
-  const confirmed=JSON.parse(localStorage.getItem('pt_missed_confirmed')||'{}');
+  const todayStr=tod();
+  const confirmed=safeParse(safeGet('pt_missed_confirmed'),{})||{};
   const candidates=[];
   for(let back=1; back<=LOOKBACK; back++){
-    const dt=new Date(); dt.setDate(dt.getDate()-back);
-    const ds=dt.toISOString().slice(0,10);
+    const ds=addDays(todayStr,-back);
     (D.compounds||[]).forEach(c=>{
-      if(!c.active || c.freq==='prn' || c.freq==='flex') return;
-      // scheduled that day?
-      const dow=dt.getDay();
-      const sched = (c.days&&c.days.length) ? c.days.includes(dow) : true;
-      if(!sched) return;
-      // within active window?
-      if(c.start && ds<c.start) return;
-        // §5: don't flag days before tracking began as missed.
-        if(c.trackingStartDate && ds<c.trackingStartDate) return;
-      if(c.end && ds>c.end) return;
-      const key=c.id+'|'+ds;
-      if(confirmed[key]) return; // already confirmed one way or another
-      const taken=(D.logs||[]).some(l=>l.pid===c.id && (l.t||'').startsWith(ds));
-      // Use the app's own snooze check so "paused" is judged identically to the rest of the app.
-      // For Both (AM+PM) compounds a pause on either slot (or a whole-day pause) counts.
-      const slots = c.time==='Both' ? ['am','pm',''] : [''];
-      const paused = slots.some(sl => !!snoozeFor(c, sl, ds));
-      if(!taken && !paused) candidates.push({cid:c.id, name:c.name, date:ds, key});
+      if(!c || !c.active || c.freq==='prn' || c.freq==='flex') return;
+      // §5: don't flag days before tracking began as missed.
+      if(c.trackingStartDate && ds<c.trackingStartDate) return;
+      // What was due that day comes from the canonical scheduler, through the moved-dose
+      // layer, so an interval protocol is never asked about a day it was not due and a
+      // dose moved elsewhere is not chased on the day it left.
+      const insts=doseInstancesFor(c, ds);
+      if(!insts.length) return;
+      // Slot-aware: a twice-daily protocol with only the morning logged still has an
+      // evening dose unaccounted for.
+      insts.forEach(inst=>{
+        const sl=logSlotFor(c, inst);
+        const key=c.id+'|'+ds+(sl?'|'+sl:'');
+        if(confirmed[key] || confirmed[c.id+'|'+ds]) return;   // either key shape
+        if(doneOnDate(c, sl, ds)) return;
+        if(snoozeFor(c, sl, ds) || snoozeFor(c, '', ds)) return;
+        candidates.push({cid:c.id, name:c.name+(sl?' ('+sl.toUpperCase()+')':''),
+                         date:ds, key:key, slot:sl});
+      });
     });
   }
   if(!candidates.length) return;
@@ -6879,29 +7457,30 @@ function showMissedDoseDialog(candidates, confirmed){
       </div>
     </div>`).join('');
   window._missedCandidates=list;
-  const ov=document.createElement('div');
-  ov.id='missed-overlay';
-  ov.style.cssText='position:fixed;inset:0;background:var(--overlay);z-index:999;display:flex;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom,0px)';
-  ov.innerHTML=`<div style="background:var(--surface-primary);border-radius:20px 20px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-height:80vh;overflow-y:auto">
-      <div style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:4px">Confirm recent doses</div>
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">These doses were scheduled but not logged. Did you take them?</div>
+  // An inline card at the top of Today. It used to be a fixed overlay over every tab
+  // that re-appeared until each row was answered; the question is the same, the
+  // interruption is gone.
+  const el=document.getElementById('missed-banner');
+  if(!el) return;
+  el.innerHTML=`<div id="missed-overlay" class="col" style="margin-bottom:12px;padding:12px 13px;border-color:var(--warning)">
+      <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:2px">Yesterday's unlogged doses</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">Scheduled but not logged. Did you take them?</div>
       ${rows}
-      <button class="btn btn-p" style="margin-top:14px" onclick="dismissMissed()">Done</button>
+      <button class="btn btn-s btn-sm" style="margin-top:10px;width:100%" onclick="dismissMissed()">Dismiss</button>
     </div>`;
-  document.body.appendChild(ov);
 }
 function resolveMissed(idx, outcome){
   const m=window._missedCandidates[idx]; if(!m) return;
-  const confirmed=JSON.parse(localStorage.getItem('pt_missed_confirmed')||'{}');
+  const confirmed=safeParse(safeGet('pt_missed_confirmed'),{})||{};
   confirmed[m.key]=outcome; // 'logged' or 'missed'
-  localStorage.setItem('pt_missed_confirmed', JSON.stringify(confirmed));
+  safeWriteJson('pt_missed_confirmed', confirmed);
   if(outcome==='logged'){
     // record a retroactive log at noon of that date so adherence shows green
     if(!D.logs) D.logs=[];
     const mc=(D.compounds||[]).find(x=>x && x.id===m.cid);
     // Slot is not yet identified by the candidate model — see the reported limitation.
-    D.logs.push(mc ? scheduledLogPayload(mc, m.date, '', {notes:'Confirmed via missed-dose check'})
-                   : {id:uid(), pid:m.cid, slot:'', dose:'', unit:'', site:'', t:m.date+'T12:00:00', notes:'Confirmed via missed-dose check'});
+    D.logs.push(mc ? scheduledLogPayload(mc, m.date, (m.slot||''), {notes:'Confirmed via missed-dose check'})
+                   : {id:uid(), pid:m.cid, slot:(m.slot||''), dose:'', unit:'', site:'', t:m.date+(m.slot==='pm'?'T19:00:00':'T08:00:00'), notes:'Confirmed via missed-dose check'});
     save();
   }
   // grey out the row
@@ -6909,7 +7488,7 @@ function resolveMissed(idx, outcome){
   btns.forEach(b=>{b.disabled=true; b.style.opacity=.4;});
 }
 function dismissMissed(){
-  const o=document.getElementById('missed-overlay'); if(o) o.remove();
+  const el=document.getElementById('missed-banner'); if(el) el.innerHTML='';
   render();
 }
 
@@ -7263,7 +7842,7 @@ function kiRenderStep(existing){
   ['ki-name','ki-dose','ki-vial','ki-bac','ki-saline','ki-volPerSpray','ki-sprays','ki-pinGroup','ki-start','ki-weeks','ki-end','ki-weeklyTarget'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   kiApplyRouteForm(null);
   // Default start date to today (so a new protocol starts now unless changed).
-  { const st=document.getElementById('ki-start'); if(st){ st.value=(typeof localDateStr==='function')?localDateStr(new Date()):new Date().toISOString().slice(0,10); } }
+  { const st=document.getElementById('ki-start'); if(st){ st.value=localDateStr(new Date()); } }
   document.getElementById('ki-unit').value='mcg';
   document.getElementById('ki-freq').value='daily';
   document.getElementById('ki-time').value='AM';
@@ -8411,7 +8990,7 @@ function titrationTotalWeeks(c){
   return c.titration.steps.reduce((a,s)=>a+(parseFloat(s.weeks)||0),0);
 }
 function effectiveDose(c, date){
-  date = date || (typeof viewDate!=='undefined'?viewDate:new Date().toISOString().slice(0,10));
+  date = date || (typeof viewDate!=='undefined'?viewDate:localDateStr(new Date()));
   if(!c || !c.titration || !c.titration.enabled || !Array.isArray(c.titration.steps) || !c.titration.steps.length){
     return c ? c.dose : null;
   }
@@ -8902,7 +9481,7 @@ window.PT_debug = {
       {id:'debug', name:'Debug Compound', dose:250, unit:'mcg', freq:'daily',
        time:'AM', weeks:8, vialSize:5, bacWater:2};
     const today = new Date();
-    const endDate = today.toISOString().slice(0,10);
+    const endDate = localDateStr(today);
     showCycleReminder([{c, endDate, key:'debug-'+endDate}], 0, {});
   }
 };
